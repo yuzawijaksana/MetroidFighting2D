@@ -1,6 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
-using static PlayerAttack; // Add this to reference AttackType
+using static PlayerAttack;
 using System.Collections;
 
 public class BirdController : MonoBehaviour, ICharacterBehavior
@@ -8,40 +8,39 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
     private BoxCollider2D boxCollider;
     private Vector2 originalColliderSize;
     private Rigidbody2D rb;
-    private PlayerAttack playerAttack; // Reference to PlayerAttack
+    private PlayerAttack playerAttack;
     private Animator anim;
+    private PlayerController playerController;
 
     [Header("Bird Collider Settings")]
-    [SerializeField] private float wallSlideShrinkX = 1.0f; // Default to no shrink
-    [SerializeField] private float wallSlideShrinkY = 1.0f; // Default to no shrink
-    [SerializeField] private float jumpShrinkX = 1.0f; // Default to no shrink
-    [SerializeField] private float jumpShrinkY = 1.0f; // Default to no shrink
+    [SerializeField] private float wallSlideShrinkX = 1.0f;
+    [SerializeField] private float wallSlideShrinkY = 1.0f;
+    [SerializeField] private float jumpShrinkX = 1.0f;
+    [SerializeField] private float jumpShrinkY = 1.0f;
 
     private Dictionary<AttackType, System.Action> attackBehaviors;
-    private AttackType lastAttackType; // Track the last attack type
-
-    
+    private AttackType lastAttackType;
 
     [Header("Attack Cooldown Settings")]
-    [SerializeField] private float lastAttackTime = 0f; // Track the last attack time
-    [SerializeField] private float sameAttackCD = 1.0f; // Cooldown for the same attack
-    [SerializeField] private float diffAttackCD = 0.5f; // Cooldown for different attacks;
+    [SerializeField] private float lastAttackTime = 0f;
+    [SerializeField] private float sameAttackCD = 1.0f;
+    [SerializeField] private float diffAttackCD = 0.5f;
 
     private void Start()
     {
         boxCollider = GetComponent<BoxCollider2D>();
         originalColliderSize = boxCollider.size;
         rb = GetComponent<Rigidbody2D>();
-        anim = GetComponent<Animator>(); // Initialize Animator
+        anim = GetComponent<Animator>();
 
-        // Initialize PlayerAttack reference
         playerAttack = GetComponent<PlayerAttack>();
+        playerController = GetComponent<PlayerController>(); // Reference PlayerController
+
         if (playerAttack == null)
         {
             Debug.LogError("PlayerAttack component not found on the same GameObject.");
         }
 
-        // Initialize attack behaviors
         attackBehaviors = new Dictionary<AttackType, System.Action>
         {
             { AttackType.NeutralLight, HandleNeutralLightAttack },
@@ -61,31 +60,25 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
     private void OnEnable()
     {
         PlayerAttack.OnAttackPerformed += HandleAttack;
-        Debug.Log("BirdController subscribed to OnAttackPerformed.");
     }
 
     private void OnDisable()
     {
         PlayerAttack.OnAttackPerformed -= HandleAttack;
-        Debug.Log("BirdController unsubscribed from OnAttackPerformed.");
     }
 
     private void HandleAttack(AttackType attackType, float duration)
     {
+        // Ensure this BirdController only responds to attacks from its linked PlayerController
+        if (playerController == null || !playerController.isControllable) return;
+
         float currentTime = Time.time;
         float cooldown = attackType == lastAttackType ? sameAttackCD : diffAttackCD;
 
-        // Check if the attack is on cooldown
-        if (currentTime < lastAttackTime + cooldown)
-        {
-            float remainingCooldown = (lastAttackTime + cooldown) - currentTime;
-            Debug.Log($"Attack {attackType} is on cooldown for {remainingCooldown:F2} seconds ({(attackType == lastAttackType ? "same" : "different")} attack cooldown).");
-            return;
-        }
+        if (currentTime < lastAttackTime + cooldown) return;
 
         if (attackBehaviors.TryGetValue(attackType, out var behavior))
         {
-            // Activate the corresponding hitbox
             GameObject hitbox = GetHitboxForAttackType(attackType);
             if (hitbox != null)
             {
@@ -93,19 +86,12 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
                 StartCoroutine(DeactivateHitboxAfterDuration(hitbox, duration));
             }
 
-            // Invoke the attack behavior
             behavior.Invoke();
 
-            // Update last attack time and type
             lastAttackTime = currentTime;
             lastAttackType = attackType;
 
-            // Start cooldown after the attack duration ends
             StartCoroutine(StartCooldownAfterAttack(cooldown));
-        }
-        else
-        {
-            Debug.LogWarning($"No behavior found for attack type: {attackType}");
         }
     }
 
@@ -117,12 +103,11 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
     private IEnumerator DeactivateHitboxAfterDuration(GameObject hitbox, float duration)
     {
         yield return new WaitForSeconds(duration);
-        hitbox.SetActive(false); // Deactivate the hitbox
+        hitbox.SetActive(false);
     }
 
     private GameObject GetHitboxForAttackType(AttackType attackType)
     {
-        // Map attack types to their corresponding hitboxes
         return attackType switch
         {
             AttackType.NeutralLight => playerAttack.neutralLight,
@@ -142,81 +127,112 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
 
     private void HandleNeutralLightAttack()
     {
+        float attackDuration = playerAttack.GetCurrentAttackDuration();
+
         anim.SetBool("NeutralLight", true);
-        ResetAnimatorBool("NeutralLight", playerAttack.GetCurrentAttackDuration());
+        ResetAnimatorBool("NeutralLight", attackDuration);
     }
 
     private void HandleSideLightAttack()
     {
+        float attackDuration = playerAttack.GetCurrentAttackDuration();
+
         anim.SetBool("SideLight", true);
-        ResetAnimatorBool("SideLight", playerAttack.GetCurrentAttackDuration());
+        ResetAnimatorBool("SideLight", attackDuration);
     }
 
     private void HandleDownLightAttack()
     {
+        float attackDuration = playerAttack.GetCurrentAttackDuration();
+
         anim.SetBool("DownLight", true);
-        ResetAnimatorBool("DownLight", playerAttack.GetCurrentAttackDuration());
+        ResetAnimatorBool("DownLight", attackDuration);
     }
 
     private void HandleNeutralAirAttack()
     {
+        float attackDuration = playerAttack.GetCurrentAttackDuration();
+
         anim.SetBool("NeutralAir", true);
-        ResetAnimatorBool("NeutralAir", playerAttack.GetCurrentAttackDuration());
+        ResetAnimatorBool("NeutralAir", attackDuration);
+
+        // No locking for NeutralAir
     }
 
     private void HandleSideAirAttack()
     {
-        anim.SetBool("SideAir", true);
-
-        // Temporarily set gravity scale to 0
         float originalGravityScale = rb.gravityScale;
-        rb.gravityScale = 0;
-
-        // Push the bird forward
-        float pushForce = 10f; // Adjust this value as needed
+        float pushForce = 7.5f;
         Vector2 pushDirection = transform.localScale.x > 0 ? Vector2.right : Vector2.left;
-        rb.linearVelocity = pushDirection * pushForce;
+        float attackDuration = playerAttack != null ? playerAttack.GetCurrentAttackDuration() : 0.5f;
 
-        // Use the attack duration to revert gravity scale and reset the animation bool
-        float attackDuration = playerAttack != null ? playerAttack.GetCurrentAttackDuration() : 0.5f; // Default to 0.5f if duration is unavailable
+        anim.SetBool("SideAir", true);
+        rb.gravityScale = 0;
+        rb.linearVelocity = pushDirection * pushForce;
+        playerController.LockAttack(attackDuration);
+        StartCoroutine(MaintainAttackVelocity(pushDirection * pushForce, attackDuration));
+
         Invoke(nameof(RevertGravityScale), attackDuration);
         ResetAnimatorBool("SideAir", attackDuration);
     }
 
+    private IEnumerator MaintainAttackVelocity(Vector2 velocity, float duration)
+    {
+        float elapsedTime = 0f;
+        while (elapsedTime < duration)
+        {
+            rb.linearVelocity = velocity; // Maintain the velocity
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+    }
+
     private void HandleDownAirAttack()
     {
+        float attackDuration = playerAttack.GetCurrentAttackDuration();
+
         anim.SetBool("DownAir", true);
-        ResetAnimatorBool("DownAir", playerAttack.GetCurrentAttackDuration());
+        ResetAnimatorBool("DownAir", attackDuration);
     }
 
     private void HandleNeutralHeavyAttack()
     {
+        float attackDuration = playerAttack.GetCurrentAttackDuration();
+
         anim.SetBool("NeutralHeavy", true);
-        ResetAnimatorBool("NeutralHeavy", playerAttack.GetCurrentAttackDuration());
+        ResetAnimatorBool("NeutralHeavy", attackDuration);
     }
 
     private void HandleSideHeavyAttack()
     {
+        float attackDuration = playerAttack.GetCurrentAttackDuration();
+
         anim.SetBool("SideHeavy", true);
-        ResetAnimatorBool("SideHeavy", playerAttack.GetCurrentAttackDuration());
+        ResetAnimatorBool("SideHeavy", attackDuration);
     }
 
     private void HandleDownHeavyAttack()
     {
+        float attackDuration = playerAttack.GetCurrentAttackDuration();
+
         anim.SetBool("DownHeavy", true);
-        ResetAnimatorBool("DownHeavy", playerAttack.GetCurrentAttackDuration());
+        ResetAnimatorBool("DownHeavy", attackDuration);
     }
 
     private void HandleRecoveryAttack()
     {
+        float attackDuration = playerAttack.GetCurrentAttackDuration();
+
         anim.SetBool("Recovery", true);
-        ResetAnimatorBool("Recovery", playerAttack.GetCurrentAttackDuration());
+        ResetAnimatorBool("Recovery", attackDuration);
     }
 
     private void HandleGroundPoundAttack()
     {
+        float attackDuration = playerAttack.GetCurrentAttackDuration();
+
         anim.SetBool("GroundPound", true);
-        ResetAnimatorBool("GroundPound", playerAttack.GetCurrentAttackDuration());
+        ResetAnimatorBool("GroundPound", attackDuration);
     }
 
     private void ResetAnimatorBool(string parameterName, float delay)
@@ -234,9 +250,18 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
     {
         rb.gravityScale = 1;
     }
+
+    private void Update()
+    {
+        if (playerController.IsAttackLocked)
+        {
+            // Prevent BirdController from performing actions while attack is locked
+            return;
+        }
+    }
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        // Check if the bird is hit by an attack hitbox
         AttackHitbox hitbox = collision.GetComponent<AttackHitbox>();
         if (hitbox != null)
         {
@@ -250,7 +275,6 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
         rb.AddForce(knockbackDirection * knockbackForce, ForceMode2D.Impulse);
     }
 
-    // Collider Shrinking
     public void ShrinkCollider(float xFactor, float yFactor)
     {
         boxCollider.size = new Vector2(originalColliderSize.x / xFactor, originalColliderSize.y / yFactor);

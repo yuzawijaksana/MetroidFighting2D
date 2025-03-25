@@ -533,7 +533,7 @@ Transform:
   m_GameObject: {fileID: 101514539}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0.051, y: -0.089, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -744,7 +744,7 @@ BoxCollider2D:
   m_UsedByEffector: 1
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -5.49883, y: -0.34540808}
+  m_Offset: {x: -5.49883, y: -0.3733015}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -754,7 +754,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1.870728, y: 0.17822146}
+  m_Size: {x: 1.9933949, y: 0.12253463}
   m_EdgeRadius: 0.01
 --- !u!1 &169638825
 GameObject:
@@ -1580,7 +1580,7 @@ Transform:
   m_GameObject: {fileID: 378108912}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.5, y: 0, z: -10}
+  m_LocalPosition: {x: 0.75, y: 0.5, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1696,23 +1696,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f08e9dabb26da0d4aa2d02637d2acd83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  jumpForce: 7
+  groundCheckPoint: {fileID: 1725847649}
+  whatIsGround:
+    serializedVersion: 2
+    m_Bits: 8
   walkSpeed: 5
-  deceleration: 0.75
-  fallingSpeed: 2
+  deceleration: 0.925
+  fallingSpeed: 5
   maxFallSpeed: -10
   wallSlidingSpeed: 2
   wallCheck: {fileID: 346697687}
   wallLayer:
     serializedVersion: 2
     m_Bits: 128
-  jumpForce: 7
-  groundCheckPoint: {fileID: 1725847649}
-  groundCheckY: 0.2
-  groundCheckX: 0.5
-  whatIsGround:
-    serializedVersion: 2
-    m_Bits: 8
+  jumpSmokePrefab: {fileID: 0}
+  jumpSmokeLifetime: 0.5
+  isWallJumping: 0
+  wallJumpingDirection: 0
+  wallJumpingTime: 0.01
+  wallJumpingCounter: 0
+  wallJumpingDuration: 0.01
+  wallJumpingPower: {x: 1, y: 1}
   dashSpeed: 7
+  dashSmokePrefab: {fileID: 0}
+  dashSmokeLifetime: 0.5
   maxJumps: 2
   slowMotionFactor: 0.5
   lightAttackKey: 106
@@ -2573,7 +2581,7 @@ Transform:
   m_GameObject: {fileID: 1231548240}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.5, y: 0, z: 0}
+  m_LocalPosition: {x: 0.75, y: 0.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4531,7 +4539,7 @@ Transform:
   m_GameObject: {fileID: 2089646250}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.5, y: 0, z: -10}
+  m_LocalPosition: {x: 0.75, y: 0.5, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
