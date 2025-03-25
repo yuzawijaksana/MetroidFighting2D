@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.InputSystem; // Use the new Input System
 
 public class OneWayPlatform : MonoBehaviour
 {
@@ -12,7 +13,8 @@ public class OneWayPlatform : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.S))
+        // Use the new Input System to check for the "S" key press
+        if (Keyboard.current.sKey.wasPressedThisFrame)
         {
             if (currentOneWayPlatform != null)
             {

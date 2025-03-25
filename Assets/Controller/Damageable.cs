@@ -9,42 +9,133 @@ public class Damageable : MonoBehaviour
     [SerializeField] private float maxHealth = 100f;
     private float currentHealth;
 
+    [Header("Stun Settings")]
+    [SerializeField] private float stunDuration = 0.5f; // Duration of the stun
+    private bool isStunned = false;
+
+    [Header("Ground Check Settings")]
+    [SerializeField] private Transform groundCheckPoint;
+    [SerializeField] private LayerMask whatIsGround;
+    [SerializeField] private float groundCheckRadius = 0.2f;
+
+    private PlayerController playerController; // Reference to PlayerController
+
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         currentHealth = maxHealth;
+
+        // Try to get the PlayerController component
+        playerController = GetComponentInParent<PlayerController>();
+
+        // If PlayerController exists, use its groundCheckPoint
+        if (playerController != null)
+        {
+            groundCheckPoint = playerController.groundCheckPoint;
+            whatIsGround = playerController.whatIsGround;
+        }
+        else if (groundCheckPoint == null)
+        {
+            Debug.LogError($"GroundCheckPoint is not assigned for {gameObject.name}. Ensure it is set in the inspector or via PlayerController.");
+        }
     }
 
     public void TakeDamage(float damage, Vector2 knockback)
     {
-        // Reduce health
-        currentHealth -= damage;
-        Debug.Log($"{gameObject.name} took {damage} damage. Remaining health: {currentHealth}");
+        if (isStunned) return; // Prevent further actions if already stunned
 
-        // Apply knockback
+        Debug.Log($"{gameObject.name} is taking {damage} damage with knockback {knockback}");
+
+        currentHealth -= damage;
         if (rb != null)
         {
+            // Reset velocity before applying knockback to avoid conflicts
+            rb.linearVelocity = Vector2.zero;
+
+            // Apply knockback as an impulse
             rb.AddForce(knockback, ForceMode2D.Impulse);
+            Debug.Log($"Knockback applied to {gameObject.name}: {knockback}, Magnitude: {knockback.magnitude}");
         }
 
-        // Play hit animation
-        if (anim != null)
-        {
-            anim.SetTrigger("Hit");
-        }
+        // Flip the parent to face the knockback direction
+        float knockbackDirection = knockback.x > 0 ? -1 : 1;
+        transform.parent.localScale = new Vector3(Mathf.Abs(transform.parent.localScale.x) * knockbackDirection, transform.parent.localScale.y, transform.parent.localScale.z);
+        Debug.Log($"Flipped {transform.parent.name} to face knockback direction.");
 
-        // Check if the character is dead
+        // Apply stun
+        StartCoroutine(ApplyStun());
+
+        // Reset the hurtbox after taking damage
+        ResetHurtbox();
+
         if (currentHealth <= 0)
         {
             Die();
         }
     }
 
+    public bool IsGrounded()
+    {
+        if (groundCheckPoint == null)
+        {
+            Debug.LogError($"GroundCheckPoint is not assigned for {gameObject.name}. Ensure it is set in the inspector or via PlayerController.");
+            return false;
+        }
+
+        return Physics2D.OverlapCircle(groundCheckPoint.position, groundCheckRadius, whatIsGround);
+    }
+
+    private System.Collections.IEnumerator ApplyStun()
+    {
+        isStunned = true;
+        Debug.Log($"{gameObject.name} is stunned for {stunDuration} seconds.");
+
+        // Play stun animation if available
+        if (anim != null)
+        {
+            anim.SetBool("Stunned", true);
+        }
+
+        yield return new WaitForSeconds(stunDuration);
+
+        isStunned = false;
+        Debug.Log($"{gameObject.name} is no longer stunned.");
+
+        // Reset stun animation
+        if (anim != null)
+        {
+            anim.SetBool("Stunned", false);
+        }
+    }
+
+    private void ResetHurtbox()
+    {
+        // Reset the hurtbox state to ensure it can detect collisions again
+        Collider2D collider = GetComponent<Collider2D>();
+        if (collider != null)
+        {
+            collider.enabled = false; // Temporarily disable the collider
+            collider.enabled = true;  // Re-enable the collider to reset its state
+            Debug.Log("Hurtbox has been reset.");
+        }
+    }
+
     private void Die()
     {
         Debug.Log($"{gameObject.name} has died.");
-        // Destroy the GameObject
-        Destroy(gameObject);
+
+        // Destroy the sprite renderer to remove the visual representation
+        SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
+        if (spriteRenderer != null)
+        {
+            Destroy(spriteRenderer);
+            Debug.Log($"SpriteRenderer of {gameObject.name} has been destroyed.");
+        }
+
+        // Destroy the parent GameObject
+        GameObject parentObject = transform.parent != null ? transform.parent.gameObject : gameObject;
+        Destroy(parentObject, 0.1f); // Optional delay for cleanup
+        Debug.Log($"{parentObject.name} GameObject (parent) has been destroyed.");
     }
 }

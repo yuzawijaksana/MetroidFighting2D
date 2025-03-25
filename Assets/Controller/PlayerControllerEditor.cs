@@ -1,6 +1,6 @@
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.InputSystem; // Requires the Input System package
+using UnityEngine.InputSystem; // Use the new Input System
 using System.Collections.Generic;
 
 [CustomEditor(typeof(PlayerController))]
@@ -13,14 +13,15 @@ public class PlayerControllerEditor : Editor
         // Display Control Settings at the top
         EditorGUILayout.LabelField("Control Settings", EditorStyles.boldLabel);
 
-        // Detect connected keyboards
+        // Detect connected keyboards using Unity's Input System
         List<string> controlOptions = new List<string> { "None" };
+        int keyboardIndex = 1; // Start indexing keyboards from 1
         foreach (var device in InputSystem.devices)
         {
-            if (device is Keyboard keyboard)
+            if (device is Keyboard)
             {
-                Debug.Log($"Detected Keyboard: {keyboard.displayName}"); // Log detected keyboards
-                controlOptions.Add(keyboard.displayName); // Add keyboard names
+                controlOptions.Add($"Keyboard{keyboardIndex}");
+                keyboardIndex++;
             }
         }
 

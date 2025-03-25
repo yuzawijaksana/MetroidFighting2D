@@ -88,6 +88,14 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
 
             behavior.Invoke();
 
+            // Flip the bird to face the attack direction only if necessary
+            float attackDirection = playerController.isFacingRight ? 1 : -1;
+            if (Mathf.Sign(transform.localScale.x) != attackDirection)
+            {
+                transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x) * attackDirection, transform.localScale.y, transform.localScale.z);
+                Debug.Log($"Flipped {name} to face attack direction.");
+            }
+
             lastAttackTime = currentTime;
             lastAttackType = attackType;
 
@@ -258,21 +266,6 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
             // Prevent BirdController from performing actions while attack is locked
             return;
         }
-    }
-
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        AttackHitbox hitbox = collision.GetComponent<AttackHitbox>();
-        if (hitbox != null)
-        {
-            HandleHit(hitbox.attackType, hitbox.damage, hitbox.knockbackForce, collision.transform.position);
-        }
-    }
-
-    private void HandleHit(PlayerAttack.AttackType attackType, float damage, float knockbackForce, Vector3 attackerPosition)
-    {
-        Vector2 knockbackDirection = transform.position.x > attackerPosition.x ? Vector2.right : Vector2.left;
-        rb.AddForce(knockbackDirection * knockbackForce, ForceMode2D.Impulse);
     }
 
     public void ShrinkCollider(float xFactor, float yFactor)

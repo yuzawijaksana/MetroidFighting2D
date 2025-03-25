@@ -17,10 +17,13 @@ public class DummyController : MonoBehaviour
     {
         anim = GetComponent<Animator>();
 
-        // Ensure the parent Rigidbody2D is assigned
         if (parentRb == null)
         {
-            Debug.LogError("Parent Rigidbody2D is not assigned. Please assign it in the Inspector.");
+            parentRb = GetComponent<Rigidbody2D>(); // Ensure Rigidbody2D is assigned
+            if (parentRb == null)
+            {
+                Debug.LogError("Parent Rigidbody2D is not assigned or missing. Knockback will not work.");
+            }
         }
     }
 
@@ -30,11 +33,11 @@ public class DummyController : MonoBehaviour
         AttackHitbox hitbox = collision.GetComponent<AttackHitbox>();
         if (hitbox != null)
         {
-            HandleHit(hitbox.attackType, hitbox.damage, hitbox.knockbackForce, collision.transform.position);
+            HandleHit(hitbox.attackType, hitbox.damage, collision.transform.position);
         }
     }
 
-    private void HandleHit(PlayerAttack.AttackType attackType, float damage, float knockbackForce, Vector3 attackerPosition)
+    private void HandleHit(PlayerAttack.AttackType attackType, float damage, Vector3 attackerPosition)
     {
         anim.SetTrigger(spinAnimationTrigger);
         StartCoroutine(ResetToIdleAfterDelay(1f)); // Adjust delay as needed
@@ -44,7 +47,12 @@ public class DummyController : MonoBehaviour
         if (parentRb != null)
         {
             Vector2 knockbackDirection = transform.position.x > attackerPosition.x ? Vector2.right : Vector2.left;
-            parentRb.AddForce(knockbackDirection * knockbackForce / knockbackResistance, ForceMode2D.Impulse);
+            parentRb.AddForce(knockbackDirection / knockbackResistance, ForceMode2D.Impulse);
+
+            // Flip the parent to face the attacker
+            float attackDirection = attackerPosition.x < transform.position.x ? -1 : 1;
+            transform.parent.localScale = new Vector3(Mathf.Abs(transform.parent.localScale.x) * attackDirection, transform.parent.localScale.y, transform.parent.localScale.z);
+            Debug.Log($"Flipped {transform.parent.name} to face attacker.");
         }
     }
 

@@ -1,8 +1,10 @@
 using System.Collections;
 using System.Linq;
+using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.InputSystem; // Use the new Input System
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : NetworkBehaviour
 {
     [Header("Control Settings")]
     [SerializeField] public string controlScheme = "None"; // Dropdown for control scheme (e.g., Keyboard1, Keyboard2, None)
@@ -28,8 +30,8 @@ public class PlayerController : MonoBehaviour
     // Ground Check Settings
     [Header("Ground Check Settings")]
     [SerializeField] private float jumpForce = 45;
-    [SerializeField] private Transform groundCheckPoint;
-    [SerializeField] private LayerMask whatIsGround;
+    [SerializeField] public Transform groundCheckPoint;
+    [SerializeField] public LayerMask whatIsGround;
 
     // Movement Settings
     [SerializeField] private float walkSpeed = 1.0f;
@@ -81,7 +83,7 @@ public class PlayerController : MonoBehaviour
     // State Variables
     private bool isGrounded;
     private float xAxis;
-    private bool isFacingRight = true;
+    public bool isFacingRight = true;
     private bool isAttacking = false; // Flag to track if an attack is being performed
     private bool isAttackLocked = false; // Add attack lock flag
 
@@ -102,6 +104,7 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        if (!IsOwner) return; // Ensure only the owner can control this object
         if (!isControllable) return; // Skip update if the character is not controllable
 
         if (isAttackLocked)
@@ -139,13 +142,12 @@ public class PlayerController : MonoBehaviour
             characterBehavior?.ShrinkColliderForWallSlide();
         }
 
-        if (Input.GetKeyDown(KeyCode.BackQuote)) ToggleSlowMotion();
-        if (Input.GetKeyDown(KeyCode.R)) ResetPosition();
+        if (Keyboard.current.rKey.wasPressedThisFrame) ResetPosition(); // Updated to use the new Input System
 
         isGrounded = Grounded();
 
-        float vertical = Input.GetAxisRaw("Vertical");
-        float horizontal = Input.GetAxisRaw("Horizontal");
+        float vertical = Keyboard.current.wKey.isPressed ? 1 : (Keyboard.current.sKey.isPressed ? -1 : 0); // Updated vertical input
+        float horizontal = Keyboard.current.aKey.isPressed ? -1 : (Keyboard.current.dKey.isPressed ? 1 : 0); // Updated horizontal input
 
         // Ensure attacks are handled only by the linked controlledGameObject
         if (controlledGameObject != null)
@@ -153,11 +155,12 @@ public class PlayerController : MonoBehaviour
             PlayerAttack controlledPlayerAttack = controlledGameObject.GetComponent<PlayerAttack>();
             if (controlledPlayerAttack != null)
             {
-                if (Input.GetKeyDown(lightAttackKey))
+                // Trigger attack only if valid input is detected
+                if (Keyboard.current.jKey.wasPressedThisFrame)
                 {
                     controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, true);
                 }
-                else if (Input.GetKeyDown(heavyAttackKey))
+                else if (Keyboard.current.kKey.wasPressedThisFrame)
                 {
                     controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, false);
                 }
@@ -177,23 +180,17 @@ public class PlayerController : MonoBehaviour
     {
         if (controlScheme == "None") return; // Skip input if no control scheme is selected
 
-        // Debug log to verify control scheme
-        Debug.Log($"Using Control Scheme: {controlScheme}");
-
-        if (controlScheme == "Keyboard1")
+        if (controlScheme == "Keyboard1" || controlScheme == "Keyboard")
         {
-            xAxis = Input.GetAxisRaw("Horizontal");
-            float verticalInput = Input.GetAxisRaw("Vertical"); // Capture vertical input
+            // Use the new Input System for horizontal and vertical input
+            xAxis = (Keyboard.current.dKey.isPressed ? 1 : 0) - (Keyboard.current.aKey.isPressed ? 1 : 0);
+            float verticalInput = (Keyboard.current.wKey.isPressed ? 1 : 0) - (Keyboard.current.sKey.isPressed ? 1 : 0);
         }
         else if (controlScheme == "Keyboard2")
         {
-            xAxis = Input.GetAxisRaw("Horizontal2"); // Example for a second keyboard
-            float verticalInput = Input.GetAxisRaw("Vertical2"); // Example for vertical input on a second keyboard
-        }
-        else if (controlScheme == "Keyboard") // Add a case for "Keyboard"
-        {
-            xAxis = Input.GetAxisRaw("Horizontal"); // Default to "Horizontal" axis
-            float verticalInput = Input.GetAxisRaw("Vertical"); // Default to "Vertical" axis
+            // Example for a second keyboard (customize keys as needed)
+            xAxis = (Keyboard.current.rightArrowKey.isPressed ? 1 : 0) - (Keyboard.current.leftArrowKey.isPressed ? 1 : 0);
+            float verticalInput = (Keyboard.current.upArrowKey.isPressed ? 1 : 0) - (Keyboard.current.downArrowKey.isPressed ? 1 : 0);
         }
         else
         {
@@ -203,7 +200,7 @@ public class PlayerController : MonoBehaviour
 
     private void HandleDash()
     {
-        if (Input.GetKeyDown(dashKey) && !isDashing && Grounded())
+        if (Keyboard.current.lKey.wasPressedThisFrame && !isDashing && Grounded()) // Updated to use the new Input System
         {
             Dash();
         }
@@ -245,15 +242,12 @@ public class PlayerController : MonoBehaviour
 
     private void Flip()
     {
-        if (xAxis < 0)
+        // Flip the character only if the facing direction needs to change
+        if ((xAxis < 0 && isFacingRight) || (xAxis > 0 && !isFacingRight))
         {
-            transform.localScale = new Vector2(-Mathf.Abs(transform.localScale.x), transform.localScale.y);
-            isFacingRight = false;
-        }
-        else if (xAxis > 0)
-        {
-            transform.localScale = new Vector2(Mathf.Abs(transform.localScale.x), transform.localScale.y);
-            isFacingRight = true;
+            transform.localScale = new Vector2(-transform.localScale.x, transform.localScale.y);
+            isFacingRight = !isFacingRight;
+            Debug.Log($"Flipped character to face {(isFacingRight ? "right" : "left")}.");
         }
     }
 
@@ -295,7 +289,7 @@ public class PlayerController : MonoBehaviour
             isDoubleJumping = false;
         }
 
-        if (Input.GetButtonDown("Jump") && (Grounded() || jumpCount < maxJumps || isDashing))
+        if (Keyboard.current.spaceKey.wasPressedThisFrame && (Grounded() || jumpCount < maxJumps || isDashing)) // Updated to use the new Input System
         {
             characterBehavior?.ShrinkColliderForJump();
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
@@ -317,12 +311,12 @@ public class PlayerController : MonoBehaviour
             if (isDashing) isDashing = false;
         }
 
-        if (Input.GetButtonUp("Jump") && rb.linearVelocity.y > 0)
+        if (Keyboard.current.spaceKey.wasReleasedThisFrame && rb.linearVelocity.y > 0) // Updated to use the new Input System
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
         }
 
-        if (Input.GetKeyDown(KeyCode.S) && !Grounded())
+        if (Keyboard.current.sKey.wasPressedThisFrame && !Grounded()) // Updated to use the new Input System
         {
             rb.AddForce(new Vector2(0, -fallingSpeed), ForceMode2D.Impulse);
         }
@@ -345,7 +339,7 @@ public class PlayerController : MonoBehaviour
             wallJumpingCounter -= Time.deltaTime;
         }
 
-        if (Input.GetButtonDown("Jump") && wallJumpingCounter > 0f)
+        if (Keyboard.current.spaceKey.wasPressedThisFrame && wallJumpingCounter > 0f) // Updated to use the new Input System
         {
             isWallJumping = true;
             StartCoroutine(SmoothWallJump());
@@ -428,7 +422,7 @@ public class PlayerController : MonoBehaviour
 
     private void JumpWhileDashing()
     {
-        if (isDashing && Input.GetButtonDown("Jump"))
+        if (isDashing && Keyboard.current.spaceKey.wasPressedThisFrame) // Updated to use the new Input System
         {
             isDashing = false;
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
