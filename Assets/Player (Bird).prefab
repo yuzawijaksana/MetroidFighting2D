@@ -91,6 +91,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62b321ba3e517cc41a9992d4f630ad7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
   attackType: 9
   damage: 10
   knockbackDirection: 0
@@ -98,9 +99,6 @@ MonoBehaviour:
   groundedKnockbackForce: 5
   airKnockbackForce: 7.5
   airKnockbackDelay: 0.2
-  validTargetLayers:
-    serializedVersion: 2
-    m_Bits: 0
 --- !u!1 &1729910795524078876
 GameObject:
   m_ObjectHideFlags: 0
@@ -145,6 +143,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62b321ba3e517cc41a9992d4f630ad7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
   attackType: 2
   damage: 10
   knockbackDirection: 0
@@ -152,9 +151,6 @@ MonoBehaviour:
   groundedKnockbackForce: 5
   airKnockbackForce: 7.5
   airKnockbackDelay: 0.2
-  validTargetLayers:
-    serializedVersion: 2
-    m_Bits: 0
 --- !u!1 &2626833861056398812
 GameObject:
   m_ObjectHideFlags: 0
@@ -199,6 +195,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62b321ba3e517cc41a9992d4f630ad7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
   attackType: 1
   damage: 10
   knockbackDirection: 0
@@ -206,9 +203,6 @@ MonoBehaviour:
   groundedKnockbackForce: 5
   airKnockbackForce: 7.5
   airKnockbackDelay: 0.2
-  validTargetLayers:
-    serializedVersion: 2
-    m_Bits: 0
 --- !u!1 &2870591170926245586
 GameObject:
   m_ObjectHideFlags: 0
@@ -289,7 +283,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20971568201db7e4e8cb7ff94369fb71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 100
+  maxHealth: 500
   stunDuration: 0.5
   groundCheckPoint: {fileID: 3296633051192932678}
   whatIsGround:
@@ -420,6 +414,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62b321ba3e517cc41a9992d4f630ad7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
   attackType: 10
   damage: 10
   knockbackDirection: 0
@@ -427,9 +422,6 @@ MonoBehaviour:
   groundedKnockbackForce: 5
   airKnockbackForce: 7.5
   airKnockbackDelay: 0.2
-  validTargetLayers:
-    serializedVersion: 2
-    m_Bits: 0
 --- !u!1 &3548664251765757997
 GameObject:
   m_ObjectHideFlags: 0
@@ -505,6 +497,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62b321ba3e517cc41a9992d4f630ad7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
   attackType: 6
   damage: 10
   knockbackDirection: 0
@@ -512,9 +505,6 @@ MonoBehaviour:
   groundedKnockbackForce: 5
   airKnockbackForce: 7.5
   airKnockbackDelay: 0.2
-  validTargetLayers:
-    serializedVersion: 2
-    m_Bits: 0
 --- !u!1 &4585104236906588610
 GameObject:
   m_ObjectHideFlags: 0
@@ -801,8 +791,8 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   NetworkRigidbodyBaseExpanded: 0
   UseRigidBodyForMotion: 0
-  AutoUpdateKinematicState: 1
-  AutoSetKinematicOnDespawn: 1
+  AutoUpdateKinematicState: 0
+  AutoSetKinematicOnDespawn: 0
 --- !u!114 &8967728169437932912
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -918,8 +908,8 @@ MonoBehaviour:
   jumpShrinkX: 1
   jumpShrinkY: 1
   lastAttackTime: 0
-  sameAttackCD: 1.25
-  diffAttackCD: 0.75
+  sameAttackCD: 0.5
+  diffAttackCD: 0.25
 --- !u!114 &6446927804737950959
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -932,6 +922,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e6608be05ad28c949a6e544abe05b76b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
   neutralLight: {fileID: 8527566263289191909}
   sideLight: {fileID: 2626833861056398812}
   downLight: {fileID: 1729910795524078876}
@@ -944,6 +935,7 @@ MonoBehaviour:
   recovery: {fileID: 1447988121481123790}
   groundPound: {fileID: 3515964311862012711}
   prioritizeUpOverSide: 1
+  attackCooldown: 1
 --- !u!1 &5678096765016707594
 GameObject:
   m_ObjectHideFlags: 0
@@ -988,6 +980,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62b321ba3e517cc41a9992d4f630ad7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
   attackType: 7
   damage: 10
   knockbackDirection: 0
@@ -995,9 +988,6 @@ MonoBehaviour:
   groundedKnockbackForce: 5
   airKnockbackForce: 7.5
   airKnockbackDelay: 0.2
-  validTargetLayers:
-    serializedVersion: 2
-    m_Bits: 0
 --- !u!1 &5856724997634959995
 GameObject:
   m_ObjectHideFlags: 0
@@ -1120,6 +1110,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62b321ba3e517cc41a9992d4f630ad7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
   attackType: 5
   damage: 10
   knockbackDirection: 0
@@ -1127,9 +1118,6 @@ MonoBehaviour:
   groundedKnockbackForce: 5
   airKnockbackForce: 7.5
   airKnockbackDelay: 0.2
-  validTargetLayers:
-    serializedVersion: 2
-    m_Bits: 0
 --- !u!1 &6332940401576577108
 GameObject:
   m_ObjectHideFlags: 0
@@ -1174,6 +1162,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62b321ba3e517cc41a9992d4f630ad7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
   attackType: 8
   damage: 10
   knockbackDirection: 0
@@ -1181,9 +1170,6 @@ MonoBehaviour:
   groundedKnockbackForce: 5
   airKnockbackForce: 7.5
   airKnockbackDelay: 0.2
-  validTargetLayers:
-    serializedVersion: 2
-    m_Bits: 0
 --- !u!1 &7350990003303659527
 GameObject:
   m_ObjectHideFlags: 0
@@ -1229,6 +1215,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62b321ba3e517cc41a9992d4f630ad7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
   attackType: 4
   damage: 10
   knockbackDirection: 0
@@ -1236,9 +1223,6 @@ MonoBehaviour:
   groundedKnockbackForce: 5
   airKnockbackForce: 10
   airKnockbackDelay: 0.2
-  validTargetLayers:
-    serializedVersion: 2
-    m_Bits: 0
 --- !u!70 &7277147975590918264
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -1387,6 +1371,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62b321ba3e517cc41a9992d4f630ad7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
   attackType: 0
   damage: 10
   knockbackDirection: 0
@@ -1394,9 +1379,6 @@ MonoBehaviour:
   groundedKnockbackForce: 5
   airKnockbackForce: 7.5
   airKnockbackDelay: 0.2
-  validTargetLayers:
-    serializedVersion: 2
-    m_Bits: 0
 --- !u!1 &8608342258820303261
 GameObject:
   m_ObjectHideFlags: 0
@@ -1442,6 +1424,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62b321ba3e517cc41a9992d4f630ad7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
   attackType: 3
   damage: 10
   knockbackDirection: 0
@@ -1449,9 +1432,6 @@ MonoBehaviour:
   groundedKnockbackForce: 2.5
   airKnockbackForce: 7.5
   airKnockbackDelay: 0.2
-  validTargetLayers:
-    serializedVersion: 2
-    m_Bits: 0
 --- !u!58 &9215604995532138930
 CircleCollider2D:
   m_ObjectHideFlags: 0

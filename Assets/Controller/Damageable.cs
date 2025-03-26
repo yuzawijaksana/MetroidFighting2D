@@ -45,33 +45,26 @@ public class Damageable : MonoBehaviour
     {
         if (isStunned) return; // Prevent further actions if already stunned
 
-        Debug.Log($"{gameObject.name} is taking {damage} damage with knockback {knockback}");
-
         currentHealth -= damage;
-        if (rb != null)
-        {
-            // Reset velocity before applying knockback to avoid conflicts
-            rb.linearVelocity = Vector2.zero;
-
-            // Apply knockback as an impulse
-            rb.AddForce(knockback, ForceMode2D.Impulse);
-            Debug.Log($"Knockback applied to {gameObject.name}: {knockback}, Magnitude: {knockback.magnitude}");
-        }
-
-        // Flip the parent to face the knockback direction
-        float knockbackDirection = knockback.x > 0 ? -1 : 1;
-        transform.parent.localScale = new Vector3(Mathf.Abs(transform.parent.localScale.x) * knockbackDirection, transform.parent.localScale.y, transform.parent.localScale.z);
-        Debug.Log($"Flipped {transform.parent.name} to face knockback direction.");
+        ApplyKnockback(knockback);
 
         // Apply stun
         StartCoroutine(ApplyStun());
 
-        // Reset the hurtbox after taking damage
-        ResetHurtbox();
-
         if (currentHealth <= 0)
         {
             Die();
+        }
+    }
+
+    public void ApplyKnockback(Vector2 knockback)
+    {
+        Rigidbody2D parentRb = transform.parent != null ? transform.parent.GetComponent<Rigidbody2D>() : null;
+
+        if (parentRb != null)
+        {
+            parentRb.linearVelocity = Vector2.zero; // Reset velocity before applying knockback
+            parentRb.AddForce(knockback, ForceMode2D.Impulse);
         }
     }
 
@@ -89,7 +82,6 @@ public class Damageable : MonoBehaviour
     private System.Collections.IEnumerator ApplyStun()
     {
         isStunned = true;
-        Debug.Log($"{gameObject.name} is stunned for {stunDuration} seconds.");
 
         // Play stun animation if available
         if (anim != null)
@@ -100,7 +92,6 @@ public class Damageable : MonoBehaviour
         yield return new WaitForSeconds(stunDuration);
 
         isStunned = false;
-        Debug.Log($"{gameObject.name} is no longer stunned.");
 
         // Reset stun animation
         if (anim != null)
@@ -117,25 +108,20 @@ public class Damageable : MonoBehaviour
         {
             collider.enabled = false; // Temporarily disable the collider
             collider.enabled = true;  // Re-enable the collider to reset its state
-            Debug.Log("Hurtbox has been reset.");
         }
     }
 
     private void Die()
     {
-        Debug.Log($"{gameObject.name} has died.");
-
         // Destroy the sprite renderer to remove the visual representation
         SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
         if (spriteRenderer != null)
         {
             Destroy(spriteRenderer);
-            Debug.Log($"SpriteRenderer of {gameObject.name} has been destroyed.");
         }
 
         // Destroy the parent GameObject
         GameObject parentObject = transform.parent != null ? transform.parent.gameObject : gameObject;
         Destroy(parentObject, 0.1f); // Optional delay for cleanup
-        Debug.Log($"{parentObject.name} GameObject (parent) has been destroyed.");
     }
 }

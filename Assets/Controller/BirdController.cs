@@ -21,10 +21,8 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
     private Dictionary<AttackType, System.Action> attackBehaviors;
     private AttackType lastAttackType;
 
-    [Header("Attack Cooldown Settings")]
-    [SerializeField] private float lastAttackTime = 0f;
-    [SerializeField] private float sameAttackCD = 1.0f;
-    [SerializeField] private float diffAttackCD = 0.5f;
+    private bool isAttackActive = false; // Flag to track if an attack is currently active
+    private const float attackCooldown = 0.25f; // Fixed cooldown for all attacks
 
     private void Start()
     {
@@ -67,121 +65,33 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
         PlayerAttack.OnAttackPerformed -= HandleAttack;
     }
 
-    private void HandleAttack(AttackType attackType, float duration)
+    private void HandleAttack(ulong attackerId, AttackHitbox hitbox)
     {
-        // Ensure this BirdController only responds to attacks from its linked PlayerController
-        if (playerController == null || !playerController.isControllable) return;
+        if (playerController.NetworkObjectId != attackerId) return;
 
-        float currentTime = Time.time;
-        float cooldown = attackType == lastAttackType ? sameAttackCD : diffAttackCD;
+        if (isAttackActive) return;
 
-        if (currentTime < lastAttackTime + cooldown) return;
-
-        if (attackBehaviors.TryGetValue(attackType, out var behavior))
+        if (attackBehaviors.TryGetValue(hitbox.attackType, out var behavior))
         {
-            GameObject hitbox = GetHitboxForAttackType(attackType);
-            if (hitbox != null)
-            {
-                hitbox.SetActive(true);
-                StartCoroutine(DeactivateHitboxAfterDuration(hitbox, duration));
-            }
-
             behavior.Invoke();
+        }
 
-            // Flip the bird to face the attack direction only if necessary
-            float attackDirection = playerController.isFacingRight ? 1 : -1;
-            if (Mathf.Sign(transform.localScale.x) != attackDirection)
-            {
-                transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x) * attackDirection, transform.localScale.y, transform.localScale.z);
-                Debug.Log($"Flipped {name} to face attack direction.");
-            }
+        PlayerAttack playerAttackComponent = hitbox.GetComponentInParent<PlayerAttack>();
+        if (playerAttackComponent != null)
+        {
+            isAttackActive = true;
 
-            lastAttackTime = currentTime;
-            lastAttackType = attackType;
+            float attackDuration = playerAttackComponent.GetCurrentAttackDuration();
+            playerController.LockAttack(attackDuration + attackCooldown);
 
-            StartCoroutine(StartCooldownAfterAttack(cooldown));
+            StartCoroutine(ResetAttackActiveAfterDuration(attackDuration + attackCooldown));
         }
     }
 
-    private IEnumerator StartCooldownAfterAttack(float cooldown)
-    {
-        yield return new WaitForSeconds(cooldown);
-    }
-
-    private IEnumerator DeactivateHitboxAfterDuration(GameObject hitbox, float duration)
+    private IEnumerator ResetAttackActiveAfterDuration(float duration)
     {
         yield return new WaitForSeconds(duration);
-        hitbox.SetActive(false);
-    }
-
-    private GameObject GetHitboxForAttackType(AttackType attackType)
-    {
-        return attackType switch
-        {
-            AttackType.NeutralLight => playerAttack.neutralLight,
-            AttackType.SideLight => playerAttack.sideLight,
-            AttackType.DownLight => playerAttack.downLight,
-            AttackType.NeutralAir => playerAttack.neutralAir,
-            AttackType.SideAir => playerAttack.sideAir,
-            AttackType.DownAir => playerAttack.downAir,
-            AttackType.NeutralHeavy => playerAttack.neutralHeavy,
-            AttackType.SideHeavy => playerAttack.sideHeavy,
-            AttackType.DownHeavy => playerAttack.downHeavy,
-            AttackType.Recovery => playerAttack.recovery,
-            AttackType.GroundPound => playerAttack.groundPound,
-            _ => null
-        };
-    }
-
-    private void HandleNeutralLightAttack()
-    {
-        float attackDuration = playerAttack.GetCurrentAttackDuration();
-
-        anim.SetBool("NeutralLight", true);
-        ResetAnimatorBool("NeutralLight", attackDuration);
-    }
-
-    private void HandleSideLightAttack()
-    {
-        float attackDuration = playerAttack.GetCurrentAttackDuration();
-
-        anim.SetBool("SideLight", true);
-        ResetAnimatorBool("SideLight", attackDuration);
-    }
-
-    private void HandleDownLightAttack()
-    {
-        float attackDuration = playerAttack.GetCurrentAttackDuration();
-
-        anim.SetBool("DownLight", true);
-        ResetAnimatorBool("DownLight", attackDuration);
-    }
-
-    private void HandleNeutralAirAttack()
-    {
-        float attackDuration = playerAttack.GetCurrentAttackDuration();
-
-        anim.SetBool("NeutralAir", true);
-        ResetAnimatorBool("NeutralAir", attackDuration);
-
-        // No locking for NeutralAir
-    }
-
-    private void HandleSideAirAttack()
-    {
-        float originalGravityScale = rb.gravityScale;
-        float pushForce = 7.5f;
-        Vector2 pushDirection = transform.localScale.x > 0 ? Vector2.right : Vector2.left;
-        float attackDuration = playerAttack != null ? playerAttack.GetCurrentAttackDuration() : 0.5f;
-
-        anim.SetBool("SideAir", true);
-        rb.gravityScale = 0;
-        rb.linearVelocity = pushDirection * pushForce;
-        playerController.LockAttack(attackDuration);
-        StartCoroutine(MaintainAttackVelocity(pushDirection * pushForce, attackDuration));
-
-        Invoke(nameof(RevertGravityScale), attackDuration);
-        ResetAnimatorBool("SideAir", attackDuration);
+        isAttackActive = false;
     }
 
     private IEnumerator MaintainAttackVelocity(Vector2 velocity, float duration)
@@ -195,10 +105,54 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
         }
     }
 
+    private void HandleNeutralLightAttack()
+    {
+        float attackDuration = playerAttack.GetCurrentAttackDuration();
+        anim.SetBool("NeutralLight", true);
+        ResetAnimatorBool("NeutralLight", attackDuration);
+    }
+
+    private void HandleSideLightAttack()
+    {
+        float attackDuration = playerAttack.GetCurrentAttackDuration();
+        anim.SetBool("SideLight", true);
+        ResetAnimatorBool("SideLight", attackDuration);
+    }
+
+    private void HandleDownLightAttack()
+    {
+        float attackDuration = playerAttack.GetCurrentAttackDuration();
+        anim.SetBool("DownLight", true);
+        ResetAnimatorBool("DownLight", attackDuration);
+    }
+
+    private void HandleNeutralAirAttack()
+    {
+        float attackDuration = playerAttack.GetCurrentAttackDuration();
+        anim.SetBool("NeutralAir", true);
+        ResetAnimatorBool("NeutralAir", attackDuration);
+    }
+
+    private void HandleSideAirAttack()
+    {
+        float originalGravityScale = rb.gravityScale;
+        float pushForce = 7.5f;
+        Vector2 pushDirection = transform.localScale.x > 0 ? Vector2.right : Vector2.left;
+        float attackDuration = playerAttack.GetCurrentAttackDuration();
+
+        anim.SetBool("SideAir", true);
+        rb.gravityScale = 0;
+        rb.linearVelocity = pushDirection * pushForce;
+        playerController.LockAttack(attackDuration);
+        StartCoroutine(MaintainAttackVelocity(pushDirection * pushForce, attackDuration));
+
+        Invoke(nameof(RevertGravityScale), attackDuration);
+        ResetAnimatorBool("SideAir", attackDuration);
+    }
+
     private void HandleDownAirAttack()
     {
         float attackDuration = playerAttack.GetCurrentAttackDuration();
-
         anim.SetBool("DownAir", true);
         ResetAnimatorBool("DownAir", attackDuration);
     }
@@ -206,7 +160,6 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
     private void HandleNeutralHeavyAttack()
     {
         float attackDuration = playerAttack.GetCurrentAttackDuration();
-
         anim.SetBool("NeutralHeavy", true);
         ResetAnimatorBool("NeutralHeavy", attackDuration);
     }
@@ -214,7 +167,6 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
     private void HandleSideHeavyAttack()
     {
         float attackDuration = playerAttack.GetCurrentAttackDuration();
-
         anim.SetBool("SideHeavy", true);
         ResetAnimatorBool("SideHeavy", attackDuration);
     }
@@ -222,7 +174,6 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
     private void HandleDownHeavyAttack()
     {
         float attackDuration = playerAttack.GetCurrentAttackDuration();
-
         anim.SetBool("DownHeavy", true);
         ResetAnimatorBool("DownHeavy", attackDuration);
     }
@@ -230,7 +181,6 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
     private void HandleRecoveryAttack()
     {
         float attackDuration = playerAttack.GetCurrentAttackDuration();
-
         anim.SetBool("Recovery", true);
         ResetAnimatorBool("Recovery", attackDuration);
     }
@@ -238,7 +188,6 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
     private void HandleGroundPoundAttack()
     {
         float attackDuration = playerAttack.GetCurrentAttackDuration();
-
         anim.SetBool("GroundPound", true);
         ResetAnimatorBool("GroundPound", attackDuration);
     }
@@ -257,15 +206,6 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
     private void RevertGravityScale()
     {
         rb.gravityScale = 1;
-    }
-
-    private void Update()
-    {
-        if (playerController.IsAttackLocked)
-        {
-            // Prevent BirdController from performing actions while attack is locked
-            return;
-        }
     }
 
     public void ShrinkCollider(float xFactor, float yFactor)

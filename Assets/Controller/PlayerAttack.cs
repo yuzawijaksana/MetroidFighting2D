@@ -1,7 +1,9 @@
+using System.Collections;
 using UnityEngine;
 using System;
+using Unity.Netcode;
 
-public class PlayerAttack : MonoBehaviour
+public class PlayerAttack : NetworkBehaviour
 {
     public enum AttackType
     {
@@ -32,7 +34,7 @@ public class PlayerAttack : MonoBehaviour
     public GameObject groundPound;
 
     // Event triggered when an attack is performed
-    public static event Action<AttackType, float> OnAttackPerformed;
+    public static event Action<ulong, AttackHitbox> OnAttackPerformed; // Include NetworkObjectIde
     private PlayerController playerController;
     private float currentAttackDuration;
 
@@ -54,6 +56,8 @@ public class PlayerAttack : MonoBehaviour
 
     private void Update()
     {
+        // Ensure only the local player's PlayerAttack processes input
+        if (!IsOwner) return;
     }
 
     private bool Grounded()
@@ -63,13 +67,23 @@ public class PlayerAttack : MonoBehaviour
 
     public void PerformAttack(AttackType attackType, float duration)
     {
-        Debug.Log($"Performing {attackType} attack for {duration} seconds.");
+        if (!IsOwner) return;
 
-        // Store the current attack duration
         currentAttackDuration = duration;
 
-        // Trigger the event to notify subscribers (e.g., BirdController)
-        OnAttackPerformed?.Invoke(attackType, duration);
+        GameObject hitboxObject = GetHitboxForAttackType(attackType);
+        if (hitboxObject != null)
+        {
+            AttackHitbox hitbox = hitboxObject.GetComponent<AttackHitbox>();
+            if (hitbox != null)
+            {
+                hitboxObject.SetActive(true);
+                hitbox.StartAttack(duration); // Start the attack and reset hit objects after the duration
+                StartCoroutine(DeactivateHitboxAfterDuration(hitboxObject, duration, hitbox));
+
+                OnAttackPerformed?.Invoke(NetworkObjectId, hitbox);
+            }
+        }
     }
 
     public float GetCurrentAttackDuration()
@@ -79,6 +93,9 @@ public class PlayerAttack : MonoBehaviour
 
     public void HandleAttack(bool isGrounded, float verticalInput, float horizontalInput, bool isLightAttack)
     {
+        // Ensure only the local player's PlayerAttack handles attacks
+        if (!IsOwner) return;
+
         if (isLightAttack)
         {
             HandleLightAttack(isGrounded, verticalInput, horizontalInput);
@@ -173,10 +190,15 @@ public class PlayerAttack : MonoBehaviour
         }
     }
 
-    private System.Collections.IEnumerator DeactivateHitboxAfterDuration(GameObject hitbox, float duration)
+    private IEnumerator DeactivateHitboxAfterDuration(GameObject hitbox, float duration, AttackHitbox attackHitbox)
     {
         yield return new WaitForSeconds(duration);
         hitbox.SetActive(false); // Hide the hitbox after the duration
+
+        if (IsServer)
+        {
+            attackHitbox.ResetHitObjects(); // Ensure this is only called on the server
+        }
     }
 
     private void HideAllHitboxes()
@@ -197,7 +219,6 @@ public class PlayerAttack : MonoBehaviour
 
     private GameObject GetHitboxForAttackType(AttackType attackType)
     {
-        // Map attack types to their corresponding hitboxes
         return attackType switch
         {
             AttackType.NeutralLight => neutralLight,

@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode;
 
-public class AttackHitbox : MonoBehaviour
+public class AttackHitbox : NetworkBehaviour
 {
     public enum KnockbackDirection
     {
@@ -36,60 +37,127 @@ public class AttackHitbox : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        // Ignore collisions with the player's own GameObject
-        if (collision.gameObject == playerController.gameObject)
+        if (!IsServer)
         {
-            Debug.Log($"Ignored collision with own player: {collision.gameObject.name}");
+            // Send the collision event to the server for processing
+            NetworkObject targetNetworkObject = collision.GetComponentInParent<NetworkObject>();
+            if (targetNetworkObject != null)
+            {
+                ProcessHitServerRpc(targetNetworkObject.NetworkObjectId);
+            }
+            return;
+        }
+
+        ProcessHit(collision);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void ProcessHitServerRpc(ulong targetNetworkObjectId)
+    {
+        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(targetNetworkObjectId, out var targetObject))
+        {
+            Collider2D targetCollider = targetObject.GetComponentInChildren<Collider2D>();
+            if (targetCollider != null)
+            {
+                ProcessHit(targetCollider);
+            }
+        }
+    }
+
+    private void ProcessHit(Collider2D collision)
+    {
+        if (collision == null)
+        {
+            Debug.LogWarning("Collision object is null. Skipping hit processing.");
+            return;
+        }
+
+        // Ignore collisions with the player's own GameObject
+        if (collision.gameObject == playerController?.gameObject)
+        {
+            Debug.LogWarning("Collision with own player detected. Skipping.");
             return;
         }
 
         if (hitObjects.Contains(collision.gameObject))
         {
-            Debug.Log($"Already hit {collision.gameObject.name}, skipping.");
+            Debug.LogWarning($"Collision with {collision.gameObject.name} already processed. Skipping.");
             return; // Skip if the object has already been hit
         }
 
-        Debug.Log($"AttackHitbox collided with {collision.gameObject.name} on layer {collision.gameObject.layer}");
-
-        Damageable target = collision.GetComponent<Damageable>();
-        if (target != null)
+        // Search for the Damageable component in the collision object or its children
+        Damageable target = collision.GetComponentInChildren<Damageable>();
+        if (target == null)
         {
-            Debug.Log($"Damageable component found on {collision.gameObject.name}. Processing knockback and damage.");
+            Debug.LogWarning($"No Damageable component found on {collision.gameObject.name} or its hierarchy. Skipping.");
+            return;
+        }
 
-            // Determine if the target is grounded or airborne
-            bool isTargetGrounded = target.IsGrounded();
+        // Determine if the target is grounded or airborne
+        bool isTargetGrounded = target.IsGrounded();
+        Vector2 knockback = isTargetGrounded
+            ? GetKnockbackDirection(target.transform.position, knockbackDirection) * groundedKnockbackForce
+            : GetKnockbackDirection(target.transform.position, airKnockbackDirection) * airKnockbackForce;
 
-            // Apply grounded knockback immediately
-            if (isTargetGrounded)
-            {
-                ApplyKnockback(target, knockbackDirection, groundedKnockbackForce);
-                StartCoroutine(ApplyAirKnockbackAfterDelay(target));
-            }
-            else
-            {
-                // Apply air knockback directly if already airborne
-                ApplyKnockback(target, airKnockbackDirection, airKnockbackForce);
-            }
+        // Apply damage and knockback on the server
+        target.TakeDamage(damage, knockback);
 
-            target.TakeDamage(damage, Vector2.zero); // Pass knockback direction if needed
-
-            // Flip the enemy to face the attack direction
-            FlipTargetToFaceAttack(target.transform);
-
-            // Add the object to the hitObjects set to prevent duplicate hits
-            hitObjects.Add(collision.gameObject);
-
-            // Reset the hitbox after processing the attack
-            ResetHitbox();
+        // Notify all clients about the knockback
+        NetworkObject targetNetworkObject = target.GetComponentInParent<NetworkObject>();
+        if (targetNetworkObject != null)
+        {
+            NotifyKnockbackClientRpc(targetNetworkObject.NetworkObjectId, knockback);
         }
         else
         {
-            Debug.LogWarning($"No Damageable component found on {collision.gameObject.name}. Ensure the Hurtbox has the Damageable component.");
+            Debug.LogWarning($"No NetworkObject found for {collision.gameObject.name}. Knockback notification skipped.");
+        }
+
+        // Log when a player hits another player
+        ulong targetId = targetNetworkObject != null ? targetNetworkObject.NetworkObjectId : 0;
+        bool hasValidTarget = targetNetworkObject != null;
+        Debug.Log($"Player {playerController?.NetworkObjectId} hit Player {targetId} for {damage} damage.");
+
+        // Notify all clients about the hit
+        NotifyHitClientRpc(playerController?.NetworkObjectId ?? 0, targetId, hasValidTarget, damage);
+
+        hitObjects.Add(collision.gameObject);
+    }
+
+    [ClientRpc]
+    private void NotifyHitClientRpc(ulong attackerId, ulong targetId, bool hasValidTarget, float damage)
+    {
+        if (hasValidTarget)
+        {
+            Debug.Log($"Player {attackerId} hit Player {targetId} for {damage} damage.");
+        }
+        else
+        {
+            Debug.Log($"Player {attackerId} hit an unknown target for {damage} damage.");
+        }
+    }
+
+    [ClientRpc]
+    private void NotifyKnockbackClientRpc(ulong targetNetworkObjectId, Vector2 knockback)
+    {
+        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(targetNetworkObjectId, out var targetObject))
+        {
+            // Search for the Damageable component on the target object or its children
+            Damageable target = targetObject.GetComponentInChildren<Damageable>();
+            if (target != null)
+            {
+                target.ApplyKnockback(knockback);
+            }
         }
     }
 
     private void ApplyKnockback(Damageable target, KnockbackDirection directionType, float force)
     {
+        if (target == null || target.gameObject == null)
+        {
+            return;
+        }
+
         Vector2 direction = GetKnockbackDirection(target.transform.position, directionType) * force;
 
         // Retrieve Rigidbody2D from the parent of the Damageable component
@@ -101,18 +169,18 @@ public class AttackHitbox : MonoBehaviour
 
             // Apply knockback as an impulse
             targetRigidbody.AddForce(direction, ForceMode2D.Impulse);
-
-            Debug.Log($"Applied knockback to {target.gameObject.name} with force {direction}");
-        }
-        else
-        {
-            Debug.LogWarning($"No Rigidbody2D found on {target.gameObject.name} or its parent. Knockback cannot be applied.");
         }
     }
 
     private IEnumerator ApplyAirKnockbackAfterDelay(Damageable target)
     {
         yield return new WaitForSeconds(airKnockbackDelay);
+
+        // Check if the target is null or destroyed before accessing it
+        if (target == null || target.gameObject == null)
+        {
+            yield break;
+        }
 
         // Check if the target is still airborne before applying air knockback
         if (!target.IsGrounded())
@@ -129,11 +197,69 @@ public class AttackHitbox : MonoBehaviour
         {
             collider.enabled = false; // Temporarily disable the collider
             collider.enabled = true;  // Re-enable the collider to reset its state
-            Debug.Log("Hitbox has been reset.");
         }
 
         // Clear the hitObjects set to allow new hits in the next attack
         hitObjects.Clear();
+    }
+
+    public void ResetHitObjects()
+    {
+        hitObjects.Clear();
+        Debug.Log(IsServer ? "Hit objects have been reset on the server." : "Hit objects have been reset on the client.");
+
+        if (IsServer)
+        {
+            NotifyResetHitObjectsClientRpc(); // Notify all clients to reset their hitObjects
+        }
+        else
+        {
+            ResetHitObjectsServerRpc(); // Notify the server to reset its hitObjects
+        }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void ResetHitObjectsServerRpc()
+    {
+        hitObjects.Clear();
+        Debug.Log("Hit objects have been reset on the server by a client.");
+        NotifyResetHitObjectsClientRpc(); // Notify all clients to reset their hitObjects
+    }
+
+    [ClientRpc]
+    private void NotifyResetHitObjectsClientRpc()
+    {
+        hitObjects.Clear();
+        Debug.Log("Hit objects have been reset on the client.");
+    }
+
+    private IEnumerator ResetHitObjectsAfterDuration(float duration)
+    {
+        if (IsServer)
+        {
+            yield return new WaitForSeconds(duration);
+            ResetHitObjects(); // Ensure this is only called on the server
+        }
+    }
+
+    private void OnEnable()
+    {
+        // Delay the ResetHitObjects call to ensure the object is fully initialized
+        StartCoroutine(DelayedResetHitObjects());
+    }
+
+    private IEnumerator DelayedResetHitObjects()
+    {
+        // Wait until the object is fully initialized and spawned
+        yield return new WaitUntil(() => IsSpawned);
+
+        ResetHitObjects();
+    }
+
+    private void OnDisable()
+    {
+        // Reset hit objects when the hitbox is disabled
+        ResetHitObjects();
     }
 
     private Vector2 GetKnockbackDirection(Vector3 targetPosition, KnockbackDirection directionType)
@@ -166,11 +292,12 @@ public class AttackHitbox : MonoBehaviour
         {
             float attackDirection = playerController != null && playerController.isFacingRight ? -1 : 1;
             parentTransform.localScale = new Vector3(Mathf.Abs(parentTransform.localScale.x) * attackDirection, parentTransform.localScale.y, parentTransform.localScale.z);
-            Debug.Log($"Flipped {parentTransform.name} to face attack direction.");
         }
-        else
-        {
-            Debug.LogWarning($"Target {targetTransform.name} has no parent to flip.");
-        }
+    }
+
+    public void StartAttack(float duration)
+    {
+        // Start the attack and reset hit objects after the duration
+        StartCoroutine(ResetHitObjectsAfterDuration(duration));
     }
 }

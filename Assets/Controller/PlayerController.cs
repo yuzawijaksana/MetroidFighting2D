@@ -3,6 +3,7 @@ using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem; // Use the new Input System
+using Unity.Cinemachine; // Updated to use CinemachineCamera
 
 public class PlayerController : NetworkBehaviour
 {
@@ -16,6 +17,7 @@ public class PlayerController : NetworkBehaviour
     private Animator anim;
     private PlayerAttack playerAttack;
     private ICharacterBehavior characterBehavior;
+    private CinemachineCamera virtualCamera; // Updated to CinemachineCamera
 
     
     [Header("Player Settings")]
@@ -84,8 +86,7 @@ public class PlayerController : NetworkBehaviour
     private bool isGrounded;
     private float xAxis;
     public bool isFacingRight = true;
-    private bool isAttacking = false; // Flag to track if an attack is being performed
-    private bool isAttackLocked = false; // Add attack lock flag
+    private bool isAttackLocked = false; // Use this to manage attack state
 
     public bool IsAttackLocked => isAttackLocked;
 
@@ -247,7 +248,6 @@ public class PlayerController : NetworkBehaviour
         {
             transform.localScale = new Vector2(-transform.localScale.x, transform.localScale.y);
             isFacingRight = !isFacingRight;
-            Debug.Log($"Flipped character to face {(isFacingRight ? "right" : "left")}.");
         }
     }
 
@@ -281,7 +281,11 @@ public class PlayerController : NetworkBehaviour
 
     private void Jump()
     {
-        if (isAttacking) return;
+        // Prevent jumping while in the attacking state
+        if (isAttackLocked)
+        {
+            return;
+        }
 
         if (Grounded())
         {
@@ -468,5 +472,26 @@ public class PlayerController : NetworkBehaviour
     {
         yield return new WaitForSeconds(duration);
         isAttackLocked = false;
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
+
+        if (IsOwner) // Check if this is the local player
+        {
+            // Find the Cinemachine Camera in the scene
+            virtualCamera = Object.FindFirstObjectByType<CinemachineCamera>(); // Updated to use FindFirstObjectByType
+
+            if (virtualCamera != null)
+            {
+                // Set the camera to follow this player's transform
+                virtualCamera.Follow = transform;
+            }
+            else
+            {
+                Debug.LogError("Cinemachine Camera not found in the scene.");
+            }
+        }
     }
 }
