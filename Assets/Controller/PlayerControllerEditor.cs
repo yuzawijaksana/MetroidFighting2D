@@ -1,6 +1,6 @@
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.InputSystem; // Use the new Input System
+using UnityEngine.InputSystem;
 using System.Collections.Generic;
 
 [CustomEditor(typeof(PlayerController))]
@@ -10,12 +10,10 @@ public class PlayerControllerEditor : Editor
     {
         PlayerController script = (PlayerController)target;
 
-        // Display Control Settings at the top
         EditorGUILayout.LabelField("Control Settings", EditorStyles.boldLabel);
 
-        // Detect connected keyboards using Unity's Input System
         List<string> controlOptions = new List<string> { "None" };
-        int keyboardIndex = 1; // Start indexing keyboards from 1
+        int keyboardIndex = 1;
         foreach (var device in InputSystem.devices)
         {
             if (device is Keyboard)
@@ -26,17 +24,16 @@ public class PlayerControllerEditor : Editor
         }
 
         int selectedIndex = controlOptions.IndexOf(script.controlScheme);
-        if (selectedIndex == -1) selectedIndex = 0; // Default to "None" if invalid
+        if (selectedIndex == -1) selectedIndex = 0;
 
         selectedIndex = EditorGUILayout.Popup("Control Scheme", selectedIndex, controlOptions.ToArray());
         script.controlScheme = controlOptions[selectedIndex];
 
         script.isControllable = EditorGUILayout.Toggle("Is Controllable", script.isControllable);
 
-        // Manually draw the rest of the inspector, excluding the already drawn fields
         EditorGUILayout.Space();
         SerializedProperty iterator = serializedObject.GetIterator();
-        iterator.NextVisible(true); // Skip the script reference
+        iterator.NextVisible(true);
         while (iterator.NextVisible(false))
         {
             if (iterator.name != "controlScheme" && iterator.name != "isControllable")

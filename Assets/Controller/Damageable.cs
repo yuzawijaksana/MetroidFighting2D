@@ -43,8 +43,6 @@ public class Damageable : MonoBehaviour
 
     public void TakeDamage(float damage, Vector2 knockback)
     {
-        if (isStunned) return; // Prevent further actions if already stunned
-
         currentHealth -= damage;
         ApplyKnockback(knockback);
 

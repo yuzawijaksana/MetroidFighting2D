@@ -17,10 +17,10 @@ TagManager:
   - Player
   - Wall
   - Platform
-  - Dummy
+  - NoCollision
   - Attacks
   - Hurtbox
-  - 
+  - Dummy
   - 
   - 
   - 

@@ -1,60 +1,50 @@
 using System.Collections;
 using System.Linq;
-using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.InputSystem; // Use the new Input System
-using Unity.Cinemachine; // Updated to use CinemachineCamera
+using UnityEngine.InputSystem;
+using Unity.Cinemachine;
+using UnityEngine.Tilemaps;
 
-public class PlayerController : NetworkBehaviour
+public class PlayerController : MonoBehaviour
 {
     [Header("Control Settings")]
-    [SerializeField] public string controlScheme = "None"; // Dropdown for control scheme (e.g., Keyboard1, Keyboard2, None)
-    [SerializeField] public bool isControllable = true; // Dropdown to enable/disable control
+    [SerializeField] public string controlScheme = "None";
+    [SerializeField] public bool isControllable = true;
 
-    // References
-    private Rigidbody2D rb;
-    private BoxCollider2D boxCollider;
-    private Animator anim;
-    private PlayerAttack playerAttack;
-    private ICharacterBehavior characterBehavior;
-    private CinemachineCamera virtualCamera; // Updated to CinemachineCamera
-
-    
     [Header("Player Settings")]
-    [SerializeField] private GameObject controlledGameObject; // Reference to the GameObject to move
-    
-    // Key Bindings
+    [SerializeField] private GameObject controlledGameObject;
+
     [Header("Key Bindings")]
     public KeyCode lightAttackKey = KeyCode.J;
     public KeyCode heavyAttackKey = KeyCode.K;
     public KeyCode dashKey = KeyCode.L;
 
-    // Ground Check Settings
     [Header("Ground Check Settings")]
-    [SerializeField] private float jumpForce = 45;
     [SerializeField] public Transform groundCheckPoint;
     [SerializeField] public LayerMask whatIsGround;
+    [SerializeField] private float jumpForce = 45;
 
-    // Movement Settings
+    [Header("Movement Settings")]
     [SerializeField] private float walkSpeed = 1.0f;
     [SerializeField] private float deceleration = 0.95f;
     [SerializeField] private float fallingSpeed = 10f;
     [SerializeField] private float maxFallSpeed = -20f;
-    
-    // Sliding Settings
+
     [Header("Sliding Settings")]
-    private bool isWallSliding;
-    [SerializeField] private float wallSlidingSpeed = 2f;
     [SerializeField] private Transform wallCheck;
-    [SerializeField] private LayerMask wallLayer;
+    [SerializeField] private float wallSlidingSpeed = 2f;
+    [SerializeField] private LayerMask wallInteractionLayers;
+    [SerializeField] private float wallCheckRadius = 0.2f;
+    private bool isWallSliding;
     private Vector2 originalColliderSize;
 
-    // Jump Smoke Settings
     [Header("Jump Settings")]
-    [SerializeField] private GameObject jumpSmokePrefab; // Prefab for the jump smoke effect
-    [SerializeField] private float jumpSmokeLifetime = 0.5f; // Lifetime of the jump smoke effect
+    [SerializeField] private GameObject jumpSmokePrefab;
+    [SerializeField] private float jumpSmokeLifetime = 0.5f;
+    [SerializeField] private int maxJumps = 2;
+    private int jumpCount;
+    private bool isDoubleJumping;
 
-    // Wall Jumping Settings
     [Header("Wall Jumping Settings")]
     [SerializeField] private bool isWallJumping;
     [SerializeField] private float wallJumpingDirection;
@@ -63,30 +53,29 @@ public class PlayerController : NetworkBehaviour
     [SerializeField] private float wallJumpingDuration = 0.4f;
     [SerializeField] private Vector2 wallJumpingPower = new Vector2(4f, 8f);
 
-    // Dash Settings
     [Header("Dash Settings")]
     [SerializeField] private float dashSpeed = 20f;
-    [SerializeField] private GameObject dashSmokePrefab; // Prefab for the dash smoke effect
-    [SerializeField] private float dashSmokeLifetime = 0.5f; // Lifetime of the dash smoke effect
+    [SerializeField] private GameObject dashSmokePrefab;
+    [SerializeField] private float dashSmokeLifetime = 0.5f;
     private bool isDashing;
 
-
-    // Double Jump Settings
-    [Header("Double Jump Settings")]
-    [SerializeField] private int maxJumps = 2;
-    private int jumpCount;
-    private bool isDoubleJumping;
-
-    // Slow Motion Settings
     [Header("Slow Motion Settings")]
     [SerializeField] private float slowMotionFactor = 0.5f;
     private bool isSlowMotionActive = false;
+
+    // References
+    private Rigidbody2D rb;
+    private BoxCollider2D boxCollider;
+    private Animator anim;
+    private PlayerAttack playerAttack;
+    private ICharacterBehavior characterBehavior;
+    private CinemachineCamera virtualCamera;
 
     // State Variables
     private bool isGrounded;
     private float xAxis;
     public bool isFacingRight = true;
-    private bool isAttackLocked = false; // Use this to manage attack state
+    private bool isAttackLocked = false;
 
     public bool IsAttackLocked => isAttackLocked;
 
@@ -99,14 +88,13 @@ public class PlayerController : NetworkBehaviour
         boxCollider = GetComponent<BoxCollider2D>();
         anim = GetComponent<Animator>();
         playerAttack = GetComponent<PlayerAttack>();
-        characterBehavior = GetComponent<ICharacterBehavior>(); // Dynamically link to character behavior
+        characterBehavior = GetComponent<ICharacterBehavior>();
         originalColliderSize = boxCollider.size;
     }
 
     private void Update()
     {
-        if (!IsOwner) return; // Ensure only the owner can control this object
-        if (!isControllable) return; // Skip update if the character is not controllable
+        if (!isControllable) return;
 
         if (isAttackLocked)
         {
@@ -143,20 +131,18 @@ public class PlayerController : NetworkBehaviour
             characterBehavior?.ShrinkColliderForWallSlide();
         }
 
-        if (Keyboard.current.rKey.wasPressedThisFrame) ResetPosition(); // Updated to use the new Input System
+        if (Keyboard.current.rKey.wasPressedThisFrame) ResetPosition();
 
         isGrounded = Grounded();
 
-        float vertical = Keyboard.current.wKey.isPressed ? 1 : (Keyboard.current.sKey.isPressed ? -1 : 0); // Updated vertical input
-        float horizontal = Keyboard.current.aKey.isPressed ? -1 : (Keyboard.current.dKey.isPressed ? 1 : 0); // Updated horizontal input
+        float vertical = Keyboard.current.wKey.isPressed ? 1 : (Keyboard.current.sKey.isPressed ? -1 : 0);
+        float horizontal = Keyboard.current.aKey.isPressed ? -1 : (Keyboard.current.dKey.isPressed ? 1 : 0);
 
-        // Ensure attacks are handled only by the linked controlledGameObject
         if (controlledGameObject != null)
         {
             PlayerAttack controlledPlayerAttack = controlledGameObject.GetComponent<PlayerAttack>();
             if (controlledPlayerAttack != null)
             {
-                // Trigger attack only if valid input is detected
                 if (Keyboard.current.jKey.wasPressedThisFrame)
                 {
                     controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, true);
@@ -171,27 +157,26 @@ public class PlayerController : NetworkBehaviour
 
     private void FixedUpdate()
     {
-        if (rb.linearVelocity.y < maxFallSpeed)
+        if (!Keyboard.current.sKey.isPressed)
         {
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, maxFallSpeed);
+            if (rb.linearVelocity.y < maxFallSpeed)
+            {
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, maxFallSpeed);
+            }
         }
     }
 
     private void GetInputs()
     {
-        if (controlScheme == "None") return; // Skip input if no control scheme is selected
+        if (controlScheme == "None") return;
 
         if (controlScheme == "Keyboard1" || controlScheme == "Keyboard")
         {
-            // Use the new Input System for horizontal and vertical input
             xAxis = (Keyboard.current.dKey.isPressed ? 1 : 0) - (Keyboard.current.aKey.isPressed ? 1 : 0);
-            float verticalInput = (Keyboard.current.wKey.isPressed ? 1 : 0) - (Keyboard.current.sKey.isPressed ? 1 : 0);
         }
         else if (controlScheme == "Keyboard2")
         {
-            // Example for a second keyboard (customize keys as needed)
             xAxis = (Keyboard.current.rightArrowKey.isPressed ? 1 : 0) - (Keyboard.current.leftArrowKey.isPressed ? 1 : 0);
-            float verticalInput = (Keyboard.current.upArrowKey.isPressed ? 1 : 0) - (Keyboard.current.downArrowKey.isPressed ? 1 : 0);
         }
         else
         {
@@ -201,7 +186,7 @@ public class PlayerController : NetworkBehaviour
 
     private void HandleDash()
     {
-        if (Keyboard.current.lKey.wasPressedThisFrame && !isDashing && Grounded()) // Updated to use the new Input System
+        if (Keyboard.current.lKey.wasPressedThisFrame && !isDashing && Grounded())
         {
             Dash();
         }
@@ -209,14 +194,13 @@ public class PlayerController : NetworkBehaviour
 
     private void Move()
     {
-        if (controlledGameObject == null) return; // Ensure the controlled GameObject is set
+        if (controlledGameObject == null) return;
 
         if (xAxis != 0)
         {
             float targetSpeed = walkSpeed * xAxis;
             float acceleration = 10f;
 
-            // Apply movement only to the Rigidbody2D of the controlled GameObject
             Rigidbody2D controlledRb = controlledGameObject.GetComponent<Rigidbody2D>();
             if (controlledRb != null)
             {
@@ -243,7 +227,6 @@ public class PlayerController : NetworkBehaviour
 
     private void Flip()
     {
-        // Flip the character only if the facing direction needs to change
         if ((xAxis < 0 && isFacingRight) || (xAxis > 0 && !isFacingRight))
         {
             transform.localScale = new Vector2(-transform.localScale.x, transform.localScale.y);
@@ -257,14 +240,14 @@ public class PlayerController : NetworkBehaviour
         return Physics2D.OverlapCircle(groundCheckPoint.position, groundCheckRadius, whatIsGround);
     }
 
-    private bool isWalled()
+    private bool IsTouchingWall()
     {
-        return Physics2D.OverlapCircle(wallCheck.position, 0.2f, wallLayer);
+        return Physics2D.OverlapCircle(wallCheck.position, wallCheckRadius, wallInteractionLayers);
     }
 
     private void WallSlide()
     {
-        if (isWalled() && !Grounded())
+        if (IsTouchingWall() && !Grounded())
         {
             isWallSliding = true;
             characterBehavior?.ShrinkColliderForWallSlide();
@@ -281,11 +264,7 @@ public class PlayerController : NetworkBehaviour
 
     private void Jump()
     {
-        // Prevent jumping while in the attacking state
-        if (isAttackLocked)
-        {
-            return;
-        }
+        if (isAttackLocked) return;
 
         if (Grounded())
         {
@@ -293,7 +272,7 @@ public class PlayerController : NetworkBehaviour
             isDoubleJumping = false;
         }
 
-        if (Keyboard.current.spaceKey.wasPressedThisFrame && (Grounded() || jumpCount < maxJumps || isDashing)) // Updated to use the new Input System
+        if (Keyboard.current.spaceKey.wasPressedThisFrame && (Grounded() || jumpCount < maxJumps || isDashing))
         {
             characterBehavior?.ShrinkColliderForJump();
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
@@ -315,12 +294,12 @@ public class PlayerController : NetworkBehaviour
             if (isDashing) isDashing = false;
         }
 
-        if (Keyboard.current.spaceKey.wasReleasedThisFrame && rb.linearVelocity.y > 0) // Updated to use the new Input System
+        if (Keyboard.current.spaceKey.wasReleasedThisFrame && rb.linearVelocity.y > 0)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
         }
 
-        if (Keyboard.current.sKey.wasPressedThisFrame && !Grounded()) // Updated to use the new Input System
+        if (Keyboard.current.sKey.wasPressedThisFrame && !Grounded())
         {
             rb.AddForce(new Vector2(0, -fallingSpeed), ForceMode2D.Impulse);
         }
@@ -343,7 +322,7 @@ public class PlayerController : NetworkBehaviour
             wallJumpingCounter -= Time.deltaTime;
         }
 
-        if (Keyboard.current.spaceKey.wasPressedThisFrame && wallJumpingCounter > 0f) // Updated to use the new Input System
+        if (Keyboard.current.spaceKey.wasPressedThisFrame && wallJumpingCounter > 0f)
         {
             isWallJumping = true;
             StartCoroutine(SmoothWallJump());
@@ -426,7 +405,7 @@ public class PlayerController : NetworkBehaviour
 
     private void JumpWhileDashing()
     {
-        if (isDashing && Keyboard.current.spaceKey.wasPressedThisFrame) // Updated to use the new Input System
+        if (isDashing && Keyboard.current.spaceKey.wasPressedThisFrame)
         {
             isDashing = false;
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
@@ -472,26 +451,5 @@ public class PlayerController : NetworkBehaviour
     {
         yield return new WaitForSeconds(duration);
         isAttackLocked = false;
-    }
-
-    public override void OnNetworkSpawn()
-    {
-        base.OnNetworkSpawn();
-
-        if (IsOwner) // Check if this is the local player
-        {
-            // Find the Cinemachine Camera in the scene
-            virtualCamera = Object.FindFirstObjectByType<CinemachineCamera>(); // Updated to use FindFirstObjectByType
-
-            if (virtualCamera != null)
-            {
-                // Set the camera to follow this player's transform
-                virtualCamera.Follow = transform;
-            }
-            else
-            {
-                Debug.LogError("Cinemachine Camera not found in the scene.");
-            }
-        }
     }
 }

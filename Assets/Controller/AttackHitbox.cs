@@ -1,9 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Unity.Netcode;
 
-public class AttackHitbox : NetworkBehaviour
+public class AttackHitbox : MonoBehaviour
 {
     public enum KnockbackDirection
     {
@@ -37,31 +36,7 @@ public class AttackHitbox : NetworkBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (!IsServer)
-        {
-            // Send the collision event to the server for processing
-            NetworkObject targetNetworkObject = collision.GetComponentInParent<NetworkObject>();
-            if (targetNetworkObject != null)
-            {
-                ProcessHitServerRpc(targetNetworkObject.NetworkObjectId);
-            }
-            return;
-        }
-
         ProcessHit(collision);
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    private void ProcessHitServerRpc(ulong targetNetworkObjectId)
-    {
-        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(targetNetworkObjectId, out var targetObject))
-        {
-            Collider2D targetCollider = targetObject.GetComponentInChildren<Collider2D>();
-            if (targetCollider != null)
-            {
-                ProcessHit(targetCollider);
-            }
-        }
     }
 
     private void ProcessHit(Collider2D collision)
@@ -99,56 +74,13 @@ public class AttackHitbox : NetworkBehaviour
             ? GetKnockbackDirection(target.transform.position, knockbackDirection) * groundedKnockbackForce
             : GetKnockbackDirection(target.transform.position, airKnockbackDirection) * airKnockbackForce;
 
-        // Apply damage and knockback on the server
+        // Apply damage and knockback
         target.TakeDamage(damage, knockback);
 
-        // Notify all clients about the knockback
-        NetworkObject targetNetworkObject = target.GetComponentInParent<NetworkObject>();
-        if (targetNetworkObject != null)
-        {
-            NotifyKnockbackClientRpc(targetNetworkObject.NetworkObjectId, knockback);
-        }
-        else
-        {
-            Debug.LogWarning($"No NetworkObject found for {collision.gameObject.name}. Knockback notification skipped.");
-        }
-
         // Log when a player hits another player
-        ulong targetId = targetNetworkObject != null ? targetNetworkObject.NetworkObjectId : 0;
-        bool hasValidTarget = targetNetworkObject != null;
-        Debug.Log($"Player {playerController?.NetworkObjectId} hit Player {targetId} for {damage} damage.");
-
-        // Notify all clients about the hit
-        NotifyHitClientRpc(playerController?.NetworkObjectId ?? 0, targetId, hasValidTarget, damage);
+        Debug.Log($"Player hit {collision.gameObject.name} for {damage} damage.");
 
         hitObjects.Add(collision.gameObject);
-    }
-
-    [ClientRpc]
-    private void NotifyHitClientRpc(ulong attackerId, ulong targetId, bool hasValidTarget, float damage)
-    {
-        if (hasValidTarget)
-        {
-            Debug.Log($"Player {attackerId} hit Player {targetId} for {damage} damage.");
-        }
-        else
-        {
-            Debug.Log($"Player {attackerId} hit an unknown target for {damage} damage.");
-        }
-    }
-
-    [ClientRpc]
-    private void NotifyKnockbackClientRpc(ulong targetNetworkObjectId, Vector2 knockback)
-    {
-        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(targetNetworkObjectId, out var targetObject))
-        {
-            // Search for the Damageable component on the target object or its children
-            Damageable target = targetObject.GetComponentInChildren<Damageable>();
-            if (target != null)
-            {
-                target.ApplyKnockback(knockback);
-            }
-        }
     }
 
     private void ApplyKnockback(Damageable target, KnockbackDirection directionType, float force)
@@ -206,53 +138,11 @@ public class AttackHitbox : NetworkBehaviour
     public void ResetHitObjects()
     {
         hitObjects.Clear();
-        Debug.Log(IsServer ? "Hit objects have been reset on the server." : "Hit objects have been reset on the client.");
-
-        if (IsServer)
-        {
-            NotifyResetHitObjectsClientRpc(); // Notify all clients to reset their hitObjects
-        }
-        else
-        {
-            ResetHitObjectsServerRpc(); // Notify the server to reset its hitObjects
-        }
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    private void ResetHitObjectsServerRpc()
-    {
-        hitObjects.Clear();
-        Debug.Log("Hit objects have been reset on the server by a client.");
-        NotifyResetHitObjectsClientRpc(); // Notify all clients to reset their hitObjects
-    }
-
-    [ClientRpc]
-    private void NotifyResetHitObjectsClientRpc()
-    {
-        hitObjects.Clear();
-        Debug.Log("Hit objects have been reset on the client.");
-    }
-
-    private IEnumerator ResetHitObjectsAfterDuration(float duration)
-    {
-        if (IsServer)
-        {
-            yield return new WaitForSeconds(duration);
-            ResetHitObjects(); // Ensure this is only called on the server
-        }
+        Debug.Log("Hit objects have been reset.");
     }
 
     private void OnEnable()
     {
-        // Delay the ResetHitObjects call to ensure the object is fully initialized
-        StartCoroutine(DelayedResetHitObjects());
-    }
-
-    private IEnumerator DelayedResetHitObjects()
-    {
-        // Wait until the object is fully initialized and spawned
-        yield return new WaitUntil(() => IsSpawned);
-
         ResetHitObjects();
     }
 
@@ -299,5 +189,11 @@ public class AttackHitbox : NetworkBehaviour
     {
         // Start the attack and reset hit objects after the duration
         StartCoroutine(ResetHitObjectsAfterDuration(duration));
+    }
+
+    private IEnumerator ResetHitObjectsAfterDuration(float duration)
+    {
+        yield return new WaitForSeconds(duration);
+        ResetHitObjects();
     }
 }

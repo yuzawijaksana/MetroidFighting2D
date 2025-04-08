@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.InputSystem; // Use the new Input System
+using UnityEngine.InputSystem;
 using System.Collections;
 
 public class GlobalSettings : MonoBehaviour
@@ -7,33 +7,32 @@ public class GlobalSettings : MonoBehaviour
     public static GlobalSettings Instance { get; private set; }
 
     [Header("Game Settings")]
-    public float globalVolume = 1.0f; // Example: Global volume setting
+    public float globalVolume = 1.0f;
     public float globalGravity = 1f;
-    public bool debugMode = false; // Example: Enable/disable debug mode
+    public bool debugMode = false;
 
     [Header("Slow Motion Settings")]
     public float slowMotionFactor = 0.5f;
     private bool isSlowMotionActive = false;
 
     [Header("Hit Pause Settings")]
-    public float defaultHitPauseDuration = 0.1f; // Default duration for hit pause
-    private bool isHitPaused = false; // Flag to track if the game is currently paused
+    public float defaultHitPauseDuration = 0.1f;
+    private bool isHitPaused = false;
 
     private void Awake()
     {
         if (Instance != null && Instance != this)
         {
-            Destroy(gameObject); // Ensure only one instance exists
+            Destroy(gameObject);
             return;
         }
 
         Instance = this;
-        DontDestroyOnLoad(gameObject); // Persist across scenes
+        DontDestroyOnLoad(gameObject);
     }
 
     private void Update()
     {
-        // Handle slow motion toggle when BackQuote key is pressed using the new Input System
         if (Keyboard.current.backquoteKey.wasPressedThisFrame)
         {
             ToggleSlowMotion();
@@ -54,8 +53,6 @@ public class GlobalSettings : MonoBehaviour
             Time.fixedDeltaTime = Time.timeScale * 0.02f;
             isSlowMotionActive = true;
         }
-
-        Debug.Log($"Slow motion toggled. Active: {isSlowMotionActive}, Factor: {slowMotionFactor}");
     }
 
     public bool IsSlowMotionActive()
@@ -75,16 +72,12 @@ public class GlobalSettings : MonoBehaviour
     {
         isHitPaused = true;
 
-        // Pause the game by setting time scale to 0
         float originalTimeScale = Time.timeScale;
         Time.timeScale = 0f;
 
-        // Wait for the specified duration in real time
         yield return new WaitForSecondsRealtime(duration);
 
-        // Resume the game by restoring the original time scale
         Time.timeScale = originalTimeScale;
-
-        isHitPaused = false; // Reset the flag
+        isHitPaused = false;
     }
 }

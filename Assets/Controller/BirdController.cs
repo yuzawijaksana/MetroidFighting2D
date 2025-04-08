@@ -57,7 +57,7 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
 
     private void OnEnable()
     {
-        PlayerAttack.OnAttackPerformed += HandleAttack;
+        PlayerAttack.OnAttackPerformed += HandleAttack; // Updated to match the new event signature
     }
 
     private void OnDisable()
@@ -65,10 +65,8 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
         PlayerAttack.OnAttackPerformed -= HandleAttack;
     }
 
-    private void HandleAttack(ulong attackerId, AttackHitbox hitbox)
+    private void HandleAttack(AttackHitbox hitbox)
     {
-        if (playerController.NetworkObjectId != attackerId) return;
-
         if (isAttackActive) return;
 
         if (attackBehaviors.TryGetValue(hitbox.attackType, out var behavior))
@@ -76,16 +74,10 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
             behavior.Invoke();
         }
 
-        PlayerAttack playerAttackComponent = hitbox.GetComponentInParent<PlayerAttack>();
-        if (playerAttackComponent != null)
-        {
-            isAttackActive = true;
+        isAttackActive = true;
 
-            float attackDuration = playerAttackComponent.GetCurrentAttackDuration();
-            playerController.LockAttack(attackDuration + attackCooldown);
-
-            StartCoroutine(ResetAttackActiveAfterDuration(attackDuration + attackCooldown));
-        }
+        float attackDuration = playerAttack.GetCurrentAttackDuration();
+        StartCoroutine(ResetAttackActiveAfterDuration(attackDuration + attackCooldown));
     }
 
     private IEnumerator ResetAttackActiveAfterDuration(float duration)

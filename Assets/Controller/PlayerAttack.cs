@@ -1,9 +1,8 @@
 using System.Collections;
 using UnityEngine;
 using System;
-using Unity.Netcode;
 
-public class PlayerAttack : NetworkBehaviour
+public class PlayerAttack : MonoBehaviour
 {
     public enum AttackType
     {
@@ -34,7 +33,7 @@ public class PlayerAttack : NetworkBehaviour
     public GameObject groundPound;
 
     // Event triggered when an attack is performed
-    public static event Action<ulong, AttackHitbox> OnAttackPerformed; // Include NetworkObjectIde
+    public static event Action<AttackHitbox> OnAttackPerformed; // Removed ulong parameter
     private PlayerController playerController;
     private float currentAttackDuration;
 
@@ -56,8 +55,7 @@ public class PlayerAttack : NetworkBehaviour
 
     private void Update()
     {
-        // Ensure only the local player's PlayerAttack processes input
-        if (!IsOwner) return;
+        // Removed network ownership checks
     }
 
     private bool Grounded()
@@ -67,8 +65,6 @@ public class PlayerAttack : NetworkBehaviour
 
     public void PerformAttack(AttackType attackType, float duration)
     {
-        if (!IsOwner) return;
-
         currentAttackDuration = duration;
 
         GameObject hitboxObject = GetHitboxForAttackType(attackType);
@@ -81,7 +77,8 @@ public class PlayerAttack : NetworkBehaviour
                 hitbox.StartAttack(duration); // Start the attack and reset hit objects after the duration
                 StartCoroutine(DeactivateHitboxAfterDuration(hitboxObject, duration, hitbox));
 
-                OnAttackPerformed?.Invoke(NetworkObjectId, hitbox);
+                // Trigger the OnAttackPerformed event
+                OnAttackPerformed?.Invoke(hitbox);
             }
         }
     }
@@ -93,9 +90,6 @@ public class PlayerAttack : NetworkBehaviour
 
     public void HandleAttack(bool isGrounded, float verticalInput, float horizontalInput, bool isLightAttack)
     {
-        // Ensure only the local player's PlayerAttack handles attacks
-        if (!IsOwner) return;
-
         if (isLightAttack)
         {
             HandleLightAttack(isGrounded, verticalInput, horizontalInput);
@@ -194,11 +188,7 @@ public class PlayerAttack : NetworkBehaviour
     {
         yield return new WaitForSeconds(duration);
         hitbox.SetActive(false); // Hide the hitbox after the duration
-
-        if (IsServer)
-        {
-            attackHitbox.ResetHitObjects(); // Ensure this is only called on the server
-        }
+        attackHitbox.ResetHitObjects(); // Ensure hit objects are reset
     }
 
     private void HideAllHitboxes()
