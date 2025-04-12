@@ -41,18 +41,28 @@ public class Damageable : MonoBehaviour
         }
     }
 
-    public void TakeDamage(float damage, Vector2 knockback)
+    public void TakeDamage(float damage, Vector2 knockback, GameObject attacker)
     {
-        currentHealth -= damage;
-        ApplyKnockback(knockback);
+        // Ignore damage from the same player
+        if (attacker == transform.parent?.gameObject)
+        {
+            Debug.LogWarning("Damage from the same player ignored.");
+            return;
+        }
+
+        // Increment damage instead of reducing health
+        currentHealth += damage;
+
+        // Scale knockback based on current health
+        float knockbackMultiplier = 1 + (currentHealth / maxHealth);
+        Vector2 scaledKnockback = knockback * knockbackMultiplier;
+
+        ApplyKnockback(scaledKnockback);
 
         // Apply stun
         StartCoroutine(ApplyStun());
 
-        if (currentHealth <= 0)
-        {
-            Die();
-        }
+        Debug.Log($"Player knocked back with force {scaledKnockback} at health {currentHealth}.");
     }
 
     public void ApplyKnockback(Vector2 knockback)

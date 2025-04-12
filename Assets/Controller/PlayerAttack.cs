@@ -73,11 +73,12 @@ public class PlayerAttack : MonoBehaviour
             AttackHitbox hitbox = hitboxObject.GetComponent<AttackHitbox>();
             if (hitbox != null)
             {
+                hitbox.Initialize(gameObject); // Set the originating player
                 hitboxObject.SetActive(true);
                 hitbox.StartAttack(duration); // Start the attack and reset hit objects after the duration
                 StartCoroutine(DeactivateHitboxAfterDuration(hitboxObject, duration, hitbox));
 
-                // Trigger the OnAttackPerformed event
+                // Trigger the OnAttackPerformed event only for this character
                 OnAttackPerformed?.Invoke(hitbox);
             }
         }

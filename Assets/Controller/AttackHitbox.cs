@@ -20,6 +20,7 @@ public class AttackHitbox : MonoBehaviour
     public float groundedKnockbackForce = 5f; // Knockback force for grounded targets
     public float airKnockbackForce = 7.5f; // Knockback force for airborne targets
     public float airKnockbackDelay = 0.2f; // Delay before applying air knockback
+    public GameObject originatingPlayer; // Reference to the player who initiated the attack
 
     private HashSet<GameObject> hitObjects = new HashSet<GameObject>(); // Track objects already hit
     private PlayerController playerController; // Reference to PlayerController
@@ -54,6 +55,13 @@ public class AttackHitbox : MonoBehaviour
             return;
         }
 
+        // Ignore collisions with the originating player
+        if (collision.gameObject == originatingPlayer)
+        {
+            Debug.LogWarning("Collision with originating player detected. Skipping.");
+            return;
+        }
+
         if (hitObjects.Contains(collision.gameObject))
         {
             Debug.LogWarning($"Collision with {collision.gameObject.name} already processed. Skipping.");
@@ -75,7 +83,7 @@ public class AttackHitbox : MonoBehaviour
             : GetKnockbackDirection(target.transform.position, airKnockbackDirection) * airKnockbackForce;
 
         // Apply damage and knockback
-        target.TakeDamage(damage, knockback);
+        target.TakeDamage(damage, knockback, originatingPlayer); // Pass originatingPlayer as the attacker
 
         // Log when a player hits another player
         Debug.Log($"Player hit {collision.gameObject.name} for {damage} damage.");
@@ -195,5 +203,10 @@ public class AttackHitbox : MonoBehaviour
     {
         yield return new WaitForSeconds(duration);
         ResetHitObjects();
+    }
+
+    public void Initialize(GameObject player)
+    {
+        originatingPlayer = player;
     }
 }

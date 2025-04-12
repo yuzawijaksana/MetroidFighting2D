@@ -67,6 +67,9 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
 
     private void HandleAttack(AttackHitbox hitbox)
     {
+        // Ensure the attack is only processed for the current character
+        if (hitbox.originatingPlayer != gameObject) return;
+
         if (isAttackActive) return;
 
         if (attackBehaviors.TryGetValue(hitbox.attackType, out var behavior))
@@ -133,12 +136,17 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
         float attackDuration = playerAttack.GetCurrentAttackDuration();
 
         anim.SetBool("SideAir", true);
+
+        // Ensure only this character's Rigidbody2D is affected
         rb.gravityScale = 0;
         rb.linearVelocity = pushDirection * pushForce;
+
         playerController.LockAttack(attackDuration);
         StartCoroutine(MaintainAttackVelocity(pushDirection * pushForce, attackDuration));
 
+        // Restore gravity scale after the attack
         Invoke(nameof(RevertGravityScale), attackDuration);
+
         ResetAnimatorBool("SideAir", attackDuration);
     }
 
