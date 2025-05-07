@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Cinemachine;
@@ -13,11 +14,13 @@ public class PlayerController : MonoBehaviour
 
     [Header("Player Settings")]
     [SerializeField] private GameObject controlledGameObject;
+    [SerializeField] public GameObject hurtbox;
+    [SerializeField] public GameObject parentCollider; // Reference to the player's parent collider
 
     [Header("Key Bindings")]
-    public KeyCode lightAttackKey = KeyCode.J;
-    public KeyCode heavyAttackKey = KeyCode.K;
-    public KeyCode dashKey = KeyCode.L;
+    public Key lightAttackKey = Key.J;
+    public Key heavyAttackKey = Key.K;
+    public Key dashKey = Key.L;
 
     [Header("Ground Check Settings")]
     [SerializeField] public Transform groundCheckPoint;
@@ -26,8 +29,11 @@ public class PlayerController : MonoBehaviour
     [Header("Movement Settings")]
     [SerializeField] private float walkSpeed = 5.0f;
     [SerializeField] private float deceleration = 0.99f;
-    [SerializeField] private float fallingSpeed = 10f;
     [SerializeField] private float maxFallSpeed = -15f;
+
+    [Header("Falling Settings")]
+    [SerializeField] private float fallingSpeed = 10f;
+    [SerializeField] private float fastFallSpeed = -20f; // Maximum falling speed when pressing down
 
     [Header("Sliding Settings")]
     [SerializeField] private Transform wallCheck;
@@ -72,9 +78,6 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private LayerMask platformLayer;
     [SerializeField] private float platformDropDuration = 0.3f;
 
-    [Header("Device Settings")]
-    [SerializeField] private InputDevice assignedKeyboard;
-
     // References
     private Rigidbody2D rb;
     private BoxCollider2D boxCollider;
@@ -86,10 +89,14 @@ public class PlayerController : MonoBehaviour
     // State Variables
     private bool isGrounded;
     public float xAxis;
+    public float yAxis { get; private set; } // Add yAxis property
     public bool isFacingRight = true;
     private bool isAttackLocked = false;
 
     public bool IsAttackLocked => isAttackLocked;
+
+    // Add a new state variable to track if the character is recovering from a hit
+    private bool isRecoveringFromHit = false;
 
     private void Start()
     {
@@ -102,20 +109,6 @@ public class PlayerController : MonoBehaviour
         playerAttack = GetComponent<PlayerAttack>();
         characterBehavior = GetComponent<ICharacterBehavior>();
         originalColliderSize = boxCollider.size;
-
-        // Assign a specific keyboard based on the control scheme
-        if (assignedKeyboard == null && controlScheme != "None")
-        {
-            assignedKeyboard = InputSystem.devices.FirstOrDefault(device => device.name == controlScheme);
-            if (assignedKeyboard != null)
-            {
-                Debug.Log($"Assigned {assignedKeyboard.name} to {gameObject.name}");
-            }
-            else
-            {
-                Debug.LogWarning($"No keyboard found for control scheme '{controlScheme}'.");
-            }
-        }
     }
 
     private void Update()
@@ -170,23 +163,24 @@ public class PlayerController : MonoBehaviour
             anim.SetBool("Falling", false);
         }
 
-        if ((assignedKeyboard as Keyboard)?.rKey.wasPressedThisFrame == true) ResetPosition();
+        if (Keyboard.current.rKey.wasPressedThisFrame) ResetPosition();
 
         isGrounded = Grounded();
 
-        float vertical = (assignedKeyboard as Keyboard)?.wKey.isPressed == true ? 1 : ((assignedKeyboard as Keyboard)?.sKey.isPressed == true ? -1 : 0);
-        float horizontal = (assignedKeyboard as Keyboard)?.aKey.isPressed == true ? -1 : ((assignedKeyboard as Keyboard)?.dKey.isPressed == true ? 1 : 0);
+        float vertical = Keyboard.current.wKey.isPressed ? 1 : (Keyboard.current.sKey.isPressed ? -1 : 0);
+        float horizontal = Keyboard.current.aKey.isPressed ? -1 : (Keyboard.current.dKey.isPressed ? 1 : 0);
 
-        if (controlledGameObject != null)
+        if (controlledGameObject != null && !isWallSliding) // Prevent attacks while wall sliding
         {
             PlayerAttack controlledPlayerAttack = controlledGameObject.GetComponent<PlayerAttack>();
             if (controlledPlayerAttack != null)
             {
-                if ((assignedKeyboard as Keyboard)?.jKey.wasPressedThisFrame == true)
+                // Use serialized keys for light and heavy attacks
+                if (Keyboard.current[lightAttackKey].wasPressedThisFrame)
                 {
                     controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, true);
                 }
-                else if ((assignedKeyboard as Keyboard)?.kKey.wasPressedThisFrame == true)
+                else if (Keyboard.current[heavyAttackKey].wasPressedThisFrame)
                 {
                     controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, false);
                 }
@@ -196,10 +190,16 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if ((assignedKeyboard as Keyboard)?.sKey.isPressed == true)
+        if (!isAttackLocked && Keyboard.current.sKey.isPressed) // Only allow fast fall when not attacking
         {
             // Apply controlled falling force when S key is pressed
             rb.AddForce(new Vector2(0, -fallingSpeed), ForceMode2D.Force);
+
+            // Limit the falling speed to the fast fall maximum
+            if (rb.linearVelocity.y < fastFallSpeed)
+            {
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, fastFallSpeed);
+            }
         }
         else
         {
@@ -210,8 +210,8 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // Reduce horizontal momentum when no movement keys are pressed or when not grounded
-        if (((assignedKeyboard as Keyboard)?.aKey.isPressed != true && (assignedKeyboard as Keyboard)?.dKey.isPressed != true) || !Grounded())
+        // Only apply deceleration if dashing and not recovering from a hit
+        if (isDashing && !isRecoveringFromHit)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x * deceleration, rb.linearVelocity.y);
             if (Mathf.Abs(rb.linearVelocity.x) < 0.1f)
@@ -223,17 +223,17 @@ public class PlayerController : MonoBehaviour
 
     private void GetInputs()
     {
-        if (controlScheme == "None" || assignedKeyboard == null) return;
+        if (controlScheme == "None") return;
 
-        var keyboard = assignedKeyboard as Keyboard;
-
-        if (controlScheme == "Keyboard1")
+        if (controlScheme == "Keyboard1" || controlScheme == "Keyboard")
         {
-            xAxis = (keyboard.dKey.isPressed ? 1 : 0) - (keyboard.aKey.isPressed ? 1 : 0);
+            xAxis = (Keyboard.current.dKey.isPressed ? 1 : 0) - (Keyboard.current.aKey.isPressed ? 1 : 0);
+            yAxis = (Keyboard.current.wKey.isPressed ? 1 : 0) - (Keyboard.current.sKey.isPressed ? 1 : 0); // Update yAxis
         }
         else if (controlScheme == "Keyboard2")
         {
-            xAxis = (keyboard.rightArrowKey.isPressed ? 1 : 0) - (keyboard.leftArrowKey.isPressed ? 1 : 0);
+            xAxis = (Keyboard.current.rightArrowKey.isPressed ? 1 : 0) - (Keyboard.current.leftArrowKey.isPressed ? 1 : 0);
+            yAxis = (Keyboard.current.upArrowKey.isPressed ? 1 : 0) - (Keyboard.current.downArrowKey.isPressed ? 1 : 0); // Update yAxis
         }
         else
         {
@@ -243,8 +243,7 @@ public class PlayerController : MonoBehaviour
 
     private void HandleDash()
     {
-        var keyboard = assignedKeyboard as Keyboard;
-        if (keyboard != null && keyboard.lKey.wasPressedThisFrame && !isDashing && Grounded())
+        if (Keyboard.current.lKey.wasPressedThisFrame && !isDashing && Grounded())
         {
             Dash();
         }
@@ -264,7 +263,9 @@ public class PlayerController : MonoBehaviour
             {
                 controlledRb.linearVelocity = new Vector2(Mathf.Lerp(controlledRb.linearVelocity.x, targetSpeed, Time.deltaTime * acceleration), controlledRb.linearVelocity.y);
             }
-            anim.SetBool("Walking", true);
+
+            // Enable walking animation only if grounded
+            anim.SetBool("Walking", Grounded());
         }
         else
         {
@@ -275,12 +276,10 @@ public class PlayerController : MonoBehaviour
                 if (Mathf.Abs(controlledRb.linearVelocity.x) < 0.1f)
                 {
                     controlledRb.linearVelocity = new Vector2(0, controlledRb.linearVelocity.y);
-                    anim.SetBool("Walking", false);
                 }
             }
+            anim.SetBool("Walking", false); // Disable walking animation when no horizontal keys are pressed
         }
-
-        anim.SetBool("Walking", Mathf.Abs(rb.linearVelocity.x) > 0.1f && Grounded());
     }
 
     private void Flip()
@@ -323,8 +322,7 @@ public class PlayerController : MonoBehaviour
 
     private void Jump()
     {
-        var keyboard = assignedKeyboard as Keyboard;
-        if (keyboard == null || isAttackLocked) return;
+        if (isAttackLocked) return;
 
         if (Grounded())
         {
@@ -332,7 +330,7 @@ public class PlayerController : MonoBehaviour
             isDoubleJumping = false;
         }
 
-        if (keyboard.spaceKey.wasPressedThisFrame && (Grounded() || jumpCount < maxJumps || isDashing))
+        if (Keyboard.current.spaceKey.wasPressedThisFrame && (Grounded() || jumpCount < maxJumps || isDashing))
         {
             characterBehavior?.ShrinkColliderForJump();
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
@@ -351,12 +349,12 @@ public class PlayerController : MonoBehaviour
             if (isDashing) isDashing = false;
         }
 
-        if (keyboard.spaceKey.wasReleasedThisFrame && rb.linearVelocity.y > 0)
+        if (Keyboard.current.spaceKey.wasReleasedThisFrame && rb.linearVelocity.y > 0)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
         }
 
-        if (keyboard.sKey.wasPressedThisFrame && !Grounded())
+        if (Keyboard.current.sKey.wasPressedThisFrame && !Grounded())
         {
             rb.AddForce(new Vector2(0, -fallingSpeed), ForceMode2D.Impulse);
         }
@@ -380,11 +378,10 @@ public class PlayerController : MonoBehaviour
             wallJumpingCounter -= Time.deltaTime;
         }
 
-        var keyboard = assignedKeyboard as Keyboard;
-        if (keyboard != null && keyboard.spaceKey.wasPressedThisFrame && wallJumpingCounter > 0f)
+        if (Keyboard.current.spaceKey.wasPressedThisFrame && wallJumpingCounter > 0f)
         {
             isWallJumping = true;
-            StartCoroutine(SmoothWallJump());
+            SmoothWallJump();
             wallJumpingCounter = 0f;
 
             if (transform.localScale.x != wallJumpingDirection)
@@ -400,7 +397,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private IEnumerator SmoothWallJump()
+    private async void SmoothWallJump()
     {
         float jumpDuration = 0.15f;
         float elapsedTime = 0f;
@@ -412,7 +409,7 @@ public class PlayerController : MonoBehaviour
         {
             rb.position = Vector2.Lerp(initialPosition, targetPosition, elapsedTime / jumpDuration);
             elapsedTime += Time.deltaTime;
-            yield return null;
+            await Task.Yield();
         }
 
         rb.position = targetPosition;
@@ -439,13 +436,13 @@ public class PlayerController : MonoBehaviour
         }
 
         SpawnDashSmoke();
-        StartCoroutine(SpawnMultipleDashTrails()); // Spawn multiple dash trails
+        SpawnMultipleDashTrails(); // Spawn multiple dash trails
 
         float dashDuration = 0.2f;
-        StartCoroutine(EndDashAfterDuration(dashDuration));
+        EndDashAfterDuration(dashDuration);
     }
 
-    private IEnumerator SpawnMultipleDashTrails()
+    private async void SpawnMultipleDashTrails()
     {
         int trailCount = 4; // Number of trails
         float trailDelay = 0.05f; // Delay between each trail
@@ -454,7 +451,7 @@ public class PlayerController : MonoBehaviour
         {
             float opacity = 1f - (i * 0.25f); // Gradually decrease opacity for each trail
             SpawnDashTrail(opacity);
-            yield return new WaitForSeconds(trailDelay);
+            await Task.Delay((int)(trailDelay * 1000)); // Convert seconds to milliseconds
         }
     }
 
@@ -467,10 +464,10 @@ public class PlayerController : MonoBehaviour
         trail.transform.position = transform.position;
         trail.transform.localScale = transform.localScale;
 
-        StartCoroutine(FadeAndDestroyTrail(trailRenderer));
+        FadeAndDestroyTrail(trailRenderer);
     }
 
-    private IEnumerator FadeAndDestroyTrail(SpriteRenderer trailRenderer)
+    private async void FadeAndDestroyTrail(SpriteRenderer trailRenderer)
     {
         float elapsedTime = 0f;
         Color initialColor = trailRenderer.color;
@@ -480,7 +477,7 @@ public class PlayerController : MonoBehaviour
             elapsedTime += Time.deltaTime;
             float alpha = Mathf.Lerp(initialColor.a, 0, elapsedTime / dashTrailLifetime);
             trailRenderer.color = new Color(initialColor.r, initialColor.g, initialColor.b, alpha);
-            yield return null;
+            await Task.Yield();
         }
 
         Destroy(trailRenderer.gameObject);
@@ -497,8 +494,7 @@ public class PlayerController : MonoBehaviour
 
     private void JumpWhileDashing()
     {
-        var keyboard = assignedKeyboard as Keyboard;
-        if (isDashing && keyboard?.spaceKey.wasPressedThisFrame == true)
+        if (isDashing && Keyboard.current.spaceKey.wasPressedThisFrame)
         {
             isDashing = false;
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
@@ -506,9 +502,9 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private IEnumerator EndDashAfterDuration(float duration)
+    private async void EndDashAfterDuration(float duration)
     {
-        yield return new WaitForSeconds(duration);
+        await Task.Delay((int)(duration * 1000)); // Convert seconds to milliseconds
         isDashing = false;
         rb.linearVelocity = new Vector2(rb.linearVelocity.x * 0.8f, rb.linearVelocity.y);
     }
@@ -537,32 +533,88 @@ public class PlayerController : MonoBehaviour
     public void LockAttack(float duration)
     {
         isAttackLocked = true;
-        StartCoroutine(UnlockAttackAfterDuration(duration));
+        UnlockAttackAfterDuration(duration);
     }
 
-    private IEnumerator UnlockAttackAfterDuration(float duration)
+    private async void UnlockAttackAfterDuration(float duration)
     {
-        yield return new WaitForSeconds(duration);
+        await Task.Delay((int)(duration * 1000)); // Convert seconds to milliseconds
         isAttackLocked = false;
     }
 
-    private void HandlePlatformDrop()
+    private async void HandlePlatformDrop()
     {
-        var keyboard = assignedKeyboard as Keyboard;
-        if (keyboard != null && (keyboard.sKey.wasPressedThisFrame || keyboard.downArrowKey.wasPressedThisFrame))
+        if (Keyboard.current.sKey.wasPressedThisFrame || Keyboard.current.downArrowKey.wasPressedThisFrame)
         {
-            StartCoroutine(DisablePlatformCollision());
+            await DisablePlatformCollision();
         }
     }
 
-    private IEnumerator DisablePlatformCollision()
+    private async Task DisablePlatformCollision()
     {
         Collider2D platformCollider = Physics2D.OverlapCircle(groundCheckPoint.position, 0.2f, platformLayer);
         if (platformCollider != null)
         {
             Physics2D.IgnoreCollision(boxCollider, platformCollider, true);
-            yield return new WaitForSeconds(platformDropDuration);
+            await Task.Delay((int)(platformDropDuration * 1000)); // Convert seconds to milliseconds
             Physics2D.IgnoreCollision(boxCollider, platformCollider, false);
         }
+    }
+
+    public void ApplyHitRecovery()
+    {
+        isRecoveringFromHit = true;
+
+        // Wait until the character touches the ground, then slide
+        WaitForGroundAndSlide();
+    }
+
+    private async void WaitForGroundAndSlide()
+    {
+        // Wait until the character is grounded
+        while (!Grounded())
+        {
+            await Task.Yield(); // Wait for the next frame
+        }
+
+        // Once grounded, apply the sliding effect
+        await SlideToStop();
+    }
+
+    private async Task SlideToStop()
+    {
+        float slideDuration = 0.2f; // Duration of the sliding effect
+        float elapsedTime = 0f;
+
+        Vector2 initialVelocity = rb.linearVelocity;
+
+        while (elapsedTime < slideDuration)
+        {
+            elapsedTime += Time.deltaTime;
+
+            // Gradually reduce velocity over time
+            rb.linearVelocity = Vector2.Lerp(initialVelocity, Vector2.zero, elapsedTime / slideDuration);
+
+            await Task.Yield();
+        }
+
+        // Ensure velocity is fully stopped at the end
+        rb.linearVelocity = Vector2.zero;
+        isRecoveringFromHit = false;
+    }
+
+    public bool IsGroundPoundKeyHeld()
+    {
+        return Keyboard.current.sKey.isPressed; // Check if the 'S' key is still being held
+    }
+
+    /// <summary>
+    /// Checks if a specific key is currently being held.
+    /// </summary>
+    /// <param name="key">The key to check.</param>
+    /// <returns>True if the key is held, otherwise false.</returns>
+    public bool IsKeyHeld(Key key)
+    {
+        return Keyboard.current[key].isPressed;
     }
 }

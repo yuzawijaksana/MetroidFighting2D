@@ -9,8 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2672658509869557574}
-  - component: {fileID: 5201949418746681280}
   - component: {fileID: 8646826928993547241}
+  - component: {fileID: 7381550504940561219}
   m_Layer: 10
   m_Name: Recovery
   m_TagString: PlayerAttack
@@ -33,8 +33,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 3722404204736332969}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!61 &5201949418746681280
-BoxCollider2D:
+--- !u!114 &8646826928993547241
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1447988121481123790}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62b321ba3e517cc41a9992d4f630ad7f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  attackType: 9
+  damage: 10
+  knockbackDirection: 3
+  airKnockbackDirection: 3
+  groundedKnockbackForce: 5
+  airKnockbackForce: 7.5
+  originatingPlayer: {fileID: 0}
+--- !u!70 &7381550504940561219
+CapsuleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -63,42 +82,13 @@ BoxCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0, y: 0}
-    oldSize: {x: 0, y: 0}
-    newSize: {x: 0, y: 0}
-    adaptiveTilingThreshold: 0
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Size: {x: 1, y: 0.4}
-  m_EdgeRadius: 0
---- !u!114 &8646826928993547241
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1447988121481123790}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 62b321ba3e517cc41a9992d4f630ad7f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  attackType: 9
-  damage: 10
-  knockbackDirection: 0
-  airKnockbackDirection: 0
-  groundedKnockbackForce: 5
-  airKnockbackForce: 7.5
-  airKnockbackDelay: 0.2
-  originatingPlayer: {fileID: 0}
+  m_Offset: {x: 0.125, y: 0}
+  m_Size: {x: 0.75, y: 0.2}
+  m_Direction: 1
 --- !u!1 &1729910795524078876
 GameObject:
   m_ObjectHideFlags: 0
@@ -109,6 +99,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6465670276192181402}
   - component: {fileID: 1742859754762650674}
+  - component: {fileID: 8905471542849606296}
   m_Layer: 10
   m_Name: Down
   m_TagString: PlayerAttack
@@ -125,7 +116,7 @@ Transform:
   m_GameObject: {fileID: 1729910795524078876}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.13169497, y: -1.1848075, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -145,12 +136,48 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackType: 2
   damage: 10
-  knockbackDirection: 0
-  airKnockbackDirection: 0
+  knockbackDirection: 4
+  airKnockbackDirection: 4
   groundedKnockbackForce: 5
   airKnockbackForce: 7.5
-  airKnockbackDelay: 0.2
   originatingPlayer: {fileID: 0}
+--- !u!70 &8905471542849606296
+CapsuleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1729910795524078876}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0.125, y: 0}
+  m_Size: {x: 0.75, y: 0.2}
+  m_Direction: 1
 --- !u!1 &2626833861056398812
 GameObject:
   m_ObjectHideFlags: 0
@@ -161,6 +188,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8438416630306967687}
   - component: {fileID: 8312170227438467994}
+  - component: {fileID: 4196278251390959613}
   m_Layer: 10
   m_Name: Side
   m_TagString: PlayerAttack
@@ -197,12 +225,48 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackType: 1
   damage: 10
-  knockbackDirection: 0
-  airKnockbackDirection: 0
+  knockbackDirection: 3
+  airKnockbackDirection: 3
   groundedKnockbackForce: 5
-  airKnockbackForce: 7.5
-  airKnockbackDelay: 0.2
+  airKnockbackForce: 5
   originatingPlayer: {fileID: 0}
+--- !u!70 &4196278251390959613
+CapsuleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2626833861056398812}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0.125, y: 0}
+  m_Size: {x: 0.75, y: 0.2}
+  m_Direction: 1
 --- !u!1 &2870591170926245586
 GameObject:
   m_ObjectHideFlags: 0
@@ -248,7 +312,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4261778687795424222}
   - component: {fileID: 7651406306238184354}
-  - component: {fileID: 4590121304412373426}
+  - component: {fileID: 1635020256744072268}
   m_Layer: 11
   m_Name: Hurtbox
   m_TagString: Hurtbox
@@ -290,8 +354,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8
   groundCheckRadius: 0.2
---- !u!61 &4590121304412373426
-BoxCollider2D:
+--- !u!70 &1635020256744072268
+CapsuleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -303,10 +367,10 @@ BoxCollider2D:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 1024
+    m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 0
   m_LayerOverridePriority: 0
   m_ForceSendLayers:
     serializedVersion: 2
@@ -324,18 +388,9 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0.1, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0, y: 0}
-    oldSize: {x: 0, y: 0}
-    newSize: {x: 0, y: 0}
-    adaptiveTilingThreshold: 0
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Size: {x: 0.5, y: 0.6}
-  m_EdgeRadius: 0
+  m_Offset: {x: 0.12, y: 0}
+  m_Size: {x: 0.3, y: 0.63}
+  m_Direction: 0
 --- !u!1 &3307698997228609354
 GameObject:
   m_ObjectHideFlags: 0
@@ -380,6 +435,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4689263728720646452}
   - component: {fileID: 5877642487255591157}
+  - component: {fileID: 5082922075548936909}
   m_Layer: 10
   m_Name: Ground Pound
   m_TagString: PlayerAttack
@@ -416,12 +472,48 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackType: 10
   damage: 10
-  knockbackDirection: 0
-  airKnockbackDirection: 0
+  knockbackDirection: 1
+  airKnockbackDirection: 1
   groundedKnockbackForce: 5
   airKnockbackForce: 7.5
-  airKnockbackDelay: 0.2
   originatingPlayer: {fileID: 0}
+--- !u!70 &5082922075548936909
+CapsuleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3515964311862012711}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0.125, y: 0}
+  m_Size: {x: 0.75, y: 0.2}
+  m_Direction: 1
 --- !u!1 &3548664251765757997
 GameObject:
   m_ObjectHideFlags: 0
@@ -447,7 +539,7 @@ Transform:
   m_GameObject: {fileID: 3548664251765757997}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.3125, y: 0, z: 0}
+  m_LocalPosition: {x: 0.25, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -503,7 +595,6 @@ MonoBehaviour:
   airKnockbackDirection: 0
   groundedKnockbackForce: 5
   airKnockbackForce: 7.5
-  airKnockbackDelay: 0.2
   originatingPlayer: {fileID: 0}
 --- !u!1 &4585104236906588610
 GameObject:
@@ -730,7 +821,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.33498335, y: 0.4600923}
+  m_Size: {x: 0.2, y: 0.465}
   m_EdgeRadius: 0.1
 --- !u!114 &6361782867400926053
 MonoBehaviour:
@@ -744,20 +835,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f08e9dabb26da0d4aa2d02637d2acd83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  controlScheme: None
-  isControllable: 0
+  controlScheme: Keyboard1
+  isControllable: 1
   controlledGameObject: {fileID: 4883880204484489955}
-  lightAttackKey: 106
-  heavyAttackKey: 107
-  dashKey: 108
+  hurtbox: {fileID: 2934075230927735691}
+  parentCollider: {fileID: 4883880204484489955}
+  lightAttackKey: 24
+  heavyAttackKey: 25
+  dashKey: 26
   groundCheckPoint: {fileID: 3296633051192932678}
   whatIsGround:
     serializedVersion: 2
     m_Bits: 264
   walkSpeed: 5
   deceleration: 0.99
-  fallingSpeed: 2.5
   maxFallSpeed: -5
+  fallingSpeed: 1
+  fastFallSpeed: -20
   wallCheck: {fileID: 810622594460516444}
   wallSlidingSpeed: 2
   wallInteractionLayers:
@@ -784,6 +878,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   platformDropDuration: 0.3
+  xAxis: 0
   isFacingRight: 1
 --- !u!114 &457477135009519405
 MonoBehaviour:
@@ -802,6 +897,13 @@ MonoBehaviour:
   wallSlideShrinkY: 1
   jumpShrinkX: 1
   jumpShrinkY: 1
+  sideLightPushForce: 8
+  sideAirPushForce: 7.5
+  downAirPushForce: 7.5
+  recoveryPushForce: 10
+  groundPoundPushForce: 10
+  hurtbox: {fileID: 0}
+  parentCollider: {fileID: 0}
 --- !u!114 &6446927804737950959
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -825,6 +927,17 @@ MonoBehaviour:
   downHeavy: {fileID: 6332940401576577108}
   recovery: {fileID: 1447988121481123790}
   groundPound: {fileID: 3515964311862012711}
+  neutralLightDuration: 0.5
+  sideLightDuration: 0.25
+  downLightDuration: 0.5
+  neutralAirDuration: 0.5
+  sideAirDuration: 0.3
+  downAirDuration: 0.5
+  neutralHeavyDuration: 1
+  sideHeavyDuration: 1
+  downHeavyDuration: 1
+  recoveryDuration: 0.25
+  groundPoundDuration: 0.25
   prioritizeUpOverSide: 1
 --- !u!1 &5678096765016707594
 GameObject:
@@ -876,7 +989,6 @@ MonoBehaviour:
   airKnockbackDirection: 0
   groundedKnockbackForce: 5
   airKnockbackForce: 7.5
-  airKnockbackDelay: 0.2
   originatingPlayer: {fileID: 0}
 --- !u!1 &5856724997634959995
 GameObject:
@@ -918,8 +1030,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8935943973591540019}
-  - component: {fileID: 4430029865858024941}
   - component: {fileID: 8679361470887100801}
+  - component: {fileID: 177829950705851328}
   m_Layer: 10
   m_Name: Down
   m_TagString: PlayerAttack
@@ -942,8 +1054,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 9211445684138813591}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!61 &4430029865858024941
-BoxCollider2D:
+--- !u!114 &8679361470887100801
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5948462787021467922}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62b321ba3e517cc41a9992d4f630ad7f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  attackType: 5
+  damage: 10
+  knockbackDirection: 4
+  airKnockbackDirection: 0
+  groundedKnockbackForce: 5
+  airKnockbackForce: 7.5
+  originatingPlayer: {fileID: 0}
+--- !u!70 &177829950705851328
+CapsuleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -972,42 +1103,13 @@ BoxCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0, y: 0}
-    oldSize: {x: 0, y: 0}
-    newSize: {x: 0, y: 0}
-    adaptiveTilingThreshold: 0
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Size: {x: 1, y: 0.4}
-  m_EdgeRadius: 0
---- !u!114 &8679361470887100801
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5948462787021467922}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 62b321ba3e517cc41a9992d4f630ad7f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  attackType: 5
-  damage: 10
-  knockbackDirection: 0
-  airKnockbackDirection: 0
-  groundedKnockbackForce: 5
-  airKnockbackForce: 7.5
-  airKnockbackDelay: 0.2
-  originatingPlayer: {fileID: 0}
+  m_Offset: {x: 0.125, y: 0}
+  m_Size: {x: 0.75, y: 0.2}
+  m_Direction: 1
 --- !u!1 &6332940401576577108
 GameObject:
   m_ObjectHideFlags: 0
@@ -1058,7 +1160,6 @@ MonoBehaviour:
   airKnockbackDirection: 0
   groundedKnockbackForce: 5
   airKnockbackForce: 7.5
-  airKnockbackDelay: 0.2
   originatingPlayer: {fileID: 0}
 --- !u!1 &7350990003303659527
 GameObject:
@@ -1108,10 +1209,9 @@ MonoBehaviour:
   attackType: 4
   damage: 10
   knockbackDirection: 3
-  airKnockbackDirection: 3
+  airKnockbackDirection: 2
   groundedKnockbackForce: 5
-  airKnockbackForce: 5
-  airKnockbackDelay: 0.2
+  airKnockbackForce: 7.5
   originatingPlayer: {fileID: 0}
 --- !u!70 &7277147975590918264
 CapsuleCollider2D:
@@ -1267,7 +1367,6 @@ MonoBehaviour:
   airKnockbackDirection: 0
   groundedKnockbackForce: 5
   airKnockbackForce: 7.5
-  airKnockbackDelay: 0.2
   originatingPlayer: {fileID: 0}
 --- !u!1 &8608342258820303261
 GameObject:
@@ -1320,7 +1419,6 @@ MonoBehaviour:
   airKnockbackDirection: 0
   groundedKnockbackForce: 2.5
   airKnockbackForce: 2.5
-  airKnockbackDelay: 0.2
   originatingPlayer: {fileID: 0}
 --- !u!58 &9215604995532138930
 CircleCollider2D:

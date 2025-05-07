@@ -13,11 +13,13 @@ public class PlayerControllerEditor : Editor
         EditorGUILayout.LabelField("Control Settings", EditorStyles.boldLabel);
 
         List<string> controlOptions = new List<string> { "None" };
+        int keyboardIndex = 1;
         foreach (var device in InputSystem.devices)
         {
             if (device is Keyboard)
             {
-                controlOptions.Add(device.name); // Use the unique device name
+                controlOptions.Add($"Keyboard{keyboardIndex}");
+                keyboardIndex++;
             }
         }
 

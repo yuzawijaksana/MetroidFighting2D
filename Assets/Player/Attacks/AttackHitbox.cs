@@ -19,7 +19,6 @@ public class AttackHitbox : MonoBehaviour
     public KnockbackDirection airKnockbackDirection; // Knockback direction for airborne targets
     public float groundedKnockbackForce = 5f; // Knockback force for grounded targets
     public float airKnockbackForce = 7.5f; // Knockback force for airborne targets
-    public float airKnockbackDelay = 0.2f; // Delay before applying air knockback
     public GameObject originatingPlayer; // Reference to the player who initiated the attack
 
     private HashSet<GameObject> hitObjects = new HashSet<GameObject>(); // Track objects already hit
@@ -62,11 +61,11 @@ public class AttackHitbox : MonoBehaviour
             return;
         }
 
-        if (hitObjects.Contains(collision.gameObject))
-        {
-            Debug.LogWarning($"Collision with {collision.gameObject.name} already processed. Skipping.");
-            return; // Skip if the object has already been hit
-        }
+        // if (hitObjects.Contains(collision.gameObject))
+        // {
+        //     Debug.LogWarning($"Collision with {collision.gameObject.name} already processed. Skipping.");
+        //     return; // Skip if the object has already been hit
+        // }
 
         // Search for the Damageable component in the collision object or its children
         Damageable target = collision.GetComponentInChildren<Damageable>();
@@ -86,8 +85,11 @@ public class AttackHitbox : MonoBehaviour
         // Determine if the target is grounded or airborne
         bool isTargetGrounded = target.IsGrounded();
         Vector2 knockback = isTargetGrounded
-            ? GetKnockbackDirection(target.transform.position, knockbackDirection) * groundedKnockbackForce
-            : GetKnockbackDirection(target.transform.position, airKnockbackDirection) * airKnockbackForce;
+            ? GetKnockbackDirection(target.transform, knockbackDirection) * groundedKnockbackForce
+            : GetKnockbackDirection(target.transform, airKnockbackDirection) * airKnockbackForce;
+
+        // Log the knockback value
+        Debug.Log($"Knockback applied to {collision.gameObject.name}: {knockback} (Magnitude: {knockback.magnitude})");
 
         // Apply damage and knockback to the correct target
         target.TakeDamage(damage, knockback, originatingPlayer); // Pass originatingPlayer as the attacker
@@ -117,23 +119,6 @@ public class AttackHitbox : MonoBehaviour
 
             // Apply knockback force
             targetRigidbody.AddForce(knockbackDirection * force, ForceMode2D.Impulse);
-        }
-    }
-
-    private IEnumerator ApplyAirKnockbackAfterDelay(Damageable target)
-    {
-        yield return new WaitForSeconds(airKnockbackDelay);
-
-        // Check if the target is null or destroyed before accessing it
-        if (target == null || target.gameObject == null)
-        {
-            yield break;
-        }
-
-        // Check if the target is still airborne before applying air knockback
-        if (!target.IsGrounded())
-        {
-            ApplyKnockback(target, airKnockbackDirection, airKnockbackForce);
         }
     }
 
@@ -168,7 +153,7 @@ public class AttackHitbox : MonoBehaviour
         ResetHitObjects();
     }
 
-    private Vector2 GetKnockbackDirection(Vector3 targetPosition, KnockbackDirection directionType)
+    private Vector2 GetKnockbackDirection(Transform targetTransform, KnockbackDirection directionType)
     {
         // Use PlayerController's facing direction
         float facingDirection = playerController != null && playerController.isFacingRight ? 1 : -1;
@@ -178,13 +163,13 @@ public class AttackHitbox : MonoBehaviour
             case KnockbackDirection.Up:
                 return Vector2.up;
             case KnockbackDirection.Down:
-                return Vector2.down;
+                return Vector2.down; // Fully downward knockback
             case KnockbackDirection.Side:
                 return new Vector2(facingDirection, 0).normalized;
             case KnockbackDirection.SideUp:
-                return new Vector2(facingDirection, 3f).normalized;
+                return new Vector2(facingDirection, 1).normalized;
             case KnockbackDirection.SideDown:
-                return new Vector2(facingDirection, -3f).normalized;
+                return new Vector2(facingDirection, -1).normalized;
             default:
                 return Vector2.zero;
         }

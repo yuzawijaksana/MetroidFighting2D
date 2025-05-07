@@ -1,4 +1,6 @@
 using UnityEngine;
+using System.Collections;
+using System.Threading.Tasks;
 
 public class Damageable : MonoBehaviour
 {
@@ -62,14 +64,16 @@ public class Damageable : MonoBehaviour
 
         // Increment currentHealth
         currentHealth += damage;
-        // Scale knockback based on current health
-        float knockbackMultiplier = 1 + (currentHealth / 100f); // Adjust multiplier logic
+
+        // Scale knockback based on health increments of 10
+        float knockbackMultiplier = 1 + (currentHealth / 100f); // Adjust multiplier logic for every 10 health
         Vector2 scaledKnockback = knockback * knockbackMultiplier;
 
+        // Apply the scaled knockback
         ApplyKnockback(scaledKnockback);
 
         // Apply stun
-        StartCoroutine(ApplyStun());
+        ApplyStun();
 
         Debug.Log($"Player knocked back with force {scaledKnockback} at health {currentHealth}.");
     }
@@ -80,9 +84,34 @@ public class Damageable : MonoBehaviour
 
         if (parentRb != null)
         {
-            parentRb.linearVelocity = Vector2.zero; // Reset velocity before applying knockback
+            // Reset velocity before applying knockback
+            parentRb.linearVelocity = Vector2.zero;
+
+            // Temporarily set gravity scale to 0
+            float originalGravityScale = parentRb.gravityScale;
+            parentRb.gravityScale = 0;
+
+            // Apply knockback force
             parentRb.AddForce(knockback, ForceMode2D.Impulse);
+
+            // Restore gravity scale after a short delay
+            StartCoroutine(RestoreGravityAfterDelay(parentRb, originalGravityScale, 0.1f));
         }
+    }
+
+    private IEnumerator RestoreGravityAfterDelay(Rigidbody2D rb, float originalGravityScale, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (rb != null)
+        {
+            rb.gravityScale = originalGravityScale;
+        }
+    }
+
+    private async void StopMovementAfterKnockback(PlayerController playerController, float delay)
+    {
+        await Task.Delay((int)(delay * 1000)); // Convert seconds to milliseconds
+        playerController.ApplyHitRecovery();
     }
 
     public bool IsGrounded()
@@ -96,7 +125,7 @@ public class Damageable : MonoBehaviour
         return Physics2D.OverlapCircle(groundCheckPoint.position, groundCheckRadius, whatIsGround);
     }
 
-    private System.Collections.IEnumerator ApplyStun()
+    private async void ApplyStun()
     {
         isStunned = true;
 
@@ -106,7 +135,7 @@ public class Damageable : MonoBehaviour
             anim.SetBool("Stunned", true);
         }
 
-        yield return new WaitForSeconds(stunDuration);
+        await Task.Delay((int)(stunDuration * 1000)); // Convert seconds to milliseconds
 
         isStunned = false;
 
@@ -130,6 +159,9 @@ public class Damageable : MonoBehaviour
 
     private void Die()
     {
+        // Reset health before destroying the object
+        ResetHealth();
+
         // Destroy the sprite renderer to remove the visual representation
         SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
         if (spriteRenderer != null)
@@ -145,6 +177,12 @@ public class Damageable : MonoBehaviour
     public void ResetHealth()
     {
         currentHealth = 0;
+        Debug.Log($"Health reset to {currentHealth} for {gameObject.name}.");
+    }
+
+    public void ResetHealthTo(float value)
+    {
+        currentHealth = value;
         Debug.Log($"Health reset to {currentHealth} for {gameObject.name}.");
     }
 }

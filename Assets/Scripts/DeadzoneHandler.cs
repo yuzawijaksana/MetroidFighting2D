@@ -6,24 +6,17 @@ public class DeadzoneHandler : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        Debug.Log($"Collision detected with: {collision.name}"); // Log the name of the object
+        Debug.Log($"Collision detected with: {collision.gameObject.name}");
 
-        if (collision.CompareTag("Player")) // Ensure the object is the player
+        Damageable damageable = collision.GetComponentInChildren<Damageable>();
+        if (damageable != null)
         {
-            // Teleport the player and reset health
+            // Reset health to 0
+            damageable.ResetHealthTo(0);
             Debug.Log($"Player hit the Deadzone. Teleporting to {teleportPosition} and resetting health.");
-            Rigidbody2D rb = collision.GetComponent<Rigidbody2D>();
-            if (rb != null)
-            {
-                rb.linearVelocity = Vector2.zero; // Reset velocity
-            }
-            collision.transform.position = teleportPosition; // Teleport player
-
-            Damageable damageable = collision.GetComponent<Damageable>();
-            if (damageable != null)
-            {
-                damageable.ResetHealth(); // Reset health to 0
-            }
         }
+
+        // Teleport the player to the specified position
+        collision.transform.position = teleportPosition;
     }
 }

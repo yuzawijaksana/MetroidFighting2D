@@ -51,7 +51,6 @@ MonoBehaviour:
   airKnockbackDirection: 0
   groundedKnockbackForce: 5
   airKnockbackForce: 7.5
-  airKnockbackDelay: 0.2
   originatingPlayer: {fileID: 0}
 --- !u!61 &8852326996932088081
 BoxCollider2D:
@@ -306,17 +305,18 @@ MonoBehaviour:
   controlScheme: Keyboard1
   isControllable: 1
   controlledGameObject: {fileID: 783805097188824957}
-  lightAttackKey: 106
-  heavyAttackKey: 107
-  dashKey: 108
+  lightAttackKey: 24
+  heavyAttackKey: 25
+  dashKey: 26
   groundCheckPoint: {fileID: 7974717680858567174}
   whatIsGround:
     serializedVersion: 2
     m_Bits: 264
   walkSpeed: 6.25
   deceleration: 0.99
-  fallingSpeed: 2.5
   maxFallSpeed: -10
+  fallingSpeed: 2.5
+  fastFallSpeed: -20
   wallCheck: {fileID: 2907293869531329905}
   wallSlidingSpeed: 2
   wallInteractionLayers:
@@ -447,7 +447,6 @@ MonoBehaviour:
   airKnockbackDirection: 0
   groundedKnockbackForce: 5
   airKnockbackForce: 7.5
-  airKnockbackDelay: 0.2
   originatingPlayer: {fileID: 0}
 --- !u!1 &1211759952270795824
 GameObject:
@@ -499,7 +498,6 @@ MonoBehaviour:
   airKnockbackDirection: 0
   groundedKnockbackForce: 5
   airKnockbackForce: 7.5
-  airKnockbackDelay: 0.2
   originatingPlayer: {fileID: 0}
 --- !u!1 &1680902367568967136
 GameObject:
@@ -551,7 +549,6 @@ MonoBehaviour:
   airKnockbackDirection: 0
   groundedKnockbackForce: 5
   airKnockbackForce: 7.5
-  airKnockbackDelay: 0.2
   originatingPlayer: {fileID: 0}
 --- !u!1 &2183967477507897663
 GameObject:
@@ -634,7 +631,6 @@ MonoBehaviour:
   airKnockbackDirection: 3
   groundedKnockbackForce: 5
   airKnockbackForce: 5
-  airKnockbackDelay: 0.2
   originatingPlayer: {fileID: 0}
 --- !u!1 &3385329470084900178
 GameObject:
@@ -686,7 +682,6 @@ MonoBehaviour:
   airKnockbackDirection: 0
   groundedKnockbackForce: 5
   airKnockbackForce: 7.5
-  airKnockbackDelay: 0.2
   originatingPlayer: {fileID: 0}
 --- !u!1 &3671262549316818716
 GameObject:
@@ -842,7 +837,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0.06613517, y: -0.10865009}
+  m_Offset: {x: 0.04935682, y: -0.04669881}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -852,7 +847,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.25165653, y: 0.34319043}
+  m_Size: {x: 0.36781526, y: 0.49806833}
   m_EdgeRadius: 0
 --- !u!1 &5275235588743676436
 GameObject:
@@ -904,7 +899,6 @@ MonoBehaviour:
   airKnockbackDirection: 0
   groundedKnockbackForce: 5
   airKnockbackForce: 7.5
-  airKnockbackDelay: 0.2
   originatingPlayer: {fileID: 0}
 --- !u!1 &5484585958398684724
 GameObject:
@@ -990,7 +984,6 @@ MonoBehaviour:
   airKnockbackDirection: 0
   groundedKnockbackForce: 5
   airKnockbackForce: 7.5
-  airKnockbackDelay: 0.2
   originatingPlayer: {fileID: 0}
 --- !u!1 &6749160567048320126
 GameObject:
@@ -1111,7 +1104,6 @@ MonoBehaviour:
   airKnockbackDirection: 0
   groundedKnockbackForce: 2.5
   airKnockbackForce: 2.5
-  airKnockbackDelay: 0.2
   originatingPlayer: {fileID: 0}
 --- !u!58 &1178436593652848392
 CircleCollider2D:
@@ -1230,7 +1222,6 @@ MonoBehaviour:
   airKnockbackDirection: 0
   groundedKnockbackForce: 5
   airKnockbackForce: 7.5
-  airKnockbackDelay: 0.2
   originatingPlayer: {fileID: 0}
 --- !u!1 &8359760718358316669
 GameObject:
@@ -1282,5 +1273,4 @@ MonoBehaviour:
   airKnockbackDirection: 0
   groundedKnockbackForce: 5
   airKnockbackForce: 7.5
-  airKnockbackDelay: 0.2
   originatingPlayer: {fileID: 0}

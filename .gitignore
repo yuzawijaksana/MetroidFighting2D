@@ -19,8 +19,9 @@
 
 # Unity auto-generated files
 *.unitypackage
-*.prefab.meta
-*.asset.meta
+
+# Do not ignore .meta files (required by Unity)
+# *.meta
 
 # OS generated files
 .DS_Store
@@ -53,3 +54,11 @@ LightmapSnapshot.asset
 .idea/
 .vscode/
 *.iml
+
+# Ensure Tilemap and Scene files are not ignored
+!*.unity
+!*.prefab
+!*.asset
+!*.mat
+!*.physicMaterial
+!*.controller

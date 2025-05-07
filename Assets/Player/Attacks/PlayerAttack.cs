@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using System;
+using System.Threading.Tasks;
 
 public class PlayerAttack : MonoBehaviour
 {
@@ -91,7 +92,7 @@ public class PlayerAttack : MonoBehaviour
                 hitbox.Initialize(gameObject); // Set the originating player
                 hitboxObject.SetActive(true);
                 hitbox.StartAttack(duration); // Start the attack and reset hit objects after the duration
-                StartCoroutine(DeactivateHitboxAfterDuration(hitboxObject, duration, hitbox));
+                DeactivateHitboxAfterDuration(hitboxObject, duration, hitbox);
 
                 // Trigger the OnAttackPerformed event only for this character
                 OnAttackPerformed?.Invoke(hitbox);
@@ -183,7 +184,7 @@ public class PlayerAttack : MonoBehaviour
         {
             if (prioritizeUpOverSide && verticalInput > 0)
             {
-                PerformAttack(AttackType.Recovery, recoveryDuration); // Recovery (Upward priority)
+                PerformAttack(AttackType.Recovery, recoveryDuration); // Recovery
             }
             else if (verticalInput < 0)
             {
@@ -191,18 +192,18 @@ public class PlayerAttack : MonoBehaviour
             }
             else if (Mathf.Abs(horizontalInput) > 0)
             {
-                PerformAttack(AttackType.SideAir, sideAirDuration); // Side Air
+                PerformAttack(AttackType.Recovery, recoveryDuration); // Recovery
             }
             else
             {
-                PerformAttack(AttackType.NeutralAir, neutralAirDuration); // Neutral Air
+                PerformAttack(AttackType.Recovery, recoveryDuration); // Default to Recovery when no input is pressed
             }
         }
     }
 
-    private IEnumerator DeactivateHitboxAfterDuration(GameObject hitbox, float duration, AttackHitbox attackHitbox)
+    private async Task DeactivateHitboxAfterDuration(GameObject hitbox, float duration, AttackHitbox attackHitbox)
     {
-        yield return new WaitForSeconds(duration);
+        await Task.Delay((int)(duration * 1000)); // Convert seconds to milliseconds
         hitbox.SetActive(false); // Hide the hitbox after the duration
         attackHitbox.ResetHitObjects(); // Ensure hit objects are reset
     }
