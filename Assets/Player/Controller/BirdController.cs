@@ -171,7 +171,7 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
     private void HandleDownAirAttack()
     {
         float originalGravityScale = rb.gravityScale;
-        Vector2 pushDirection = new Vector2(0, -1); // Fully downward
+        Vector2 pushDirection = new Vector2(transform.localScale.x > 0 ? 1 : -1, -1).normalized; // Diagonal up
         float attackDuration = playerAttack.GetCurrentAttackDuration();
 
         anim.SetBool("Falling", false);

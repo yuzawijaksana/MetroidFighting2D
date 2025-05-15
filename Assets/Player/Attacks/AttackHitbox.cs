@@ -139,7 +139,6 @@ public class AttackHitbox : MonoBehaviour
     public void ResetHitObjects()
     {
         hitObjects.Clear();
-        Debug.Log("Hit objects have been reset.");
     }
 
     private void OnEnable()

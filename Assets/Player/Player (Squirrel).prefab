@@ -302,9 +302,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f08e9dabb26da0d4aa2d02637d2acd83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  controlScheme: Keyboard1
+  controlScheme: 0
   isControllable: 1
   controlledGameObject: {fileID: 783805097188824957}
+  hurtbox: {fileID: 5200929828279763234}
+  parentCollider: {fileID: 783805097188824957}
   lightAttackKey: 24
   heavyAttackKey: 25
   dashKey: 26
@@ -797,7 +799,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentHealth: 0
-  stunDuration: 0.5
   groundCheckPoint: {fileID: 7974717680858567174}
   whatIsGround:
     serializedVersion: 2
@@ -1102,8 +1103,8 @@ MonoBehaviour:
   damage: 10
   knockbackDirection: 0
   airKnockbackDirection: 0
-  groundedKnockbackForce: 2.5
-  airKnockbackForce: 2.5
+  groundedKnockbackForce: 5
+  airKnockbackForce: 5
   originatingPlayer: {fileID: 0}
 --- !u!58 &1178436593652848392
 CircleCollider2D:

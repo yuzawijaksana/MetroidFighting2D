@@ -11,7 +11,7 @@ public class Damageable : MonoBehaviour
     [SerializeField] public float currentHealth;
 
     [Header("Stun Settings")]
-    [SerializeField] private float stunDuration = 0.5f; // Duration of the stun
+    private float stunDuration = 0.75f;
     private bool isStunned = false;
 
     [Header("Ground Check Settings")]
@@ -19,18 +19,17 @@ public class Damageable : MonoBehaviour
     [SerializeField] private LayerMask whatIsGround;
     [SerializeField] private float groundCheckRadius = 0.2f;
 
-    private PlayerController playerController; // Reference to PlayerController
+    private PlayerController playerController;
 
+    // Initializes references and sets up ground check
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
-        currentHealth = 0f; // Initialize currentHealth to 0
+        currentHealth = 0f;
 
-        // Try to get the PlayerController component
         playerController = GetComponentInParent<PlayerController>();
 
-        // If PlayerController exists, use its groundCheckPoint
         if (playerController != null)
         {
             groundCheckPoint = playerController.groundCheckPoint;
@@ -44,76 +43,39 @@ public class Damageable : MonoBehaviour
 
     private void Update()
     {
-        // Ensure the Inspector reflects the current health during runtime
-        #if UNITY_EDITOR
-        UnityEditor.EditorUtility.SetDirty(this);
-        #endif
+        
     }
 
+    // Applies damage, knockback, and stun to the object
     public void TakeDamage(float damage, Vector2 knockback, GameObject attacker)
     {
-        // Ignore damage from the same player
         if (attacker == transform.parent?.gameObject)
         {
             Debug.LogWarning("Damage from the same player ignored.");
             return;
         }
 
-        // Log debug information about the damage received
         Debug.Log($"Received {damage} damage from {attacker.name} at position {attacker.transform.position}.");
 
-        // Increment currentHealth
         currentHealth += damage;
 
-        // Scale knockback based on health increments of 10
-        float knockbackMultiplier = 1 + (currentHealth / 100f); // Adjust multiplier logic for every 10 health
+        float knockbackMultiplier = 1 + (currentHealth / 100f);
         Vector2 scaledKnockback = knockback * knockbackMultiplier;
 
-        // Apply the scaled knockback
         ApplyKnockback(scaledKnockback);
-
-        // Apply stun
         ApplyStun();
 
         Debug.Log($"Player knocked back with force {scaledKnockback} at health {currentHealth}.");
     }
 
+    // Applies knockback to the object
     public void ApplyKnockback(Vector2 knockback)
     {
         Rigidbody2D parentRb = transform.parent != null ? transform.parent.GetComponent<Rigidbody2D>() : null;
-
-        if (parentRb != null)
-        {
-            // Reset velocity before applying knockback
-            parentRb.linearVelocity = Vector2.zero;
-
-            // Temporarily set gravity scale to 0
-            float originalGravityScale = parentRb.gravityScale;
-            parentRb.gravityScale = 0;
-
-            // Apply knockback force
-            parentRb.AddForce(knockback, ForceMode2D.Impulse);
-
-            // Restore gravity scale after a short delay
-            StartCoroutine(RestoreGravityAfterDelay(parentRb, originalGravityScale, 0.1f));
-        }
+        parentRb.AddForce(knockback, ForceMode2D.Impulse);
     }
 
-    private IEnumerator RestoreGravityAfterDelay(Rigidbody2D rb, float originalGravityScale, float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        if (rb != null)
-        {
-            rb.gravityScale = originalGravityScale;
-        }
-    }
-
-    private async void StopMovementAfterKnockback(PlayerController playerController, float delay)
-    {
-        await Task.Delay((int)(delay * 1000)); // Convert seconds to milliseconds
-        playerController.ApplyHitRecovery();
-    }
-
+    // Checks if the object is grounded
     public bool IsGrounded()
     {
         if (groundCheckPoint == null)
@@ -125,61 +87,37 @@ public class Damageable : MonoBehaviour
         return Physics2D.OverlapCircle(groundCheckPoint.position, groundCheckRadius, whatIsGround);
     }
 
+    // Applies a stun effect to the object
     private async void ApplyStun()
     {
         isStunned = true;
 
-        // Play stun animation if available
-        if (anim != null)
-        {
-            anim.SetBool("Stunned", true);
-        }
+        if (anim != null) anim.SetBool("Stunned", true);
+        if (playerController != null) playerController.SetControllable(false); // Disable input
 
-        await Task.Delay((int)(stunDuration * 1000)); // Convert seconds to milliseconds
+        // Calculate stun duration based on current health, capped at 1000 milliseconds
+        int calculatedStunDuration = Mathf.Min((int)(currentHealth / (currentHealth * stunDuration)), 1000);
+        await Task.Delay(calculatedStunDuration);
 
         isStunned = false;
-
-        // Reset stun animation
-        if (anim != null)
-        {
-            anim.SetBool("Stunned", false);
-        }
+        if (anim != null) anim.SetBool("Stunned", false);
+        if (playerController != null) playerController.SetControllable(true); // Re-enable input
     }
 
-    private void ResetHurtbox()
+    // Returns whether the object is currently stunned
+    public bool IsStunned()
     {
-        // Reset the hurtbox state to ensure it can detect collisions again
-        Collider2D collider = GetComponent<Collider2D>();
-        if (collider != null)
-        {
-            collider.enabled = false; // Temporarily disable the collider
-            collider.enabled = true;  // Re-enable the collider to reset its state
-        }
+        return isStunned;
     }
 
-    private void Die()
-    {
-        // Reset health before destroying the object
-        ResetHealth();
-
-        // Destroy the sprite renderer to remove the visual representation
-        SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
-        if (spriteRenderer != null)
-        {
-            Destroy(spriteRenderer);
-        }
-
-        // Destroy the parent GameObject
-        GameObject parentObject = transform.parent != null ? transform.parent.gameObject : gameObject;
-        Destroy(parentObject, 0.1f); // Optional delay for cleanup
-    }
-
+    // Resets the object's health
     public void ResetHealth()
     {
         currentHealth = 0;
         Debug.Log($"Health reset to {currentHealth} for {gameObject.name}.");
     }
 
+    // Sets the object's health to a specific value
     public void ResetHealthTo(float value)
     {
         currentHealth = value;

@@ -264,8 +264,8 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0.125, y: 0}
-  m_Size: {x: 0.75, y: 0.2}
+  m_Offset: {x: 0.2, y: 0}
+  m_Size: {x: 0.6, y: 0.2}
   m_Direction: 1
 --- !u!1 &2870591170926245586
 GameObject:
@@ -348,7 +348,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentHealth: 0
-  stunDuration: 0.5
   groundCheckPoint: {fileID: 3296633051192932678}
   whatIsGround:
     serializedVersion: 2
@@ -835,7 +834,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f08e9dabb26da0d4aa2d02637d2acd83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  controlScheme: Keyboard1
+  controlScheme: 0
   isControllable: 1
   controlledGameObject: {fileID: 4883880204484489955}
   hurtbox: {fileID: 2934075230927735691}
@@ -849,7 +848,7 @@ MonoBehaviour:
     m_Bits: 264
   walkSpeed: 5
   deceleration: 0.99
-  maxFallSpeed: -5
+  maxFallSpeed: -3
   fallingSpeed: 1
   fastFallSpeed: -20
   wallCheck: {fileID: 810622594460516444}
@@ -1068,8 +1067,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackType: 5
   damage: 10
-  knockbackDirection: 4
-  airKnockbackDirection: 0
+  knockbackDirection: 3
+  airKnockbackDirection: 4
   groundedKnockbackForce: 5
   airKnockbackForce: 7.5
   originatingPlayer: {fileID: 0}
@@ -1211,7 +1210,7 @@ MonoBehaviour:
   knockbackDirection: 3
   airKnockbackDirection: 2
   groundedKnockbackForce: 5
-  airKnockbackForce: 7.5
+  airKnockbackForce: 5
   originatingPlayer: {fileID: 0}
 --- !u!70 &7277147975590918264
 CapsuleCollider2D:
@@ -1247,8 +1246,8 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0.125, y: 0}
-  m_Size: {x: 0.75, y: 0.2}
+  m_Offset: {x: 0.2, y: 0}
+  m_Size: {x: 0.6, y: 0.2}
   m_Direction: 1
 --- !u!1 &8332604186672812542
 GameObject:

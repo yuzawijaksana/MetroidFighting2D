@@ -97,9 +97,55 @@ public class SquirrelController : MonoBehaviour, ICharacterBehavior
         // Implement Neutral Light Attack behavior
     }
 
+    // Shared spin logic for attacks
+    private void StartSpin(float duration, float spinSpeed, float direction)
+    {
+        var t = transform;
+        Vector3 axis = t.forward;
+        float elapsed = 0f;
+
+        // Flip spin direction for left/right
+        float spinDir = direction;
+
+        async void Spin()
+        {
+            while (elapsed < duration)
+            {
+                float delta = Mathf.Min(Time.deltaTime, duration - elapsed);
+                t.Rotate(axis, spinSpeed * delta * spinDir, Space.Self);
+                elapsed += delta;
+                await Task.Yield();
+            }
+            t.rotation = Quaternion.identity;
+        }
+        Spin();
+    }
+
     private void HandleSideLightAttack()
     {
-        // Implement Side Light Attack behavior
+        // Roll forward (spin and dash)
+        float dashSpeed = 7.5f;
+        float dashDuration = playerAttack.GetCurrentAttackDuration();
+        float spinSpeed = 1080f; // degrees per second for roll
+        float elapsed = 0f;
+        float direction = (playerController != null && playerController.isFacingRight) ? 1f : -1f;
+        anim.SetBool("SideLight", true);
+        Vector2 originalVelocity = rb.linearVelocity;
+
+        StartSpin(dashDuration, spinSpeed, direction);
+
+        async void Dash()
+        {
+            while (elapsed < dashDuration)
+            {
+                rb.linearVelocity = new Vector2(direction * dashSpeed, rb.linearVelocity.y);
+                elapsed += Time.deltaTime;
+                await Task.Yield();
+            }
+            rb.linearVelocity = originalVelocity;
+            anim.SetBool("NeutralAir", false);
+        }
+        Dash();
     }
 
     private void HandleDownLightAttack()
@@ -109,7 +155,19 @@ public class SquirrelController : MonoBehaviour, ICharacterBehavior
 
     private void HandleNeutralAirAttack()
     {
-        // Implement Neutral Air Attack behavior
+        anim.SetBool("NeutralAir", true);
+        float spinSpeed = 2190f; // degrees per second (faster spin)
+        float duration = playerAttack.GetCurrentAttackDuration();
+        float direction = (playerController != null && playerController.isFacingRight) ? 1f : -1f;
+
+        StartSpin(duration, spinSpeed, direction);
+
+        async void EndAnim()
+        {
+            await Task.Delay((int)(duration * 1000));
+            anim.SetBool("NeutralAir", false);
+        }
+        EndAnim();
     }
 
     private void HandleSideAirAttack()
@@ -168,7 +226,6 @@ public class SquirrelController : MonoBehaviour, ICharacterBehavior
     {
         rb.gravityScale = squirrelGravityReset;
     }
-
 
     public void ShrinkCollider(float xFactor, float yFactor)
     {

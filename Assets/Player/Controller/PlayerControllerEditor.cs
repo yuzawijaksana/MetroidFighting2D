@@ -12,22 +12,11 @@ public class PlayerControllerEditor : Editor
 
         EditorGUILayout.LabelField("Control Settings", EditorStyles.boldLabel);
 
-        List<string> controlOptions = new List<string> { "None" };
-        int keyboardIndex = 1;
-        foreach (var device in InputSystem.devices)
-        {
-            if (device is Keyboard)
-            {
-                controlOptions.Add($"Keyboard{keyboardIndex}");
-                keyboardIndex++;
-            }
-        }
+        serializedObject.Update();
 
-        int selectedIndex = controlOptions.IndexOf(script.controlScheme);
-        if (selectedIndex == -1) selectedIndex = 0;
-
-        selectedIndex = EditorGUILayout.Popup("Control Scheme", selectedIndex, controlOptions.ToArray());
-        script.controlScheme = controlOptions[selectedIndex];
+        var controlSchemeProp = serializedObject.FindProperty("controlScheme");
+        controlSchemeProp.enumValueIndex = (int)(ControlScheme)EditorGUILayout.EnumPopup(
+            "Control Scheme", (ControlScheme)controlSchemeProp.enumValueIndex);
 
         script.isControllable = EditorGUILayout.Toggle("Is Controllable", script.isControllable);
 

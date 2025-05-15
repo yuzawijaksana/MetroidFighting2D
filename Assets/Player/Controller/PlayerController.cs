@@ -6,10 +6,18 @@ using UnityEngine.InputSystem;
 using Unity.Cinemachine;
 using UnityEngine.Tilemaps;
 
+public enum ControlScheme
+{
+    None,
+    Keyboard1,
+    Keyboard2
+}
+
 public class PlayerController : MonoBehaviour
 {
     [Header("Control Settings")]
-    [SerializeField] public string controlScheme = "None";
+    [SerializeField, Tooltip("Select the control scheme for this player.")]
+    public ControlScheme controlScheme = ControlScheme.None;
     [SerializeField] public bool isControllable;
 
     [Header("Player Settings")]
@@ -110,10 +118,10 @@ public class PlayerController : MonoBehaviour
         characterBehavior = GetComponent<ICharacterBehavior>();
         originalColliderSize = boxCollider.size;
     }
-
+    
     private void Update()
     {
-        if (!isControllable) return;
+        if (!isControllable || controlScheme == ControlScheme.None) return; // Prevent all actions if not controllable or control scheme is None
 
         if (isAttackLocked)
         {
@@ -167,22 +175,50 @@ public class PlayerController : MonoBehaviour
 
         isGrounded = Grounded();
 
-        float vertical = Keyboard.current.wKey.isPressed ? 1 : (Keyboard.current.sKey.isPressed ? -1 : 0);
-        float horizontal = Keyboard.current.aKey.isPressed ? -1 : (Keyboard.current.dKey.isPressed ? 1 : 0);
+        float vertical, horizontal;
+        if (controlScheme == ControlScheme.Keyboard1)
+        {
+            vertical = Keyboard.current.wKey.isPressed ? 1 : (Keyboard.current.sKey.isPressed ? -1 : 0);
+            horizontal = Keyboard.current.aKey.isPressed ? -1 : (Keyboard.current.dKey.isPressed ? 1 : 0);
+        }
+        else if (controlScheme == ControlScheme.Keyboard2)
+        {
+            vertical = Keyboard.current.upArrowKey.isPressed ? 1 : (Keyboard.current.downArrowKey.isPressed ? -1 : 0);
+            horizontal = Keyboard.current.leftArrowKey.isPressed ? -1 : (Keyboard.current.rightArrowKey.isPressed ? 1 : 0);
+        }
+        else
+        {
+            vertical = 0;
+            horizontal = 0;
+        }
 
         if (controlledGameObject != null && !isWallSliding) // Prevent attacks while wall sliding
         {
             PlayerAttack controlledPlayerAttack = controlledGameObject.GetComponent<PlayerAttack>();
             if (controlledPlayerAttack != null)
             {
-                // Use serialized keys for light and heavy attacks
-                if (Keyboard.current[lightAttackKey].wasPressedThisFrame)
+                // Use correct keys for each control scheme
+                if (controlScheme == ControlScheme.Keyboard1)
                 {
-                    controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, true);
+                    if (Keyboard.current.jKey.wasPressedThisFrame)
+                    {
+                        controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, true);
+                    }
+                    else if (Keyboard.current.kKey.wasPressedThisFrame)
+                    {
+                        controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, false);
+                    }
                 }
-                else if (Keyboard.current[heavyAttackKey].wasPressedThisFrame)
+                else if (controlScheme == ControlScheme.Keyboard2)
                 {
-                    controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, false);
+                    if (Keyboard.current.numpad4Key.wasPressedThisFrame)
+                    {
+                        controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, true);
+                    }
+                    else if (Keyboard.current.numpad5Key.wasPressedThisFrame)
+                    {
+                        controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, false);
+                    }
                 }
             }
         }
@@ -210,6 +246,22 @@ public class PlayerController : MonoBehaviour
             }
         }
 
+        // Fast fall for both S key (Keyboard1) and DownArrow (Keyboard2)
+        bool fastFallPressed = false;
+        if (controlScheme == ControlScheme.Keyboard1)
+        {
+            fastFallPressed = Keyboard.current.sKey.wasPressedThisFrame;
+        }
+        else if (controlScheme == ControlScheme.Keyboard2)
+        {
+            fastFallPressed = Keyboard.current.downArrowKey.wasPressedThisFrame;
+        }
+
+        if (fastFallPressed && !Grounded())
+        {
+            rb.AddForce(new Vector2(0, -fallingSpeed), ForceMode2D.Impulse);
+        }
+
         // Only apply deceleration if dashing and not recovering from a hit
         if (isDashing && !isRecoveringFromHit)
         {
@@ -223,17 +275,17 @@ public class PlayerController : MonoBehaviour
 
     private void GetInputs()
     {
-        if (controlScheme == "None") return;
+        if (controlScheme == ControlScheme.None) return;
 
-        if (controlScheme == "Keyboard1" || controlScheme == "Keyboard")
+        if (controlScheme == ControlScheme.Keyboard1)
         {
             xAxis = (Keyboard.current.dKey.isPressed ? 1 : 0) - (Keyboard.current.aKey.isPressed ? 1 : 0);
-            yAxis = (Keyboard.current.wKey.isPressed ? 1 : 0) - (Keyboard.current.sKey.isPressed ? 1 : 0); // Update yAxis
+            yAxis = (Keyboard.current.wKey.isPressed ? 1 : 0) - (Keyboard.current.sKey.isPressed ? 1 : 0);
         }
-        else if (controlScheme == "Keyboard2")
+        else if (controlScheme == ControlScheme.Keyboard2)
         {
             xAxis = (Keyboard.current.rightArrowKey.isPressed ? 1 : 0) - (Keyboard.current.leftArrowKey.isPressed ? 1 : 0);
-            yAxis = (Keyboard.current.upArrowKey.isPressed ? 1 : 0) - (Keyboard.current.downArrowKey.isPressed ? 1 : 0); // Update yAxis
+            yAxis = (Keyboard.current.upArrowKey.isPressed ? 1 : 0) - (Keyboard.current.downArrowKey.isPressed ? 1 : 0);
         }
         else
         {
@@ -243,7 +295,8 @@ public class PlayerController : MonoBehaviour
 
     private void HandleDash()
     {
-        if (Keyboard.current.lKey.wasPressedThisFrame && !isDashing && Grounded())
+        if ((controlScheme == ControlScheme.Keyboard1 && Keyboard.current.lKey.wasPressedThisFrame && !isDashing && Grounded()) ||
+            (controlScheme == ControlScheme.Keyboard2 && Keyboard.current.numpad6Key.wasPressedThisFrame && !isDashing && Grounded()))
         {
             Dash();
         }
@@ -253,33 +306,32 @@ public class PlayerController : MonoBehaviour
     {
         if (controlledGameObject == null) return;
 
+        Rigidbody2D controlledRb = controlledGameObject.GetComponent<Rigidbody2D>();
+        if (controlledRb == null) return;
+
+        float targetSpeed = walkSpeed * xAxis; // Target speed based on input
+        float acceleration = Grounded() ? 25f : 15f; // Faster acceleration on the ground
+        float deceleration = Grounded() ? 20f : 10f; // Faster deceleration on the ground
+
+        // Gradually accelerate or decelerate based on input
         if (xAxis != 0)
         {
-            float targetSpeed = walkSpeed * xAxis;
-            float acceleration = 10f;
-
-            Rigidbody2D controlledRb = controlledGameObject.GetComponent<Rigidbody2D>();
-            if (controlledRb != null)
-            {
-                controlledRb.linearVelocity = new Vector2(Mathf.Lerp(controlledRb.linearVelocity.x, targetSpeed, Time.deltaTime * acceleration), controlledRb.linearVelocity.y);
-            }
-
-            // Enable walking animation only if grounded
-            anim.SetBool("Walking", Grounded());
+            controlledRb.linearVelocity = new Vector2(
+                Mathf.MoveTowards(controlledRb.linearVelocity.x, targetSpeed, acceleration * Time.deltaTime),
+                controlledRb.linearVelocity.y
+            );
         }
         else
         {
-            Rigidbody2D controlledRb = controlledGameObject.GetComponent<Rigidbody2D>();
-            if (controlledRb != null)
-            {
-                controlledRb.linearVelocity = new Vector2(controlledRb.linearVelocity.x * deceleration, controlledRb.linearVelocity.y);
-                if (Mathf.Abs(controlledRb.linearVelocity.x) < 0.1f)
-                {
-                    controlledRb.linearVelocity = new Vector2(0, controlledRb.linearVelocity.y);
-                }
-            }
-            anim.SetBool("Walking", false); // Disable walking animation when no horizontal keys are pressed
+            // Decelerate to stop when no input is provided
+            controlledRb.linearVelocity = new Vector2(
+                Mathf.MoveTowards(controlledRb.linearVelocity.x, 0, deceleration * Time.deltaTime),
+                controlledRb.linearVelocity.y
+            );
         }
+
+        // Enable walking animation only if grounded and moving
+        anim.SetBool("Walking", Grounded() && Mathf.Abs(controlledRb.linearVelocity.x) > 0.1f);
     }
 
     private void Flip()
@@ -330,14 +382,24 @@ public class PlayerController : MonoBehaviour
             isDoubleJumping = false;
         }
 
-        if (Keyboard.current.spaceKey.wasPressedThisFrame && (Grounded() || jumpCount < maxJumps || isDashing))
+        bool jumpPressed = false;
+        if (controlScheme == ControlScheme.Keyboard1)
+        {
+            jumpPressed = Keyboard.current.spaceKey.wasPressedThisFrame;
+        }
+        else if (controlScheme == ControlScheme.Keyboard2)
+        {
+            jumpPressed = Keyboard.current.numpad0Key.wasPressedThisFrame;
+        }
+
+        if (jumpPressed && (Grounded() || jumpCount < maxJumps || isDashing))
         {
             characterBehavior?.ShrinkColliderForJump();
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
             rb.AddForce(new Vector2(0, jumpForce), ForceMode2D.Impulse);
             jumpCount++;
 
-            // Set Jumping animation to true when space is pressed
+            // Set Jumping animation to true when jump is pressed
             anim.SetBool("Jumping", true);
 
             if (!Grounded() && jumpCount == 2)
@@ -349,7 +411,18 @@ public class PlayerController : MonoBehaviour
             if (isDashing) isDashing = false;
         }
 
-        if (Keyboard.current.spaceKey.wasReleasedThisFrame && rb.linearVelocity.y > 0)
+        // Jump release logic
+        bool jumpReleased = false;
+        if (controlScheme == ControlScheme.Keyboard1)
+        {
+            jumpReleased = Keyboard.current.spaceKey.wasReleasedThisFrame;
+        }
+        else if (controlScheme == ControlScheme.Keyboard2)
+        {
+            jumpReleased = Keyboard.current.numpad0Key.wasReleasedThisFrame;
+        }
+
+        if (jumpReleased && rb.linearVelocity.y > 0)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
         }
@@ -378,7 +451,17 @@ public class PlayerController : MonoBehaviour
             wallJumpingCounter -= Time.deltaTime;
         }
 
-        if (Keyboard.current.spaceKey.wasPressedThisFrame && wallJumpingCounter > 0f)
+        bool jumpPressed = false;
+        if (controlScheme == ControlScheme.Keyboard1)
+        {
+            jumpPressed = Keyboard.current.spaceKey.wasPressedThisFrame;
+        }
+        else if (controlScheme == ControlScheme.Keyboard2)
+        {
+            jumpPressed = Keyboard.current.numpad0Key.wasPressedThisFrame;
+        }
+
+        if (jumpPressed && wallJumpingCounter > 0f)
         {
             isWallJumping = true;
             SmoothWallJump();
@@ -494,7 +577,17 @@ public class PlayerController : MonoBehaviour
 
     private void JumpWhileDashing()
     {
-        if (isDashing && Keyboard.current.spaceKey.wasPressedThisFrame)
+        bool jumpPressed = false;
+        if (controlScheme == ControlScheme.Keyboard1)
+        {
+            jumpPressed = Keyboard.current.spaceKey.wasPressedThisFrame;
+        }
+        else if (controlScheme == ControlScheme.Keyboard2)
+        {
+            jumpPressed = Keyboard.current.numpad0Key.wasPressedThisFrame;
+        }
+
+        if (isDashing && jumpPressed)
         {
             isDashing = false;
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
@@ -544,7 +637,17 @@ public class PlayerController : MonoBehaviour
 
     private async void HandlePlatformDrop()
     {
-        if (Keyboard.current.sKey.wasPressedThisFrame || Keyboard.current.downArrowKey.wasPressedThisFrame)
+        bool dropPressed = false;
+        if (controlScheme == ControlScheme.Keyboard1)
+        {
+            dropPressed = Keyboard.current.sKey.wasPressedThisFrame;
+        }
+        else if (controlScheme == ControlScheme.Keyboard2)
+        {
+            dropPressed = Keyboard.current.downArrowKey.wasPressedThisFrame;
+        }
+
+        if (dropPressed)
         {
             await DisablePlatformCollision();
         }
@@ -602,19 +705,62 @@ public class PlayerController : MonoBehaviour
         rb.linearVelocity = Vector2.zero;
         isRecoveringFromHit = false;
     }
-
-    public bool IsGroundPoundKeyHeld()
+    
+    public void HandleRespawning(bool isRespawning)
     {
-        return Keyboard.current.sKey.isPressed; // Check if the 'S' key is still being held
+        if (hurtbox != null) hurtbox.SetActive(!isRespawning);
+        if (isRespawning && rb != null) rb.linearVelocity = Vector2.zero;   
+    }
+
+    // Sets whether the player is controllable
+    public void SetControllable(bool state)
+    {
+        isControllable = state;
     }
 
     /// <summary>
-    /// Checks if a specific key is currently being held.
+    /// Checks if a box at the given position and size would collide with the ground/walls.
     /// </summary>
-    /// <param name="key">The key to check.</param>
-    /// <returns>True if the key is held, otherwise false.</returns>
-    public bool IsKeyHeld(Key key)
+    public bool IsBoxCollisionAhead(Vector2 position, Vector2 boxSize, float direction, float distance)
     {
-        return Keyboard.current[key].isPressed;
+        LayerMask collisionMask = LayerMask.GetMask("Default", "Ground", "Platform", "Wall");
+        RaycastHit2D hit = Physics2D.BoxCast(
+            position,
+            boxSize,
+            0f,
+            Vector2.right * direction,
+            distance,
+            collisionMask
+        );
+        return hit.collider != null && !hit.collider.isTrigger;
+    }
+
+    /// <summary>
+    /// Prevents the character from moving into colliders by clamping velocity if a collision is predicted.
+    /// Call this in FixedUpdate after setting velocity.
+    /// </summary>
+    public void PreventClipping(ref Vector2 velocity, BoxCollider2D boxCollider)
+    {
+        float direction = Mathf.Sign(velocity.x);
+        if (direction == 0) return;
+
+        Vector2 boxSize = boxCollider.size * Mathf.Abs(transform.localScale.x);
+        LayerMask collisionMask = LayerMask.GetMask("Default", "Ground", "Platform", "Wall");
+        float distance = Mathf.Abs(velocity.x * Time.fixedDeltaTime) + 0.05f;
+
+        RaycastHit2D hit = Physics2D.BoxCast(
+            boxCollider.bounds.center,
+            boxSize,
+            0f,
+            Vector2.right * direction,
+            distance,
+            collisionMask
+        );
+
+        if (hit.collider != null && !hit.collider.isTrigger)
+        {
+            // Stop horizontal movement if collision detected
+            velocity.x = 0;
+        }
     }
 }
