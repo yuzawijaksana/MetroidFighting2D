@@ -106,7 +106,8 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
 
     private void HandleNeutralLightAttack()
     {
-        // Leave blank
+        anim.SetBool("NeutralLight", true);
+        StartCoroutine(ResetBoolAfterDelay("NeutralLight", playerAttack.GetCurrentAttackDuration()));
     }
 
     private void HandleSideLightAttack()
@@ -133,9 +134,50 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
         // Leave blank
     }
 
+    private void HandleNeutralHeavyAttack()
+    {
+    }
+
     private void HandleNeutralAirAttack()
     {
-        // Leave blank
+        // Spin the bird in a 2D circle (roundabout) and return to original position
+        float spinRadius = 0.5f; // Adjust as needed for the size of the circle
+        float duration = playerAttack.GetCurrentAttackDuration();
+        float elapsed = 0f;
+        Vector3 center = transform.position;
+        Vector3 originalPosition = transform.position;
+        Quaternion originalRotation = transform.rotation;
+
+        anim.SetBool("SideAir", true);
+
+        float direction = (playerController != null && playerController.isFacingRight) ? 1f : -1f;
+        float startAngle = direction > 0 ? -Mathf.PI / 4f : -3f * Mathf.PI / 4f; // bottom right for right, bottom left for left
+
+        async void SpinRoundabout()
+        {
+            while (elapsed < duration)
+            {
+                float t = elapsed / duration;
+                float angle = startAngle + direction * t * Mathf.PI * 2f; // Full circle over duration, direction determines spin
+
+                // Calculate offset in local space (circle in XY plane)
+                float x = Mathf.Cos(angle) * spinRadius;
+                float y = Mathf.Sin(angle) * spinRadius;
+
+                // Only visually move/rotate, do not affect physics/gravity/movement
+                transform.position = center + new Vector3(x, y, 0);
+                float degrees = angle * Mathf.Rad2Deg + 60f;
+                transform.rotation = Quaternion.Euler(0, 0, degrees);
+
+                elapsed += Time.deltaTime;
+                await Task.Yield();
+            }
+            // Return to original position and rotation
+            transform.position = originalPosition;
+            transform.rotation = originalRotation;
+            anim.SetBool("SideAir", false);
+        }
+        SpinRoundabout();
     }
 
     private void HandleSideAirAttack()
@@ -202,11 +244,6 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
         StartCoroutine(ResetSpriteRotationAfterDelay(attackDuration)); // Reset sprite rotation
         StartCoroutine(ResetHurtboxAndColliderAfterDelay(attackDuration)); // Reset hurtbox and collider
         StartCoroutine(ResetBoolAfterDelay("DownAir", attackDuration)); // Reset DownAir after the duration
-    }
-
-    private void HandleNeutralHeavyAttack()
-    {
-        // Leave blank
     }
 
     private void HandleSideHeavyAttack()

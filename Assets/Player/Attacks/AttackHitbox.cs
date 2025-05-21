@@ -61,11 +61,11 @@ public class AttackHitbox : MonoBehaviour
             return;
         }
 
-        // if (hitObjects.Contains(collision.gameObject))
-        // {
-        //     Debug.LogWarning($"Collision with {collision.gameObject.name} already processed. Skipping.");
-        //     return; // Skip if the object has already been hit
-        // }
+        if (hitObjects.Contains(collision.gameObject))
+        {
+            Debug.LogWarning($"Collision with {collision.gameObject.name} already processed. Skipping.");
+            return; // Skip if the object has already been hit
+        }
 
         // Search for the Damageable component in the collision object or its children
         Damageable target = collision.GetComponentInChildren<Damageable>();

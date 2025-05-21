@@ -101,18 +101,15 @@ public class SquirrelController : MonoBehaviour, ICharacterBehavior
     private void StartSpin(float duration, float spinSpeed, float direction)
     {
         var t = transform;
-        Vector3 axis = t.forward;
+        Vector3 axis = Vector3.forward; // Always use world Z axis for proper flip
         float elapsed = 0f;
-
-        // Flip spin direction for left/right
-        float spinDir = direction;
 
         async void Spin()
         {
             while (elapsed < duration)
             {
                 float delta = Mathf.Min(Time.deltaTime, duration - elapsed);
-                t.Rotate(axis, spinSpeed * delta * spinDir, Space.Self);
+                t.Rotate(axis, spinSpeed * delta * direction, Space.Self);
                 elapsed += delta;
                 await Task.Yield();
             }
@@ -129,9 +126,10 @@ public class SquirrelController : MonoBehaviour, ICharacterBehavior
         float spinSpeed = 1080f; // degrees per second for roll
         float elapsed = 0f;
         float direction = (playerController != null && playerController.isFacingRight) ? 1f : -1f;
-        anim.SetBool("SideLight", true);
+        anim.SetBool("NeutralAir", true);
         Vector2 originalVelocity = rb.linearVelocity;
 
+        // Use the same direction for both dash and spin
         StartSpin(dashDuration, spinSpeed, direction);
 
         async void Dash()

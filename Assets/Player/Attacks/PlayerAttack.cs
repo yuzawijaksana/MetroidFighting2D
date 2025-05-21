@@ -92,7 +92,7 @@ public class PlayerAttack : MonoBehaviour
                 hitbox.Initialize(gameObject); // Set the originating player
                 hitboxObject.SetActive(true);
                 hitbox.StartAttack(duration); // Start the attack and reset hit objects after the duration
-                DeactivateHitboxAfterDuration(hitboxObject, duration, hitbox);
+                _ = DeactivateHitboxAfterDuration(hitboxObject, duration, hitbox); // Suppress CS4014 warning
 
                 // Trigger the OnAttackPerformed event only for this character
                 OnAttackPerformed?.Invoke(hitbox);

@@ -17,7 +17,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2672658509869557574
 Transform:
   m_ObjectHideFlags: 0
@@ -86,8 +86,8 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0.125, y: 0}
-  m_Size: {x: 0.75, y: 0.2}
+  m_Offset: {x: 0.2, y: 0}
+  m_Size: {x: 0.8, y: 0.3}
   m_Direction: 1
 --- !u!1 &1729910795524078876
 GameObject:
@@ -99,14 +99,14 @@ GameObject:
   m_Component:
   - component: {fileID: 6465670276192181402}
   - component: {fileID: 1742859754762650674}
-  - component: {fileID: 8905471542849606296}
+  - component: {fileID: 6231172948202968122}
   m_Layer: 10
   m_Name: Down
   m_TagString: PlayerAttack
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &6465670276192181402
 Transform:
   m_ObjectHideFlags: 0
@@ -136,12 +136,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackType: 2
   damage: 10
-  knockbackDirection: 4
-  airKnockbackDirection: 4
+  knockbackDirection: 0
+  airKnockbackDirection: 0
   groundedKnockbackForce: 5
-  airKnockbackForce: 7.5
+  airKnockbackForce: 5
   originatingPlayer: {fileID: 0}
---- !u!70 &8905471542849606296
+--- !u!70 &6231172948202968122
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -175,8 +175,8 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0.125, y: 0}
-  m_Size: {x: 0.75, y: 0.2}
+  m_Offset: {x: 0.2, y: 0}
+  m_Size: {x: 0.8, y: 0.3}
   m_Direction: 1
 --- !u!1 &2626833861056398812
 GameObject:
@@ -195,7 +195,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &8438416630306967687
 Transform:
   m_ObjectHideFlags: 0
@@ -227,8 +227,8 @@ MonoBehaviour:
   damage: 10
   knockbackDirection: 3
   airKnockbackDirection: 3
-  groundedKnockbackForce: 5
-  airKnockbackForce: 5
+  groundedKnockbackForce: 7.5
+  airKnockbackForce: 7.5
   originatingPlayer: {fileID: 0}
 --- !u!70 &4196278251390959613
 CapsuleCollider2D:
@@ -265,7 +265,7 @@ CapsuleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0.2, y: 0}
-  m_Size: {x: 0.6, y: 0.2}
+  m_Size: {x: 0.8, y: 0.3}
   m_Direction: 1
 --- !u!1 &2870591170926245586
 GameObject:
@@ -441,7 +441,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &4689263728720646452
 Transform:
   m_ObjectHideFlags: 0
@@ -560,7 +560,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &105287996235113866
 Transform:
   m_ObjectHideFlags: 0
@@ -926,7 +926,7 @@ MonoBehaviour:
   downHeavy: {fileID: 6332940401576577108}
   recovery: {fileID: 1447988121481123790}
   groundPound: {fileID: 3515964311862012711}
-  neutralLightDuration: 0.5
+  neutralLightDuration: 0.1
   sideLightDuration: 0.25
   downLightDuration: 0.5
   neutralAirDuration: 0.5
@@ -954,7 +954,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2873397988769776614
 Transform:
   m_ObjectHideFlags: 0
@@ -1037,7 +1037,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &8935943973591540019
 Transform:
   m_ObjectHideFlags: 0
@@ -1106,8 +1106,8 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0.125, y: 0}
-  m_Size: {x: 0.75, y: 0.2}
+  m_Offset: {x: 0.2, y: 0}
+  m_Size: {x: 0.8, y: 0.3}
   m_Direction: 1
 --- !u!1 &6332940401576577108
 GameObject:
@@ -1125,7 +1125,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &9025803922197555146
 Transform:
   m_ObjectHideFlags: 0
@@ -1177,7 +1177,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &3052114613622585681
 Transform:
   m_ObjectHideFlags: 0
@@ -1247,7 +1247,7 @@ CapsuleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0.2, y: 0}
-  m_Size: {x: 0.6, y: 0.2}
+  m_Size: {x: 0.8, y: 0.3}
   m_Direction: 1
 --- !u!1 &8332604186672812542
 GameObject:
@@ -1326,13 +1326,14 @@ GameObject:
   m_Component:
   - component: {fileID: 6127543687465970194}
   - component: {fileID: 8319345109944988146}
+  - component: {fileID: 2907102417800624404}
   m_Layer: 10
   m_Name: Neutral
   m_TagString: PlayerAttack
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &6127543687465970194
 Transform:
   m_ObjectHideFlags: 0
@@ -1362,11 +1363,48 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackType: 0
   damage: 10
-  knockbackDirection: 0
-  airKnockbackDirection: 0
+  knockbackDirection: 3
+  airKnockbackDirection: 3
   groundedKnockbackForce: 5
-  airKnockbackForce: 7.5
+  airKnockbackForce: 5
   originatingPlayer: {fileID: 0}
+--- !u!70 &2907102417800624404
+CapsuleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8527566263289191909}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0.42, y: -0.06}
+  m_Size: {x: 0.37, y: 0.55}
+  m_Direction: 0
 --- !u!1 &8608342258820303261
 GameObject:
   m_ObjectHideFlags: 0
@@ -1384,7 +1422,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &4321468075644142889
 Transform:
   m_ObjectHideFlags: 0

@@ -1,67 +1,52 @@
 fileFormatVersion: 2
-guid: fb2fd081bd5ba994a86e0f134e5e2e00
+guid: 794cee623465f414492d4dfeba29b382
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -6797673521570463061
-    second: player-bird_0
+      213: -2369983245336349217
+    second: Player 1 Inputs_0
   - first:
-      213: -2091032042526770113
-    second: player-bird_1
+      213: -7243285616733161775
+    second: Player 1 Inputs_1
   - first:
-      213: 8431051169024343332
-    second: player-bird_2
+      213: -4693294746267468328
+    second: Player 1 Inputs_2
   - first:
-      213: -1648047011682351928
-    second: player-bird_3
+      213: 8313333323919414118
+    second: Player 1 Inputs_3
   - first:
-      213: 3294314318891774413
-    second: player-bird_4
+      213: 4252992183341767609
+    second: Player 1 Inputs_4
   - first:
-      213: -3685881749049566207
-    second: player-bird_5
+      213: -3319424432932116910
+    second: Player 1 Inputs_5
   - first:
-      213: 3401095473869006427
-    second: player-bird_6
+      213: 1633019835591294914
+    second: Player 1 Inputs_6
   - first:
-      213: -8353727484147359640
-    second: player-bird_7
+      213: -4418541454852948348
+    second: Player 1 Inputs_7
   - first:
-      213: -5723806218764199351
-    second: player-bird_8
+      213: 8547485280719720571
+    second: Player 1 Inputs_8
   - first:
-      213: 6498123461263120364
-    second: player-bird_9
+      213: 3338487623499315518
+    second: Player 1 Inputs_9
   - first:
-      213: 9123430375187141819
-    second: player-bird_10
+      213: 2806379778918046721
+    second: Player 1 Inputs_10
   - first:
-      213: 6140069416949487207
-    second: player-bird_11
+      213: -2194935193054892922
+    second: Player 1 Inputs_11
   - first:
-      213: -1261979931033517548
-    second: player-bird_12
+      213: 5410254215210192438
+    second: Player 1 Inputs_12
   - first:
-      213: -1690215991894235335
-    second: player-bird_13
+      213: 7309495915346987821
+    second: Player 1 Inputs_13
   - first:
-      213: 8676547414847746294
-    second: player-bird_14
-  - first:
-      213: -922333128688140920
-    second: player-bird_15
-  - first:
-      213: -677452249782815464
-    second: player-bird_16
-  - first:
-      213: 8922589878591155347
-    second: player-bird_17
-  - first:
-      213: -8588903987186831703
-    second: player-bird_18
-  - first:
-      213: 9193214074085916794
-    second: player-bird_19
+      213: -19390103732284389
+    second: Player 1 Inputs_14
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -94,7 +79,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 0
+    filterMode: 1
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -103,12 +88,12 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 32
+  spritePixelsToUnits: 100
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -129,10 +114,10 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 1024
+    maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 0
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -196,13 +181,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: player-bird_0
+      name: Player 1 Inputs_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 300
-        width: 60
-        height: 60
+        x: 131
+        y: 221
+        width: 20
+        height: 28
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -211,18 +196,150 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: ba2c6bf92ffc9a1a0800000000000000
-      internalID: -6797673521570463061
+      spriteID: fd5791a8bc02c1fd0800000000000000
+      internalID: -2369983245336349217
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: player-bird_1
+      name: Player 1 Inputs_1
+      rect:
+        serializedVersion: 2
+        x: 152
+        y: 221
+        width: 10
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1d67cefab1eaa7b90800000000000000
+      internalID: -7243285616733161775
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Player 1 Inputs_2
+      rect:
+        serializedVersion: 2
+        x: 163
+        y: 221
+        width: 21
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8dd358e5b411edeb0800000000000000
+      internalID: -4693294746267468328
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Player 1 Inputs_3
+      rect:
+        serializedVersion: 2
+        x: 185
+        y: 217
+        width: 20
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 66352a7bc94ee5370800000000000000
+      internalID: 8313333323919414118
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Player 1 Inputs_4
+      rect:
+        serializedVersion: 2
+        x: 206
+        y: 221
+        width: 21
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9bb59908bd9a50b30800000000000000
+      internalID: 4252992183341767609
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Player 1 Inputs_5
+      rect:
+        serializedVersion: 2
+        x: 228
+        y: 221
+        width: 21
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2562458b0190fe1d0800000000000000
+      internalID: -3319424432932116910
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Player 1 Inputs_6
+      rect:
+        serializedVersion: 2
+        x: 264
+        y: 221
+        width: 21
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2cff59b63e6a9a610800000000000000
+      internalID: 1633019835591294914
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Player 1 Inputs_7
       rect:
         serializedVersion: 2
         x: 60
-        y: 300
+        y: 128
         width: 60
         height: 60
       alignment: 0
@@ -233,63 +350,19 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: f3c7b33af692bf2e0800000000000000
-      internalID: -2091032042526770113
+      spriteID: 48ef62e05ff2ea2c0800000000000000
+      internalID: -4418541454852948348
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: player-bird_2
-      rect:
-        serializedVersion: 2
-        x: 120
-        y: 300
-        width: 60
-        height: 60
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 42d76dc5e5c110570800000000000000
-      internalID: 8431051169024343332
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: player-bird_3
-      rect:
-        serializedVersion: 2
-        x: 180
-        y: 300
-        width: 60
-        height: 60
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 8c4878f79f5f029e0800000000000000
-      internalID: -1648047011682351928
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: player-bird_4
+      name: Player 1 Inputs_8
       rect:
         serializedVersion: 2
         x: 0
-        y: 240
-        width: 60
+        y: 67
+        width: 59
         height: 60
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -299,18 +372,18 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: dc1f6044b61c7bd20800000000000000
-      internalID: 3294314318891774413
+      spriteID: b70dd288394ce9670800000000000000
+      internalID: 8547485280719720571
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: player-bird_5
+      name: Player 1 Inputs_9
       rect:
         serializedVersion: 2
         x: 60
-        y: 240
+        y: 67
         width: 60
         height: 60
       alignment: 0
@@ -321,18 +394,40 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 10c1ecfe31e19dcc0800000000000000
-      internalID: -3685881749049566207
+      spriteID: e39f6b53ec0b45e20800000000000000
+      internalID: 3338487623499315518
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: player-bird_6
+      name: Player 1 Inputs_10
       rect:
         serializedVersion: 2
-        x: 120
-        y: 240
+        x: 121
+        y: 67
+        width: 61
+        height: 60
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 10cdf334a8342f620800000000000000
+      internalID: 2806379778918046721
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Player 1 Inputs_11
+      rect:
+        serializedVersion: 2
+        x: 203
+        y: 66
         width: 60
         height: 60
       alignment: 0
@@ -343,18 +438,18 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: b56a62f405e133f20800000000000000
-      internalID: 3401095473869006427
+      spriteID: 68ca5f832160a81e0800000000000000
+      internalID: -2194935193054892922
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: player-bird_7
+      name: Player 1 Inputs_12
       rect:
         serializedVersion: 2
-        x: 180
-        y: 240
+        x: 264
+        y: 66
         width: 60
         height: 60
       alignment: 0
@@ -365,19 +460,19 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 860aaf4fc19911c80800000000000000
-      internalID: -8353727484147359640
+      spriteID: 63ec9224b85151b40800000000000000
+      internalID: 5410254215210192438
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: player-bird_8
+      name: Player 1 Inputs_13
       rect:
         serializedVersion: 2
-        x: 0
-        y: 180
-        width: 60
+        x: 325
+        y: 66
+        width: 59
         height: 60
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -387,316 +482,30 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 94a536fe194f090b0800000000000000
-      internalID: -5723806218764199351
+      spriteID: d2b0d61cecb807560800000000000000
+      internalID: 7309495915346987821
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: player-bird_9
-      rect:
-        serializedVersion: 2
-        x: 60
-        y: 180
-        width: 60
-        height: 60
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: ce758370cd8fd2a50800000000000000
-      internalID: 6498123461263120364
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: player-bird_10
-      rect:
-        serializedVersion: 2
-        x: 120
-        y: 180
-        width: 60
-        height: 60
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: bb4d906969fec9e70800000000000000
-      internalID: 9123430375187141819
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: player-bird_11
-      rect:
-        serializedVersion: 2
-        x: 180
-        y: 180
-        width: 60
-        height: 60
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 766938d6a98e53550800000000000000
-      internalID: 6140069416949487207
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: player-bird_12
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 120
-        width: 60
-        height: 60
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 412431160fb8c7ee0800000000000000
-      internalID: -1261979931033517548
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: player-bird_13
-      rect:
-        serializedVersion: 2
-        x: 60
-        y: 120
-        width: 60
-        height: 60
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 937a571b2852b88e0800000000000000
-      internalID: -1690215991894235335
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: player-bird_14
-      rect:
-        serializedVersion: 2
-        x: 120
-        y: 120
-        width: 60
-        height: 60
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 6f075da47e9496870800000000000000
-      internalID: 8676547414847746294
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: player-bird_15
-      rect:
-        serializedVersion: 2
-        x: 180
-        y: 120
-        width: 60
-        height: 60
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 88df7fbf7e63333f0800000000000000
-      internalID: -922333128688140920
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: player-bird_16
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 60
-        width: 60
-        height: 60
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 815f763a4c43996f0800000000000000
-      internalID: -677452249782815464
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: player-bird_17
-      rect:
-        serializedVersion: 2
-        x: 60
-        y: 60
-        width: 60
-        height: 60
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 39cebed783863db70800000000000000
-      internalID: 8922589878591155347
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: player-bird_18
-      rect:
-        serializedVersion: 2
-        x: 120
-        y: 60
-        width: 60
-        height: 60
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 9aeeac164551ec880800000000000000
-      internalID: -8588903987186831703
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: player-bird_19
-      rect:
-        serializedVersion: 2
-        x: 180
-        y: 60
-        width: 60
-        height: 60
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: a70430e1e7bd49f70800000000000000
-      internalID: 9193214074085916794
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: player-bird_20
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 0
-        width: 60
-        height: 60
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 0693e9e49769e584d9934b03517fb4e6
-      internalID: 1548621037
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: player-bird_21
+      name: Player 1 Inputs_14
       rect:
         serializedVersion: 2
         x: 60
         y: 0
-        width: 60
-        height: 60
+        width: 324
+        height: 59
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 4d1ed7dd7934d8341b17f09ce2a10be3
-      internalID: 179656288
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: player-bird_22
-      rect:
-        serializedVersion: 2
-        x: 120
-        y: 0
-        width: 60
-        height: 60
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: b87b244da68955c46b1eb6798cd43c7d
-      internalID: -1324465181
+      spriteID: b1411eaadcc1bbff0800000000000000
+      internalID: -19390103732284389
       vertices: []
       indices: 
       edges: []
@@ -705,7 +514,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: d7f5f465d50bee04da88dd0afee9db47
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
@@ -715,29 +524,21 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      player-bird_0: -6797673521570463061
-      player-bird_1: -2091032042526770113
-      player-bird_10: 9123430375187141819
-      player-bird_11: 6140069416949487207
-      player-bird_12: -1261979931033517548
-      player-bird_13: -1690215991894235335
-      player-bird_14: 8676547414847746294
-      player-bird_15: -922333128688140920
-      player-bird_16: -677452249782815464
-      player-bird_17: 8922589878591155347
-      player-bird_18: -8588903987186831703
-      player-bird_19: 9193214074085916794
-      player-bird_2: 8431051169024343332
-      player-bird_20: 1548621037
-      player-bird_21: 179656288
-      player-bird_22: -1324465181
-      player-bird_3: -1648047011682351928
-      player-bird_4: 3294314318891774413
-      player-bird_5: -3685881749049566207
-      player-bird_6: 3401095473869006427
-      player-bird_7: -8353727484147359640
-      player-bird_8: -5723806218764199351
-      player-bird_9: 6498123461263120364
+      Player 1 Inputs_0: -2369983245336349217
+      Player 1 Inputs_1: -7243285616733161775
+      Player 1 Inputs_10: 2806379778918046721
+      Player 1 Inputs_11: -2194935193054892922
+      Player 1 Inputs_12: 5410254215210192438
+      Player 1 Inputs_13: 7309495915346987821
+      Player 1 Inputs_14: -19390103732284389
+      Player 1 Inputs_2: -4693294746267468328
+      Player 1 Inputs_3: 8313333323919414118
+      Player 1 Inputs_4: 4252992183341767609
+      Player 1 Inputs_5: -3319424432932116910
+      Player 1 Inputs_6: 1633019835591294914
+      Player 1 Inputs_7: -4418541454852948348
+      Player 1 Inputs_8: 8547485280719720571
+      Player 1 Inputs_9: 3338487623499315518
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

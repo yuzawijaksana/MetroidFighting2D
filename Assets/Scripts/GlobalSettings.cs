@@ -18,6 +18,9 @@ public class GlobalSettings : MonoBehaviour
     public float defaultHitPauseDuration = 0.1f;
     private bool isHitPaused = false;
 
+    [Header("Pixel Game Speed")]
+    [SerializeField] private float pixelGameTimeScale = 1f; // 1 = normal, <1 = slower, >1 = faster
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -28,6 +31,9 @@ public class GlobalSettings : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+
+        Time.timeScale = pixelGameTimeScale;
+        Time.fixedDeltaTime = 0.03f * Time.timeScale;
     }
 
     private void Update()

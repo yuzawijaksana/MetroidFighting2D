@@ -26,8 +26,7 @@ public class TargetGroupManager : MonoBehaviour
 
     public void UpdateTargetGroup()
     {
-        // Clear existing members
-        targetGroup.m_Targets = new CinemachineTargetGroup.Target[0];
+        targetGroup.Targets.Clear();
 
         // Find all GameObjects tagged as "Players"
         GameObject[] targets = GameObject.FindGameObjectsWithTag(playerTag);
