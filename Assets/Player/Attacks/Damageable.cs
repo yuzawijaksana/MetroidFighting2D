@@ -10,6 +10,7 @@ public class Damageable : MonoBehaviour
 
     [Header("Health Settings")]
     [SerializeField] public float currentHealth;
+    [SerializeField] public int maxHearts = 3; // Add this for max health/lives
 
     [Header("Stun Settings")]
     private float stunDuration = 0.75f;
@@ -21,6 +22,12 @@ public class Damageable : MonoBehaviour
     [SerializeField] private float groundCheckRadius = 0.2f;
 
     private PlayerController playerController;
+
+    public CharacterIngameCellUI cellUI; // Assign after spawn
+
+    private Material flashMaterial;
+    private Material originalMaterial;
+    private SpriteRenderer sr;
 
     // Initializes references and sets up ground check
     private void Start()
@@ -40,6 +47,10 @@ public class Damageable : MonoBehaviour
         {
             Debug.LogError($"GroundCheckPoint is not assigned for {gameObject.name}. Ensure it is set in the inspector or via PlayerController.");
         }
+
+        // Update mask color on start
+        if (cellUI != null)
+            cellUI.UpdateMaskColor(this);
     }
 
     private void Update()
@@ -67,6 +78,10 @@ public class Damageable : MonoBehaviour
         StartCoroutine(HitFlashEffect());
         StartCoroutine(ScreenShakeEffect(0.15f, 0.25f)); // Add screen shake
         ApplyStun();
+
+        // Update mask color on the correct UI cell
+        if (cellUI != null)
+            cellUI.UpdateMaskColor(this);
 
         Debug.Log($"Player knocked back with force {scaledKnockback} at health {currentHealth}.");
     }
@@ -117,46 +132,67 @@ public class Damageable : MonoBehaviour
     public void ResetHealth()
     {
         currentHealth = 0;
-        Debug.Log($"Health reset to {currentHealth} for {gameObject.name}.");
+        if (maxHearts > 0)
+            maxHearts--; // Lose one heart on reset/deadzone
+        Debug.Log($"Health reset to {currentHealth} for {gameObject.name}. Hearts left: {maxHearts}");
+        if (cellUI != null)
+        {
+            cellUI.UpdateMaskColor(this);
+            cellUI.SetHearts(maxHearts); // Update heart UI
+        }
+        if (maxHearts <= 0)
+        {
+            // Freeze the game
+            Time.timeScale = 0f;
+            // Remove the dead character's parent GameObject
+            if (transform.parent != null)
+                Destroy(transform.parent.gameObject);
+        }
     }
 
-    // Sets the object's health to a specific value
-    public void ResetHealthTo(float value)
-    {
-        currentHealth = value;
-        Debug.Log($"Health reset to {currentHealth} for {gameObject.name}.");
-    }
-
-    // Flash color on hit based on health (smooth gradient: 0=orange, 150=red, 300=dark red)
+    // Flash color on hit based on health (smooth gradient: 0=bright white, 150=yellow, 300=red)
     private IEnumerator HitFlashEffect()
     {
         if (spriteRenderer != null)
         {
-            Color originalColor = spriteRenderer.color;
-
-            // Clamp health between 0 and 300 for color interpolation
+            // Flash color is based on health: bright white at 0, yellow at 150, red at 300
             float t = Mathf.Clamp01(currentHealth / 300f);
-
-            // 0 = orange (1,0.6,0), 0.5 = red (1,0,0), 1 = dark red (0.5,0,0)
-            Color orange = new Color(1f, 0.6f, 0f);
+            Color brightWhite = new Color(1.5f, 1.5f, 1.5f); // brighter than normal white
+            Color yellow = Color.yellow;
             Color red = Color.red;
-            Color darkRed = new Color(0.5f, 0f, 0f);
 
             Color flashColor;
             if (t < 0.5f)
             {
-                // 0 to 150: orange to red
-                flashColor = Color.Lerp(orange, red, t * 2f);
+                // 0 to 150: bright white to yellow
+                flashColor = Color.Lerp(brightWhite, yellow, t * 2f);
             }
             else
             {
-                // 150 to 300: red to dark red
-                flashColor = Color.Lerp(red, darkRed, (t - 0.5f) * 2f);
+                // 150 to 300: yellow to red
+                flashColor = Color.Lerp(yellow, red, (t - 0.5f) * 2f);
             }
 
             spriteRenderer.color = flashColor;
             yield return new WaitForSeconds(0.15f);
             spriteRenderer.color = Color.white;
+        }
+    }
+
+    public Color GetHealthColor()
+    {
+        // Clamp health between 0 and 300 for color interpolation
+        float t = Mathf.Clamp01(currentHealth / 300f);
+
+        if (t < 0.5f)
+        {
+            // 0 to 150: green to yellow
+            return Color.Lerp(Color.white, Color.yellow, t * 2f);
+        }
+        else
+        {
+            // 150 to 300: yellow to red
+            return Color.Lerp(Color.yellow, Color.red, (t - 0.5f) * 2f);
         }
     }
 
@@ -182,4 +218,7 @@ public class Damageable : MonoBehaviour
             }
         }
     }
+
+    // Returns the color based on current health (0=green, 150=yellow, 300=red)
+    
 }

@@ -86,6 +86,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private LayerMask platformLayer;
     [SerializeField] private float platformDropDuration = 0.3f;
 
+    [Header("Recovery Settings")]
+    [SerializeField] private int maxFreeRecovery = 1; // 1 free recovery
+    private int freeRecoveryUsed = 0;
+
     // References
     private Rigidbody2D rb;
     private BoxCollider2D boxCollider;
@@ -206,7 +210,16 @@ public class PlayerController : MonoBehaviour
                     }
                     else if (Keyboard.current.kKey.wasPressedThisFrame)
                     {
-                        controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, false);
+                        // Check for Recovery attack
+                        if (ShouldAllowRecovery(isGrounded, vertical, horizontal, false))
+                        {
+                            UseRecovery();
+                            controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, false);
+                        }
+                        else
+                        {
+                            controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, false);
+                        }
                     }
                 }
                 else if (controlScheme == ControlScheme.Keyboard2)
@@ -217,7 +230,16 @@ public class PlayerController : MonoBehaviour
                     }
                     else if (Keyboard.current.numpad5Key.wasPressedThisFrame)
                     {
-                        controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, false);
+                        // Check for Recovery attack
+                        if (ShouldAllowRecovery(isGrounded, vertical, horizontal, false))
+                        {
+                            UseRecovery();
+                            controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, false);
+                        }
+                        else
+                        {
+                            controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, false);
+                        }
                     }
                 }
             }
@@ -380,6 +402,7 @@ public class PlayerController : MonoBehaviour
         {
             jumpCount = 0;
             isDoubleJumping = false;
+            freeRecoveryUsed = 0; // Reset free recovery on ground
         }
 
         bool jumpPressed = false;
@@ -716,5 +739,35 @@ public class PlayerController : MonoBehaviour
     public void SetControllable(bool state)
     {
         isControllable = state;
+    }
+
+    // Recovery logic: 1 free, then each additional costs 1 jump (air/double jump)
+    private bool ShouldAllowRecovery(bool isGrounded, float verticalInput, float horizontalInput, bool isLightAttack)
+    {
+        // Only care about air heavy attacks (recovery)
+        if (isGrounded) return false;
+        // You may want to check if the attack is actually Recovery here
+
+        if (freeRecoveryUsed < maxFreeRecovery)
+        {
+            return true; // Free recovery available
+        }
+        else if (jumpCount < maxJumps)
+        {
+            return true; // Can pay 1 jump
+        }
+        return false;
+    }
+
+    private void UseRecovery()
+    {
+        if (freeRecoveryUsed < maxFreeRecovery)
+        {
+            freeRecoveryUsed++;
+        }
+        else
+        {
+            jumpCount += 1;
+        }
     }
 }

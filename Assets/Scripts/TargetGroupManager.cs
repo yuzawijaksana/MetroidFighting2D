@@ -21,6 +21,15 @@ public class TargetGroupManager : MonoBehaviour
             }
         }
 
+        // Set CinemachineBrain to use unscaled time
+        var brain = Camera.main != null ? Camera.main.GetComponent<CinemachineBrain>() : null;
+        if (brain != null)
+        {
+            // Use the public API properties, not internal fields
+            brain.UpdateMethod = CinemachineBrain.UpdateMethods.LateUpdate;
+            brain.IgnoreTimeScale = true;
+        }
+
         UpdateTargetGroup();
     }
 

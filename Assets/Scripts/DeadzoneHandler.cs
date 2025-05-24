@@ -12,7 +12,7 @@ public class DeadzoneHandler : MonoBehaviour
         Damageable damageable = collision.GetComponentInChildren<Damageable>();
         if (damageable != null)
         {
-            damageable.ResetHealthTo(0);
+            damageable.ResetHealth();
 
             PlayerController playerController = collision.GetComponentInParent<PlayerController>();
             if (playerController != null && damageable.IsStunned()) playerController.isControllable = false;
@@ -25,27 +25,32 @@ public class DeadzoneHandler : MonoBehaviour
     // Smoothly teleports the player to the specified position
     private System.Collections.IEnumerator SmoothTeleport(Collider2D collision)
     {
-        PlayerController playerController = collision.GetComponentInParent<PlayerController>();
+        // Cache the transform and Rigidbody2D at the start
+        var cachedTransform = collision != null ? collision.transform : null;
+        var rb = collision != null ? collision.GetComponent<Rigidbody2D>() : null;
+        var playerController = collision != null ? collision.GetComponentInParent<PlayerController>() : null;
 
         if (playerController != null) 
         {
             playerController.HandleRespawning(true); // Start respawning
             playerController.SetControllable(false); // Disable control during teleport
         }
-        Vector3 startPosition = collision.transform.position;
+        Vector3 startPosition = cachedTransform != null ? cachedTransform.position : Vector3.zero;
         float elapsedTime = 0f;
         float duration = 3f;
 
-        Rigidbody2D rb = collision.GetComponent<Rigidbody2D>();
-
         while (elapsedTime < duration)
         {
-            collision.transform.position = Vector3.Lerp(startPosition, teleportPosition, elapsedTime / duration);
+            if (cachedTransform == null)
+                yield break; // Exit if the object was destroyed
+
+            cachedTransform.position = Vector3.Lerp(startPosition, teleportPosition, elapsedTime / duration);
             elapsedTime += Time.deltaTime;
             yield return null;
         }
 
-        collision.transform.position = teleportPosition;
+        if (cachedTransform != null)
+            cachedTransform.position = teleportPosition;
 
         // Reset vertical velocity to simulate slow falling
         if (rb != null)

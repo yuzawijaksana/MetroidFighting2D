@@ -97,27 +97,6 @@ public class SquirrelController : MonoBehaviour, ICharacterBehavior
         // Implement Neutral Light Attack behavior
     }
 
-    // Shared spin logic for attacks
-    private void StartSpin(float duration, float spinSpeed, float direction)
-    {
-        var t = transform;
-        Vector3 axis = Vector3.forward; // Always use world Z axis for proper flip
-        float elapsed = 0f;
-
-        async void Spin()
-        {
-            while (elapsed < duration)
-            {
-                float delta = Mathf.Min(Time.deltaTime, duration - elapsed);
-                t.Rotate(axis, spinSpeed * delta * direction, Space.Self);
-                elapsed += delta;
-                await Task.Yield();
-            }
-            t.rotation = Quaternion.identity;
-        }
-        Spin();
-    }
-
     private void HandleSideLightAttack()
     {
         // Roll forward (spin and dash)
@@ -129,8 +108,22 @@ public class SquirrelController : MonoBehaviour, ICharacterBehavior
         anim.SetBool("NeutralAir", true);
         Vector2 originalVelocity = rb.linearVelocity;
 
-        // Use the same direction for both dash and spin
-        StartSpin(dashDuration, spinSpeed, direction);
+        // Always spin forward (positive spinSpeed) regardless of facing direction
+        async void Spin()
+        {
+            float spinElapsed = 0f;
+            var t = transform;
+            Vector3 axis = Vector3.forward;
+            while (spinElapsed < dashDuration)
+            {
+                float delta = Mathf.Min(Time.deltaTime, dashDuration - spinElapsed);
+                t.Rotate(axis, spinSpeed * delta, Space.Self);
+                spinElapsed += delta;
+                await Task.Yield();
+            }
+            t.rotation = Quaternion.identity;
+        }
+        Spin();
 
         async void Dash()
         {
@@ -157,6 +150,27 @@ public class SquirrelController : MonoBehaviour, ICharacterBehavior
         float spinSpeed = 2190f; // degrees per second (faster spin)
         float duration = playerAttack.GetCurrentAttackDuration();
         float direction = (playerController != null && playerController.isFacingRight) ? 1f : -1f;
+
+        // Moved StartSpin here, only used for NeutralAir
+        void StartSpin(float duration, float spinSpeed, float direction)
+        {
+            var t = transform;
+            Vector3 axis = Vector3.forward;
+            float elapsed = 0f;
+
+            async void Spin()
+            {
+                while (elapsed < duration)
+                {
+                    float delta = Mathf.Min(Time.deltaTime, duration - elapsed);
+                    t.Rotate(axis, spinSpeed * delta * direction, Space.Self);
+                    elapsed += delta;
+                    await Task.Yield();
+                }
+                t.rotation = Quaternion.identity;
+            }
+            Spin();
+        }
 
         StartSpin(duration, spinSpeed, direction);
 
