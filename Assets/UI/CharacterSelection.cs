@@ -233,4 +233,37 @@ public class CharacterSelection : MonoBehaviour
         if (p2Label != null)
             p2Label.fontStyle = player2Confirmed ? FontStyle.Bold : FontStyle.Normal;
     }
+
+    public void ResetSelection()
+    {
+        // Reset selection indices and confirmation states
+        player1Index = 0;
+        player2Index = 0;
+        player1Confirmed = false;
+        player2Confirmed = false;
+        player1Prefab = null;
+        player2Prefab = null;
+
+        // Reset indicators to initial positions
+        HighlightSelections();
+        if (player1Indicator != null)
+        {
+            var rect = player1Indicator.GetComponent<RectTransform>();
+            rect.anchoredPosition = player1TargetAnchoredPos;
+        }
+        if (player2Indicator != null)
+        {
+            var rect = player2Indicator.GetComponent<RectTransform>();
+            rect.anchoredPosition = player2TargetAnchoredPos;
+        }
+
+        // Optionally, show the character selection panel and hide others
+        if (characterSelectionPanel != null)
+            characterSelectionPanel.SetActive(true);
+        if (mainMenuPanel != null)
+            mainMenuPanel.SetActive(false);
+
+        // Optionally, reset any UI highlights or card visuals
+        // ...add more UI reset logic here if needed...
+    }
 }

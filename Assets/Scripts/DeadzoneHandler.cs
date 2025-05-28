@@ -1,4 +1,6 @@
 using UnityEngine;
+using System.Collections;
+
 
 public class DeadzoneHandler : MonoBehaviour
 {
@@ -14,6 +16,17 @@ public class DeadzoneHandler : MonoBehaviour
         {
             damageable.ResetHealth();
 
+            // If player is out of hearts, handle victory and set inactive
+            if (damageable.maxHearts <= 0)
+            {
+                GameObject playerObj = collision.GetComponentInParent<PlayerController>()?.gameObject;
+                if (playerObj != null)
+                {
+                    StartCoroutine(DeathDelay(playerObj, 0.75f));
+                    return; // Don't teleport a dead player
+                }
+            }
+
             PlayerController playerController = collision.GetComponentInParent<PlayerController>();
             if (playerController != null && damageable.IsStunned()) playerController.isControllable = false;
             Debug.Log($"Player hit the Deadzone. Teleporting to {teleportPosition} and resetting health.");
@@ -22,8 +35,15 @@ public class DeadzoneHandler : MonoBehaviour
         StartCoroutine(SmoothTeleport(collision));
     }
 
+    private IEnumerator DeathDelay(GameObject playerObj, float delay)
+    {
+        playerObj.SetActive(false);
+        yield return new WaitForSeconds(delay);
+        GameStarter.Instance?.OnPlayerDeath(playerObj);
+    }
+
     // Smoothly teleports the player to the specified position
-    private System.Collections.IEnumerator SmoothTeleport(Collider2D collision)
+    private IEnumerator SmoothTeleport(Collider2D collision)
     {
         // Cache the transform and Rigidbody2D at the start
         var cachedTransform = collision != null ? collision.transform : null;

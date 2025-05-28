@@ -48,9 +48,13 @@ public class Damageable : MonoBehaviour
             Debug.LogError($"GroundCheckPoint is not assigned for {gameObject.name}. Ensure it is set in the inspector or via PlayerController.");
         }
 
-        // Update mask color on start
+        // Update mask color and initialize hearts on start
         if (cellUI != null)
+        {
             cellUI.UpdateMaskColor(this);
+            cellUI.InitHearts(maxHearts);
+            cellUI.SetHearts(maxHearts);
+        }
     }
 
     private void Update()
@@ -140,14 +144,7 @@ public class Damageable : MonoBehaviour
             cellUI.UpdateMaskColor(this);
             cellUI.SetHearts(maxHearts); // Update heart UI
         }
-        if (maxHearts <= 0)
-        {
-            // Freeze the game
-            Time.timeScale = 0f;
-            // Remove the dead character's parent GameObject
-            if (transform.parent != null)
-                Destroy(transform.parent.gameObject);
-        }
+        // Only destroy if called from DeadzoneHandler when hearts <= 0
     }
 
     // Flash color on hit based on health (smooth gradient: 0=bright white, 150=yellow, 300=red)

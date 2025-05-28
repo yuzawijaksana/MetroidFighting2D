@@ -58,13 +58,9 @@ public class CharacterIngameCellUI : MonoBehaviour
     // Call this to initialize the hearts UI, now takes maxHearts from Damageable
     public void InitHearts(int maxHearts)
     {
-        // Clear old hearts
-        foreach (var img in heartImages)
-            if (img != null) Destroy(img.gameObject);
-        heartImages.Clear();
-
-        // Spawn new hearts as UI Images
-        for (int i = 0; i < maxHearts; i++)
+        // Only create new hearts if not enough exist
+        int toCreate = maxHearts - heartImages.Count;
+        for (int i = 0; i < toCreate; i++)
         {
             GameObject heartGO = new GameObject("Heart", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
             heartGO.transform.SetParent(heartsGrid, false);
@@ -73,6 +69,21 @@ public class CharacterIngameCellUI : MonoBehaviour
             img.SetNativeSize();
             heartImages.Add(img);
         }
+        // Set all hearts active, then SetHearts will handle visibility
+        for (int i = 0; i < heartImages.Count; i++)
+        {
+            heartImages[i].gameObject.SetActive(i < maxHearts);
+        }
+    }
+
+    public void ClearHearts()
+    {
+        // Instead of destroying, just set all to inactive
+        foreach (var img in heartImages)
+        {
+            if (img != null)
+                img.gameObject.SetActive(false);
+        }
     }
 
     // Call this to update the hearts display (e.g., after losing a life)
@@ -80,7 +91,7 @@ public class CharacterIngameCellUI : MonoBehaviour
     {
         for (int i = 0; i < heartImages.Count; i++)
         {
-            heartImages[i].enabled = i < currentHearts;
+            heartImages[i].gameObject.SetActive(i < currentHearts);
         }
     }
 }
