@@ -6,6 +6,7 @@ public class VictoryScreenUI : MonoBehaviour
 {
     [SerializeField] private Text victoryLabel;
     [SerializeField] private Image artworkImage; // Assign this in the inspector
+    [SerializeField] private GameObject characterSelection; // Reference the GameObject directly
 
     private void Update()
     {
@@ -41,14 +42,18 @@ public class VictoryScreenUI : MonoBehaviour
     private void OnCharacterSelect()
     {
         // Reset character selection logic
-        var characterSelection = Object.FindAnyObjectByType<CharacterSelection>();
         if (characterSelection != null)
         {
-            characterSelection.ResetSelection();
+            var characterSelectionComponent = characterSelection.GetComponent<CharacterSelection>();
+            if (characterSelectionComponent != null)
+            {
+                characterSelectionComponent.ResetSelection();
+            }
+            characterSelection.SetActive(true); // Ensure CharacterSelection GameObject is active
         }
         else
         {
-            Debug.LogWarning("CharacterSelection not found in scene.");
+            Debug.LogWarning("CharacterSelection GameObject reference is not assigned.");
         }
         gameObject.SetActive(false);
     }

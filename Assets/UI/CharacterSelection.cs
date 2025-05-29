@@ -256,14 +256,5 @@ public class CharacterSelection : MonoBehaviour
             var rect = player2Indicator.GetComponent<RectTransform>();
             rect.anchoredPosition = player2TargetAnchoredPos;
         }
-
-        // Optionally, show the character selection panel and hide others
-        if (characterSelectionPanel != null)
-            characterSelectionPanel.SetActive(true);
-        if (mainMenuPanel != null)
-            mainMenuPanel.SetActive(false);
-
-        // Optionally, reset any UI highlights or card visuals
-        // ...add more UI reset logic here if needed...
     }
 }
