@@ -318,7 +318,7 @@ MonoBehaviour:
   deceleration: 0.99
   maxFallSpeed: -10
   fallingSpeed: 2.5
-  fastFallSpeed: -20
+  fastFallSpeed: -1.5
   wallCheck: {fileID: 2907293869531329905}
   wallSlidingSpeed: 2
   wallInteractionLayers:
@@ -799,11 +799,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentHealth: 0
+  maxHearts: 3
   groundCheckPoint: {fileID: 7974717680858567174}
   whatIsGround:
     serializedVersion: 2
     m_Bits: 8
   groundCheckRadius: 0.2
+  cellUI: {fileID: 0}
 --- !u!61 &5387637407005330445
 BoxCollider2D:
   m_ObjectHideFlags: 0

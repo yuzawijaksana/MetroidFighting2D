@@ -106,27 +106,31 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
 
     private void HandleNeutralLightAttack()
     {
-        anim.SetBool("NeutralLight", true);
-        StartCoroutine(ResetBoolAfterDelay("NeutralLight", playerAttack.GetCurrentAttackDuration()));
+        anim.SetTrigger("NeutralLight");
+
+        // Get attack duration from animation
+        float attackDuration = anim.GetCurrentAnimatorStateInfo(0).length;
+        StartCoroutine(ResetAnimationState("NeutralLight", attackDuration));
     }
 
     private void HandleSideLightAttack()
     {
         float originalGravityScale = rb.gravityScale;
         Vector2 pushDirection = transform.localScale.x > 0 ? Vector2.right : Vector2.left;
-        float attackDuration = playerAttack.GetCurrentAttackDuration();
 
-        anim.SetBool("Walking", false);
-        anim.SetBool("SideAir", true);
+        anim.SetTrigger("SideAir");
         rb.gravityScale = 0;
 
         rb.linearVelocity = new Vector2(pushDirection.x * sideLightPushForce, 0);
+
+        // Get attack duration from animation
+        float attackDuration = anim.GetCurrentAnimatorStateInfo(0).length;
 
         playerController.LockAttack(attackDuration);
         StartCoroutine(MaintainAttackVelocity(new Vector2(pushDirection.x * sideLightPushForce, 0), attackDuration));
         Invoke(nameof(RevertGravityScale), attackDuration);
 
-        StartCoroutine(ResetBoolAfterDelay("SideAir", attackDuration));
+        StartCoroutine(ResetAnimationState("SideAir", attackDuration));
     }
 
     private void HandleDownLightAttack()
@@ -140,24 +144,25 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
 
     private void HandleNeutralAirAttack()
     {
-        // Spin the bird in a 2D circle (roundabout) and return to original position
+        anim.SetTrigger("SideAir");
+
         float spinRadius = 0.5f; // Adjust as needed for the size of the circle
-        float duration = playerAttack.GetCurrentAttackDuration();
         float elapsed = 0f;
         Vector3 center = transform.position;
         Vector3 originalPosition = transform.position;
         Quaternion originalRotation = transform.rotation;
 
-        anim.SetBool("SideAir", true);
-
         float direction = (playerController != null && playerController.isFacingRight) ? 1f : -1f;
         float startAngle = direction > 0 ? -Mathf.PI / 4f : -3f * Mathf.PI / 4f; // bottom right for right, bottom left for left
 
+        // Get attack duration from animation
+        float attackDuration = anim.GetCurrentAnimatorStateInfo(0).length;
+
         async void SpinRoundabout()
         {
-            while (elapsed < duration)
+            while (elapsed < attackDuration)
             {
-                float t = elapsed / duration;
+                float t = elapsed / attackDuration;
                 float angle = startAngle + direction * t * Mathf.PI * 2f; // Full circle over duration, direction determines spin
 
                 // Calculate offset in local space (circle in XY plane)
@@ -175,7 +180,6 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
             // Return to original position and rotation
             transform.position = originalPosition;
             transform.rotation = originalRotation;
-            anim.SetBool("SideAir", false);
         }
         SpinRoundabout();
     }
@@ -186,8 +190,7 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
         Vector2 pushDirection = transform.localScale.x > 0 ? Vector2.right : Vector2.left;
         float attackDuration = playerAttack.GetCurrentAttackDuration();
 
-        anim.SetBool("Falling", false);
-        anim.SetBool("SideAir", true);
+        anim.SetTrigger("SideAir");
         rb.gravityScale = 0;
 
         rb.linearVelocity = new Vector2(pushDirection.x * sideAirPushForce, 0);
@@ -206,8 +209,7 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
         StartCoroutine(MaintainAttackVelocity(new Vector2(pushDirection.x * sideAirPushForce, 0), attackDuration));
         Invoke(nameof(RevertGravityScale), attackDuration);
 
-        StartCoroutine(ResetHurtboxAndColliderAfterDelay(attackDuration)); // Reset hurtbox and collider
-        StartCoroutine(ResetBoolAfterDelay("SideAir", attackDuration));
+        StartCoroutine(ResetAnimationState("SideAir", attackDuration));
     }
 
     private void HandleDownAirAttack()
@@ -216,8 +218,7 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
         Vector2 pushDirection = new Vector2(transform.localScale.x > 0 ? 1 : -1, -1).normalized; // Diagonal up
         float attackDuration = playerAttack.GetCurrentAttackDuration();
 
-        anim.SetBool("Falling", false);
-        anim.SetBool("DownAir", true);
+        anim.SetTrigger("DownAir");
         rb.gravityScale = 0; // Temporarily disable gravity
 
         // Apply immediate downward force
@@ -243,7 +244,7 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
 
         StartCoroutine(ResetSpriteRotationAfterDelay(attackDuration)); // Reset sprite rotation
         StartCoroutine(ResetHurtboxAndColliderAfterDelay(attackDuration)); // Reset hurtbox and collider
-        StartCoroutine(ResetBoolAfterDelay("DownAir", attackDuration)); // Reset DownAir after the duration
+        StartCoroutine(ResetAnimationState("DownAir", attackDuration)); // Reset DownAir after the duration
     }
 
     private void HandleSideHeavyAttack()
@@ -263,7 +264,7 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
         float attackDuration = playerAttack.GetCurrentAttackDuration();
 
         anim.SetBool("Falling", false);
-        anim.SetBool("Recovery", true); // Use Recovery animation boolean
+        anim.SetTrigger("Recovery"); // Use Recovery animation boolean
         rb.gravityScale = 0;
 
         rb.linearVelocity = pushDirection * recoveryPushForce;
@@ -288,63 +289,14 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
 
         StartCoroutine(ResetSpriteRotationAfterDelay(attackDuration)); // Reset sprite rotation
         StartCoroutine(ResetHurtboxAndColliderAfterDelay(attackDuration)); // Reset hurtbox and collider
-        StartCoroutine(ResetBoolAfterDelay("Recovery", attackDuration)); // Reset Recovery after the duration
+        StartCoroutine(ResetAnimationState("Recovery", attackDuration)); // Reset Recovery after the duration
     }
 
     private void HandleGroundPoundAttack()
     {
-        float originalGravityScale = rb.gravityScale;
-        Vector2 pushDirection = new Vector2(0, -1); // Fully downward
-        float attackDuration = playerAttack.GetCurrentAttackDuration();
-
-        anim.SetBool("Falling", false);
-        anim.SetBool("GroundPound", true); // Use GroundPound animation boolean
-        rb.gravityScale = 0; // Temporarily disable gravity
-
-        // Apply immediate downward force
-        rb.linearVelocity = new Vector2(0, -groundPoundPushForce);
-
-        // Rotate the hurtbox and flip the collider by swapping its size
-        if (hurtbox != null)
-        {
-            hurtbox.transform.rotation = Quaternion.Euler(0, 0, 90);
-        }
-        if (parentCollider != null)
-        {
-            parentCollider.size = new Vector2(parentCollider.size.y, parentCollider.size.x); // Flip the collider size
-        }
-
-        // Rotate the sprite downward
-        float rotationAngle = transform.localScale.x > 0 ? -90f : 90f; // Rotate based on facing direction
-        transform.rotation = Quaternion.Euler(0, 0, rotationAngle);
-
-        playerController.LockAttack(attackDuration);
-        StartCoroutine(ResetAfterGroundPound(attackDuration));
+        
     }
 
-    private IEnumerator ResetAfterGroundPound(float duration)
-    {
-        yield return new WaitForSeconds(duration);
-
-        // Reset gravity scale
-        rb.gravityScale = birdGravityReset;
-
-        // Reset hurtbox and collider
-        if (hurtbox != null)
-        {
-            hurtbox.transform.rotation = Quaternion.identity;
-        }
-        if (parentCollider != null)
-        {
-            parentCollider.size = new Vector2(originalColliderSize.x, originalColliderSize.y);
-        }
-
-        // Reset sprite rotation
-        transform.rotation = Quaternion.identity;
-
-        // Reset animation
-        anim.SetBool("GroundPound", false);
-    }
 
     private IEnumerator MaintainAttackVelocity(Vector2 velocity, float duration)
     {
@@ -357,10 +309,12 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
         }
     }
 
-    private IEnumerator ResetBoolAfterDelay(string parameterName, float delay)
+    private IEnumerator ResetAnimationState(string triggerName, float delay)
     {
         yield return new WaitForSeconds(delay);
-        anim.SetBool(parameterName, false);
+
+        // Reset the animation trigger explicitly
+        anim.ResetTrigger(triggerName);
     }
 
     private IEnumerator ResetSpriteRotationAfterDelay(float delay)
@@ -388,6 +342,9 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
     private void RevertGravityScale()
     {
         rb.gravityScale = birdGravityReset;
+
+        // Ensure velocity is reset after reverting gravity
+        rb.linearVelocity = Vector2.zero;
     }
 
     public void ShrinkCollider(float xFactor, float yFactor)

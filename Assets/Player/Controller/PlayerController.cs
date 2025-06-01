@@ -210,14 +210,10 @@ public class PlayerController : MonoBehaviour
                     }
                     else if (Keyboard.current.kKey.wasPressedThisFrame)
                     {
-                        // Check for Recovery attack
-                        if (ShouldAllowRecovery(isGrounded, vertical, horizontal, false))
+                        // Perform recovery if jumps are available
+                        if (!isGrounded && jumpCount > 0)
                         {
-                            UseRecovery();
-                            controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, false);
-                        }
-                        else
-                        {
+                            jumpCount--; // Decrement jump count for recovery
                             controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, false);
                         }
                     }
@@ -230,14 +226,9 @@ public class PlayerController : MonoBehaviour
                     }
                     else if (Keyboard.current.numpad5Key.wasPressedThisFrame)
                     {
-                        // Check for Recovery attack
-                        if (ShouldAllowRecovery(isGrounded, vertical, horizontal, false))
+                        if (!isGrounded && jumpCount > 0)
                         {
-                            UseRecovery();
-                            controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, false);
-                        }
-                        else
-                        {
+                            jumpCount--; // Decrement jump count for recovery
                             controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, false);
                         }
                     }
@@ -400,9 +391,8 @@ public class PlayerController : MonoBehaviour
 
         if (Grounded())
         {
-            jumpCount = 0;
+            jumpCount = maxJumps; // Reset jump count when grounded
             isDoubleJumping = false;
-            freeRecoveryUsed = 0; // Reset free recovery on ground
         }
 
         bool jumpPressed = false;
@@ -415,17 +405,17 @@ public class PlayerController : MonoBehaviour
             jumpPressed = Keyboard.current.numpad0Key.wasPressedThisFrame;
         }
 
-        if (jumpPressed && (Grounded() || jumpCount < maxJumps || isDashing))
+        if (jumpPressed && jumpCount > 0)
         {
             characterBehavior?.ShrinkColliderForJump();
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
             rb.AddForce(new Vector2(0, jumpForce), ForceMode2D.Impulse);
-            jumpCount++;
+            jumpCount--; // Decrement jump count
 
             // Set Jumping animation to true when jump is pressed
             anim.SetBool("Jumping", true);
 
-            if (!Grounded() && jumpCount == 2)
+            if (!Grounded() && jumpCount == 0)
             {
                 isDoubleJumping = true;
                 anim.SetBool("DoubleJumping", true);
@@ -656,6 +646,12 @@ public class PlayerController : MonoBehaviour
     {
         await Task.Delay((int)(duration * 1000)); // Convert seconds to milliseconds
         isAttackLocked = false;
+
+        // Ensure the player's velocity is reset after unlocking
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector2.zero;
+        }
     }
 
     private async void HandlePlatformDrop()
@@ -739,35 +735,5 @@ public class PlayerController : MonoBehaviour
     public void SetControllable(bool state)
     {
         isControllable = state;
-    }
-
-    // Recovery logic: 1 free, then each additional costs 1 jump (air/double jump)
-    private bool ShouldAllowRecovery(bool isGrounded, float verticalInput, float horizontalInput, bool isLightAttack)
-    {
-        // Only care about air heavy attacks (recovery)
-        if (isGrounded) return false;
-        // You may want to check if the attack is actually Recovery here
-
-        if (freeRecoveryUsed < maxFreeRecovery)
-        {
-            return true; // Free recovery available
-        }
-        else if (jumpCount < maxJumps)
-        {
-            return true; // Can pay 1 jump
-        }
-        return false;
-    }
-
-    private void UseRecovery()
-    {
-        if (freeRecoveryUsed < maxFreeRecovery)
-        {
-            freeRecoveryUsed++;
-        }
-        else
-        {
-            jumpCount += 1;
-        }
     }
 }

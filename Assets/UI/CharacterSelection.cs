@@ -48,6 +48,16 @@ public class CharacterSelection : MonoBehaviour
         StartCoroutine(MoveIndicatorsNextFrame());
     }
 
+    void OnEnable()
+    {
+        // Clear GameStarter data when CharacterSelection is accessed
+        if (gameStarter != null)
+        {
+            gameStarter.ClearGameState();
+        }
+        ResetSelection(); // Reset local selection state
+    }
+
     private System.Collections.IEnumerator MoveIndicatorsNextFrame()
     {
         yield return new WaitForEndOfFrame();
@@ -137,8 +147,17 @@ public class CharacterSelection : MonoBehaviour
         {
             if (gameStarter != null)
             {
+                // Ensure selected prefabs are assigned to GameStarter
                 gameStarter.player1Prefab = player1Prefab;
                 gameStarter.player2Prefab = player2Prefab;
+
+                // Push selected data to GameStarter
+                gameStarter.SetSelectedData(
+                    new List<GameObject> { player1Prefab, player2Prefab },
+                    new List<string> { "Player 1", "Player 2" },
+                    new List<CharacterCard> { characterCards[player1Index], characterCards[player2Index] }
+                );
+
                 gameStarter.StartGame();
             }
             if (characterSelectionPanel != null) characterSelectionPanel.SetActive(false);
@@ -199,14 +218,14 @@ public class CharacterSelection : MonoBehaviour
         }
 
         characterName.text = card.characterName;
-        artwork.sprite = card.characterSprite;
+        artwork.sprite = card.characterSprite; // Ensure the sprite is assigned
 
         // Set CardDisplay's characterCard property
         CardDisplay display = characterCard.GetComponent<CardDisplay>();
         if (display != null)
         {
             display.characterCard = card;
-            display.Refresh();
+            display.Refresh(); // Refresh the card display to ensure the sprite is updated
         }
     }
 
@@ -256,5 +275,70 @@ public class CharacterSelection : MonoBehaviour
             var rect = player2Indicator.GetComponent<RectTransform>();
             rect.anchoredPosition = player2TargetAnchoredPos;
         }
+
+        // Remove all player GameObjects from playersParent
+        if (gameStarter.playersParent != null)
+        {
+            foreach (Transform child in gameStarter.playersParent.transform)
+            {
+                Destroy(child.gameObject);
+            }
+        }
+
+        // Remove all children from IngameUI grid
+        if (gameStarter.ingameGridUI != null)
+        {
+            Transform gridTransform = gameStarter.ingameGridUI.transform;
+            foreach (Transform child in gridTransform)
+            {
+                Destroy(child.gameObject);
+            }
+        }
+    }
+
+    public void ResetEverything()
+    {
+        // Reset selection indices and confirmation states
+        player1Index = 0;
+        player2Index = 0;
+        player1Confirmed = false;
+        player2Confirmed = false;
+        player1Prefab = null;
+        player2Prefab = null;
+
+        // Reset indicators to initial positions
+        HighlightSelections();
+        if (player1Indicator != null)
+        {
+            var rect = player1Indicator.GetComponent<RectTransform>();
+            rect.anchoredPosition = player1TargetAnchoredPos;
+        }
+        if (player2Indicator != null)
+        {
+            var rect = player2Indicator.GetComponent<RectTransform>();
+            rect.anchoredPosition = player2TargetAnchoredPos;
+        }
+
+        // Remove all player GameObjects from playersParent
+        if (gameStarter.playersParent != null)
+        {
+            foreach (Transform child in gameStarter.playersParent.transform)
+            {
+                Destroy(child.gameObject);
+            }
+        }
+
+        // Remove all children from IngameUI grid
+        if (gameStarter.ingameGridUI != null)
+        {
+            Transform gridTransform = gameStarter.ingameGridUI.transform;
+            foreach (Transform child in gridTransform)
+            {
+                Destroy(child.gameObject);
+            }
+        }
+
+        // Clear history in GameStarter
+        gameStarter.ClearGameState();
     }
 }

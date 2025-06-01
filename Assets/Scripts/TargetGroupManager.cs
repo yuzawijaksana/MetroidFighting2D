@@ -1,5 +1,6 @@
 using UnityEngine;
 using Unity.Cinemachine;
+using System.Collections.Generic;
 
 public class TargetGroupManager : MonoBehaviour
 {
@@ -30,23 +31,30 @@ public class TargetGroupManager : MonoBehaviour
             brain.IgnoreTimeScale = true;
         }
 
-        UpdateTargetGroup();
+        UpdateTargets();
     }
 
-    public void UpdateTargetGroup()
+    public void UpdateTargets()
     {
         targetGroup.Targets.Clear();
-
-        // Find all GameObjects tagged as "Players"
-        GameObject[] targets = GameObject.FindGameObjectsWithTag(playerTag);
-
-        // Add each target to the CinemachineTargetGroup
-        foreach (GameObject target in targets)
+        foreach (Transform target in FindTargets(playerTag))
         {
-            Transform targetTransform = target.transform;
-            targetGroup.AddMember(targetTransform, 1f, 2f); // Add with default weight and radius
+            targetGroup.AddMember(target, 1f, 2f); // Add with default weight and radius
         }
+        Debug.Log($"Target group updated with {targetGroup.Targets.Count} targets.");
+    }
 
-        Debug.Log($"Target group updated with {targets.Length} targets.");
+    public void ResetTargets()
+    {
+        targetGroup.Targets.Clear();
+        Debug.Log("Target group has been reset.");
+    }
+
+    private IEnumerable<Transform> FindTargets(string tag)
+    {
+        foreach (GameObject obj in GameObject.FindGameObjectsWithTag(tag))
+        {
+            yield return obj.transform;
+        }
     }
 }

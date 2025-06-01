@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -6,33 +7,21 @@ public class OffscreenIndicator : MonoBehaviour
 {
     [Header("Indicator Settings")]
     public RectTransform indicatorPrefab;
-    public Transform[] targets;
+    public string playerTag = "Player";
     public Camera mainCamera;
-
-    [Header("Indicator Appearance")]
     public float edgePadding = 50f;
 
     private List<RectTransform> indicators = new List<RectTransform>();
+    private Transform[] targets;
 
     private void Start()
     {
-        // Automatically find all GameObjects tagged as "Player"
-        GameObject[] playerObjects = GameObject.FindGameObjectsWithTag("Player");
-        targets = new Transform[playerObjects.Length];
-        for (int i = 0; i < playerObjects.Length; i++)
-        {
-            targets[i] = playerObjects[i].transform;
-        }
-
-        foreach (Transform target in targets)
-        {
-            indicators.Add(Instantiate(indicatorPrefab, transform));
-        }
+        UpdateTargets();
     }
 
     private void Update()
     {
-        if (mainCamera == null) return;
+        if (mainCamera == null || targets == null) return;
 
         for (int i = 0; i < targets.Length; i++)
         {
@@ -57,6 +46,35 @@ public class OffscreenIndicator : MonoBehaviour
         }
     }
 
+    public void UpdateTargets()
+    {
+        ClearIndicators();
+        targets = FindTargets(playerTag).ToArray();
+        foreach (Transform target in targets)
+        {
+            indicators.Add(Instantiate(indicatorPrefab, transform));
+        }
+        Debug.Log($"Offscreen indicators updated with {targets.Length} targets.");
+    }
+
+    private void ClearIndicators()
+    {
+        foreach (var indicator in indicators)
+        {
+            if (indicator != null)
+                Destroy(indicator.gameObject);
+        }
+        indicators.Clear();
+    }
+
+    private IEnumerable<Transform> FindTargets(string tag)
+    {
+        foreach (GameObject obj in GameObject.FindGameObjectsWithTag(tag))
+        {
+            yield return obj.transform;
+        }
+    }
+
     private void UpdateIndicator(RectTransform indicatorUI, Transform target, Vector3 screenPosition)
     {
         // Clamp position to screen edges
@@ -69,42 +87,36 @@ public class OffscreenIndicator : MonoBehaviour
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         indicatorUI.rotation = Quaternion.Euler(0, 0, angle - 90);
 
-        // Ensure character preview remains upright and flip only the character preview
+        // Update the character sprite rotation to match the prefab
         Transform characterPreviewTransform = indicatorUI.Find("CharacterPreview");
         if (characterPreviewTransform != null)
         {
             Image characterPreviewImage = characterPreviewTransform.GetComponent<Image>();
             if (characterPreviewImage != null)
             {
-                characterPreviewImage.rectTransform.rotation = Quaternion.identity;
-
-                // Update sprite and flip based on target's facing direction
                 SpriteRenderer targetSpriteRenderer = target.GetComponentInChildren<SpriteRenderer>();
-                if (targetSpriteRenderer != null)
+                if (targetSpriteRenderer != null && targetSpriteRenderer.sprite != null)
                 {
-                    characterPreviewImage.sprite = targetSpriteRenderer.sprite;
+                    characterPreviewImage.sprite = targetSpriteRenderer.sprite; // Assign the sprite
+                    characterPreviewImage.enabled = true; // Ensure the image is enabled
                     bool isFacingRight = target.localScale.x > 0;
-                    characterPreviewImage.rectTransform.localScale = new Vector3(isFacingRight ? 1 : -1, 1, 1);
+                    characterPreviewImage.rectTransform.localScale = new Vector3(isFacingRight ? 1 : -1, 1, 1); // Flip based on facing direction
+                    characterPreviewImage.rectTransform.rotation = targetSpriteRenderer.transform.rotation; // Match rotation of prefab
+                }
+                else
+                {
+                    Debug.LogWarning($"SpriteRenderer or sprite not found on target {target.name}. Disabling character preview.");
+                    characterPreviewImage.enabled = false; // Disable the image if no sprite is found
                 }
             }
+            else
+            {
+                Debug.LogWarning("CharacterPreview Image component not found in indicator.");
+            }
         }
-
-        // Rotate the background to point toward the target without flipping
-        Transform backgroundTransform = indicatorUI.Find("Background");
-        if (backgroundTransform != null)
+        else
         {
-            Vector3 backgroundDirection = (target.position - mainCamera.transform.position).normalized;
-            float backgroundAngle = Mathf.Atan2(backgroundDirection.y, backgroundDirection.x) * Mathf.Rad2Deg;
-            backgroundTransform.rotation = Quaternion.Euler(0, 0, backgroundAngle - 90);
-
-            // Ensure the background's local scale remains unaffected by character flipping
-            backgroundTransform.localScale = Vector3.one;
+            Debug.LogWarning("CharacterPreview transform not found in indicator.");
         }
-
-        // Scale indicator based on distance and normalize for screen resolution
-        float distance = Vector3.Distance(mainCamera.transform.position, target.position);
-        float scale = Mathf.Lerp(1f, 0.5f, Mathf.InverseLerp(5f, 15f, distance));
-        float resolutionFactor = Screen.height / 320f; // Assuming 1080p as the reference resolution
-        indicatorUI.localScale = new Vector3(scale * resolutionFactor, scale * resolutionFactor, 1);
     }
 }

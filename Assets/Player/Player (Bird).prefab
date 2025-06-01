@@ -48,10 +48,10 @@ MonoBehaviour:
   attackType: 9
   damage: 10
   knockbackDirection: 3
-  airKnockbackDirection: 3
-  groundedKnockbackForce: 5
-  airKnockbackForce: 7.5
   originatingPlayer: {fileID: 0}
+  baseKnockback: 5
+  knockbackGrowth: 1.2
+  damageScaling: 0.01
 --- !u!70 &7381550504940561219
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -135,12 +135,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   attackType: 2
-  damage: 10
+  damage: 5
   knockbackDirection: 0
-  airKnockbackDirection: 0
-  groundedKnockbackForce: 5
-  airKnockbackForce: 5
   originatingPlayer: {fileID: 0}
+  baseKnockback: 5
+  knockbackGrowth: 1.2
+  damageScaling: 0.01
 --- !u!70 &6231172948202968122
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -224,12 +224,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   attackType: 1
-  damage: 10
+  damage: 5
   knockbackDirection: 3
-  airKnockbackDirection: 3
-  groundedKnockbackForce: 7.5
-  airKnockbackForce: 7.5
   originatingPlayer: {fileID: 0}
+  baseKnockback: 5
+  knockbackGrowth: 1.2
+  damageScaling: 0.01
 --- !u!70 &4196278251390959613
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -348,11 +348,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentHealth: 0
+  maxHearts: 3
   groundCheckPoint: {fileID: 3296633051192932678}
   whatIsGround:
     serializedVersion: 2
     m_Bits: 8
   groundCheckRadius: 0.2
+  cellUI: {fileID: 0}
 --- !u!70 &1635020256744072268
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -472,10 +474,10 @@ MonoBehaviour:
   attackType: 10
   damage: 10
   knockbackDirection: 1
-  airKnockbackDirection: 1
-  groundedKnockbackForce: 5
-  airKnockbackForce: 7.5
   originatingPlayer: {fileID: 0}
+  baseKnockback: 5
+  knockbackGrowth: 1.2
+  damageScaling: 0.01
 --- !u!70 &5082922075548936909
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -591,10 +593,10 @@ MonoBehaviour:
   attackType: 6
   damage: 10
   knockbackDirection: 0
-  airKnockbackDirection: 0
-  groundedKnockbackForce: 5
-  airKnockbackForce: 7.5
   originatingPlayer: {fileID: 0}
+  baseKnockback: 5
+  knockbackGrowth: 1.2
+  damageScaling: 0.01
 --- !u!1 &4585104236906588610
 GameObject:
   m_ObjectHideFlags: 0
@@ -850,7 +852,7 @@ MonoBehaviour:
   deceleration: 0.99
   maxFallSpeed: -3
   fallingSpeed: 1
-  fastFallSpeed: -20
+  fastFallSpeed: -1.5
   wallCheck: {fileID: 810622594460516444}
   wallSlidingSpeed: 2
   wallInteractionLayers:
@@ -877,6 +879,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   platformDropDuration: 0.3
+  maxFreeRecovery: 1
   xAxis: 0
   isFacingRight: 1
 --- !u!114 &457477135009519405
@@ -985,10 +988,10 @@ MonoBehaviour:
   attackType: 7
   damage: 10
   knockbackDirection: 0
-  airKnockbackDirection: 0
-  groundedKnockbackForce: 5
-  airKnockbackForce: 7.5
   originatingPlayer: {fileID: 0}
+  baseKnockback: 5
+  knockbackGrowth: 1.2
+  damageScaling: 0.01
 --- !u!1 &5856724997634959995
 GameObject:
   m_ObjectHideFlags: 0
@@ -1066,12 +1069,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   attackType: 5
-  damage: 10
+  damage: 5
   knockbackDirection: 3
-  airKnockbackDirection: 4
-  groundedKnockbackForce: 5
-  airKnockbackForce: 7.5
   originatingPlayer: {fileID: 0}
+  baseKnockback: 5
+  knockbackGrowth: 1.2
+  damageScaling: 0.01
 --- !u!70 &177829950705851328
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -1156,10 +1159,10 @@ MonoBehaviour:
   attackType: 8
   damage: 10
   knockbackDirection: 0
-  airKnockbackDirection: 0
-  groundedKnockbackForce: 5
-  airKnockbackForce: 7.5
   originatingPlayer: {fileID: 0}
+  baseKnockback: 5
+  knockbackGrowth: 1.2
+  damageScaling: 0.01
 --- !u!1 &7350990003303659527
 GameObject:
   m_ObjectHideFlags: 0
@@ -1206,12 +1209,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   attackType: 4
-  damage: 10
+  damage: 5
   knockbackDirection: 3
-  airKnockbackDirection: 2
-  groundedKnockbackForce: 5
-  airKnockbackForce: 5
   originatingPlayer: {fileID: 0}
+  baseKnockback: 5
+  knockbackGrowth: 1.2
+  damageScaling: 0.01
 --- !u!70 &7277147975590918264
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -1362,12 +1365,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   attackType: 0
-  damage: 10
+  damage: 5
   knockbackDirection: 3
-  airKnockbackDirection: 3
-  groundedKnockbackForce: 5
-  airKnockbackForce: 5
   originatingPlayer: {fileID: 0}
+  baseKnockback: 5
+  knockbackGrowth: 1.2
+  damageScaling: 0.01
 --- !u!70 &2907102417800624404
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -1451,12 +1454,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   attackType: 3
-  damage: 10
+  damage: 5
   knockbackDirection: 0
-  airKnockbackDirection: 0
-  groundedKnockbackForce: 2.5
-  airKnockbackForce: 2.5
   originatingPlayer: {fileID: 0}
+  baseKnockback: 5
+  knockbackGrowth: 1.2
+  damageScaling: 0.01
 --- !u!58 &9215604995532138930
 CircleCollider2D:
   m_ObjectHideFlags: 0

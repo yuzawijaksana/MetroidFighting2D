@@ -11,40 +11,85 @@ public class CharacterIngameGridUI : MonoBehaviour
     // Call this to update the grid with the selected cards
     public void SetCards(List<(CharacterCard card, string label)> selectedCards)
     {
-        // If the number of cells doesn't match, destroy all and recreate
-        if (spawnedCells.Count != selectedCards.Count)
+        // Ensure the cellPrefab is valid
+        if (cellPrefab == null)
         {
-            foreach (var cell in spawnedCells)
-            {
-                if (cell != null) Destroy(cell);
-            }
-            spawnedCells.Clear();
+            Debug.LogError("Cell prefab is not assigned in CharacterIngameGridUI.");
+            return;
         }
 
-        // Create new cells if needed
-        while (spawnedCells.Count < selectedCards.Count)
+        // Destroy all existing cells
+        foreach (var cell in spawnedCells)
         {
-            GameObject cell = Instantiate(cellPrefab, transform);
-            spawnedCells.Add(cell);
+            if (cell != null)
+                Destroy(cell);
         }
+        spawnedCells.Clear();
 
-        // Update each cell's data
+        // Create new cells for the selected cards
         for (int i = 0; i < selectedCards.Count; i++)
         {
-            var cellUI = spawnedCells[i].GetComponent<CharacterIngameCellUI>();
+            var selectedCard = selectedCards[i];
+            if (selectedCard.card == null)
+            {
+                Debug.LogWarning("Selected card is null. Skipping.");
+                continue;
+            }
+
+            GameObject cell = Instantiate(cellPrefab, transform);
+            cell.name = $"{selectedCard.label}_DamageUI"; // Rename the cell
+            spawnedCells.Add(cell);
+
+            var cellUI = cell.GetComponent<CharacterIngameCellUI>();
             if (cellUI != null)
             {
-                cellUI.SetCharacterCard(selectedCards[i].card, selectedCards[i].label);
-                // Optionally reset hearts here if needed:
-                // cellUI.InitHearts(cellUI.heartImages.Count); // Or pass the correct maxHearts
+                cellUI.SetCharacterCard(selectedCard.card, selectedCard.label);
+                cellUI.InitHearts(selectedCard.card.characterPrefab.GetComponent<Damageable>()?.maxHearts ?? 3); // Default to 3 hearts
             }
-            spawnedCells[i].SetActive(true);
+            else
+            {
+                Debug.LogError("CharacterIngameCellUI component is missing on the cell prefab.");
+            }
+        }
+    }
+
+    public void ClearCells()
+    {
+        // Destroy all cells managed by the grid
+        foreach (var cell in spawnedCells)
+        {
+            if (cell != null)
+                Destroy(cell);
+        }
+        spawnedCells.Clear();
+    }
+
+    public void UpdateAllHearts(Dictionary<int, int> playerHearts)
+    {
+        // Ensure playerHearts is valid
+        if (playerHearts == null || playerHearts.Count == 0)
+        {
+            Debug.LogError("Player hearts data is null or empty.");
+            return;
         }
 
-        // Hide any extra cells
-        for (int i = selectedCards.Count; i < spawnedCells.Count; i++)
+        for (int i = 0; i < spawnedCells.Count; i++)
         {
-            spawnedCells[i].SetActive(false);
+            if (spawnedCells[i] == null)
+            {
+                Debug.LogWarning($"Cell at index {i} is null or destroyed. Skipping.");
+                continue;
+            }
+
+            var cellUI = spawnedCells[i]?.GetComponent<CharacterIngameCellUI>();
+            if (cellUI != null && playerHearts.ContainsKey(i))
+            {
+                cellUI.SetHearts(playerHearts[i]); // Update hearts for each player
+            }
+            else
+            {
+                Debug.LogWarning($"Cell UI or player data missing for index {i}. Skipping.");
+            }
         }
     }
 }

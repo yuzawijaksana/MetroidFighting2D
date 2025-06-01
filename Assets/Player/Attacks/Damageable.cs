@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Threading.Tasks;
+using System.Collections.Generic; // Add this namespace for Dictionary
 
 public class Damageable : MonoBehaviour
 {
@@ -65,36 +66,21 @@ public class Damageable : MonoBehaviour
     // Applies damage, knockback, and stun to the object
     public void TakeDamage(float damage, Vector2 knockback, GameObject attacker)
     {
+        // Log the hit effect application
+        Debug.Log($"Applying hit effect: Damage={damage}, Knockback={knockback}, Attacker={attacker.name}");
+
         if (attacker == transform.parent?.gameObject)
         {
-            Debug.LogWarning("Damage from the same player ignored.");
-            return;
+            return; // Ignore damage from the same player
         }
-
-        Debug.Log($"Received {damage} damage from {attacker.name} at position {attacker.transform.position}.");
 
         currentHealth += damage;
 
-        float knockbackMultiplier = 1 + (currentHealth / 100f);
-        Vector2 scaledKnockback = knockback * knockbackMultiplier;
-
-        ApplyKnockback(scaledKnockback);
-        StartCoroutine(HitFlashEffect());
-        StartCoroutine(ScreenShakeEffect(0.15f, 0.25f)); // Add screen shake
-        ApplyStun();
-
-        // Update mask color on the correct UI cell
+        // Update health color immediately
         if (cellUI != null)
-            cellUI.UpdateMaskColor(this);
-
-        Debug.Log($"Player knocked back with force {scaledKnockback} at health {currentHealth}.");
-    }
-
-    // Applies knockback to the object
-    public void ApplyKnockback(Vector2 knockback)
-    {
-        Rigidbody2D parentRb = transform.parent != null ? transform.parent.GetComponent<Rigidbody2D>() : null;
-        parentRb.AddForce(knockback, ForceMode2D.Impulse);
+        {
+            cellUI.UpdateMaskColor(this); // Update mask color based on health
+        }
     }
 
     // Checks if the object is grounded
@@ -109,23 +95,6 @@ public class Damageable : MonoBehaviour
         return Physics2D.OverlapCircle(groundCheckPoint.position, groundCheckRadius, whatIsGround);
     }
 
-    // Applies a stun effect to the object
-    private async void ApplyStun()
-    {
-        isStunned = true;
-
-        if (anim != null) anim.SetBool("Stunned", true);
-        if (playerController != null) playerController.SetControllable(false); // Disable input
-
-        // Calculate stun duration based on current health, capped at 1000 milliseconds
-        int calculatedStunDuration = Mathf.Min((int)(currentHealth / (currentHealth * stunDuration)), 1000);
-        await Task.Delay(calculatedStunDuration);
-
-        isStunned = false;
-        if (anim != null) anim.SetBool("Stunned", false);
-        if (playerController != null) playerController.SetControllable(true); // Re-enable input
-    }
-
     // Returns whether the object is currently stunned
     public bool IsStunned()
     {
@@ -137,14 +106,23 @@ public class Damageable : MonoBehaviour
     {
         currentHealth = 0;
         if (maxHearts > 0)
-            maxHearts--; // Lose one heart on reset/deadzone
-        Debug.Log($"Health reset to {currentHealth} for {gameObject.name}. Hearts left: {maxHearts}");
-        if (cellUI != null)
         {
-            cellUI.UpdateMaskColor(this);
-            cellUI.SetHearts(maxHearts); // Update heart UI
+            maxHearts--; // Lose one heart on reset/deadzone
+            Debug.Log($"Health reset to {currentHealth} for {gameObject.name}. Hearts left: {maxHearts}");
         }
-        // Only destroy if called from DeadzoneHandler when hearts <= 0
+
+        // Update UI via grid
+        if (GameStarter.Instance != null && GameStarter.Instance.ingameGridUI != null)
+        {
+            GameStarter.Instance.ingameGridUI.UpdateAllHearts(new Dictionary<int, int>
+            {
+                { playerController != null && playerController.controlScheme == ControlScheme.Keyboard1 ? 0 : 1, maxHearts }
+            });
+        }
+        else
+        {
+            Debug.LogError($"IngameGridUI or GameStarter instance is not assigned for {gameObject.name}.");
+        }
     }
 
     // Flash color on hit based on health (smooth gradient: 0=bright white, 150=yellow, 300=red)
@@ -153,7 +131,7 @@ public class Damageable : MonoBehaviour
         if (spriteRenderer != null)
         {
             // Flash color is based on health: bright white at 0, yellow at 150, red at 300
-            float t = Mathf.Clamp01(currentHealth / 300f);
+            float t = Mathf.Clamp01(currentHealth / 150f);
             Color brightWhite = new Color(1.5f, 1.5f, 1.5f); // brighter than normal white
             Color yellow = Color.yellow;
             Color red = Color.red;
@@ -178,44 +156,18 @@ public class Damageable : MonoBehaviour
 
     public Color GetHealthColor()
     {
-        // Clamp health between 0 and 300 for color interpolation
-        float t = Mathf.Clamp01(currentHealth / 300f);
+        // Clamp health between 0 and 150 for color interpolation
+        float t = Mathf.Clamp01(currentHealth / 150f);
 
         if (t < 0.5f)
         {
-            // 0 to 150: green to yellow
-            return Color.Lerp(Color.white, Color.yellow, t * 2f);
+            // 0 to 75: green to yellow
+            return Color.Lerp(Color.green, Color.yellow, t * 2f);
         }
         else
         {
-            // 150 to 300: yellow to red
+            // 75 to 150: yellow to red
             return Color.Lerp(Color.yellow, Color.red, (t - 0.5f) * 2f);
         }
     }
-
-    // Screen shake effect (requires Cinemachine camera)
-    private IEnumerator ScreenShakeEffect(float duration, float intensity)
-    {
-        // Use new API: CinemachineCamera and FindFirstObjectByType
-        var vcam = UnityEngine.Object.FindFirstObjectByType<Unity.Cinemachine.CinemachineCamera>();
-        if (vcam != null)
-        {
-            var noise = vcam.GetComponent<Unity.Cinemachine.CinemachineBasicMultiChannelPerlin>();
-            if (noise != null)
-            {
-                float originalAmplitude = noise.AmplitudeGain;
-                noise.AmplitudeGain = intensity;
-                float elapsed = 0f;
-                while (elapsed < duration)
-                {
-                    elapsed += Time.unscaledDeltaTime;
-                    yield return null;
-                }
-                noise.AmplitudeGain = originalAmplitude;
-            }
-        }
-    }
-
-    // Returns the color based on current health (0=green, 150=yellow, 300=red)
-    
 }

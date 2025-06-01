@@ -30,31 +30,64 @@ public class VictoryScreenUI : MonoBehaviour
         victoryLabel.text = winnerName + " wins!";
         if (artworkImage != null && winnerCard != null && winnerCard.characterSprite != null)
             artworkImage.sprite = winnerCard.characterSprite;
+
+        // Remove characters and in-game UI
+        if (GameStarter.Instance != null)
+        {
+            // Destroy all players
+            foreach (Transform child in GameStarter.Instance.playersParent.transform)
+            {
+                if (child != null)
+                    Destroy(child.gameObject);
+            }
+
+            // Clear in-game UI
+            if (GameStarter.Instance.ingameGridUI != null)
+            {
+                foreach (Transform child in GameStarter.Instance.ingameGridUI.transform)
+                {
+                    if (child != null)
+                        Destroy(child.gameObject);
+                }
+                GameStarter.Instance.ingameGridUI.transform.parent.gameObject.SetActive(false);
+            }
+        }
+
         gameObject.SetActive(true);
     }
 
     private void OnRematch()
     {
+        // Add back in-game UI
+        if (GameStarter.Instance != null)
+        {
+            if (GameStarter.Instance.ingameGridUI != null)
+            {
+                GameStarter.Instance.ingameGridUI.transform.parent.gameObject.SetActive(true);
+            }
+        }
+
         GameStarter.Instance.Rematch();
         gameObject.SetActive(false);
     }
 
     private void OnCharacterSelect()
     {
-        // Reset character selection logic
+        // Activate CharacterSelection if assigned
         if (characterSelection != null)
         {
-            var characterSelectionComponent = characterSelection.GetComponent<CharacterSelection>();
-            if (characterSelectionComponent != null)
-            {
-                characterSelectionComponent.ResetSelection();
-            }
-            characterSelection.SetActive(true); // Ensure CharacterSelection GameObject is active
+            characterSelection.SetActive(true);
         }
-        else
+
+        // Clear references in GameStarter
+        if (GameStarter.Instance != null)
         {
-            Debug.LogWarning("CharacterSelection GameObject reference is not assigned.");
+            GameStarter.Instance.player1Card = null;
+            GameStarter.Instance.player2Card = null;
+            GameStarter.Instance.player1Prefab = null;
+            GameStarter.Instance.player2Prefab = null;
         }
+
         gameObject.SetActive(false);
     }
 }
