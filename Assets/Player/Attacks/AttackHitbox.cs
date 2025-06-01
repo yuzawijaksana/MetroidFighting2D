@@ -21,7 +21,6 @@ public class AttackHitbox : MonoBehaviour
         Quarter       // 1/4 second
     }
 
-    public PlayerAttack.AttackType attackType;
     public float damage = 5f; // Light attack damage
     public KnockbackDirection knockbackDirection;
     public GameObject originatingPlayer; // Reference to the player who initiated the attack
@@ -53,67 +52,43 @@ public class AttackHitbox : MonoBehaviour
         if (collision == null || hitObjects.Contains(collision.gameObject)) return;
 
         // Ignore collisions with the player's own GameObject
-        if (collision.gameObject == playerController?.gameObject)
-        {
-            Debug.LogWarning("Collision with own player detected. Skipping.");
-            return;
-        }
+        if (collision.gameObject == playerController?.gameObject) return;
 
         // Ignore collisions with the originating player
-        if (collision.gameObject == originatingPlayer)
-        {
-            Debug.LogWarning("Collision with originating player detected. Skipping.");
-            return;
-        }
-
-        if (hitObjects.Contains(collision.gameObject))
-        {
-            Debug.LogWarning($"Collision with {collision.gameObject.name} already processed. Skipping.");
-            return; // Skip if the object has already been hit
-        }
+        if (collision.gameObject == originatingPlayer) return;
 
         // Search for the Damageable component in the collision object or its children
         Damageable target = collision.GetComponentInChildren<Damageable>();
-        if (target == null)
-        {
-            Debug.LogWarning($"No Damageable component found on {collision.gameObject.name} or its hierarchy. Skipping.");
-            return;
-        }
+        if (target == null) return;
 
         // Ensure the target is not the originating player
-        if (target.gameObject == originatingPlayer)
-        {
-            Debug.LogWarning("Collision with originating player detected. Skipping.");
-            return;
-        }
+        if (target.gameObject == originatingPlayer) return;
 
-        // Adjust knockback formula for stronger scaling
-        float knockbackForce = baseKnockback + (damage * knockbackGrowth * damageScaling) + (Mathf.Pow(target.currentHealth / 150f, 1.5f) * knockbackGrowth * 10f);
+        // Add the object to the hitObjects set to prevent further hits
+        hitObjects.Add(collision.gameObject);
 
-        // Apply additional knockback force if the target is airborne
-        if (!target.IsGrounded())
-        {
-            knockbackForce *= 1.5f; // Increase knockback by 50% for airborne targets
-        }
+        // Apply damage to the target
+        target.TakeDamage(damage, Vector2.zero, originatingPlayer);
 
-        Vector2 knockbackDirectionVector = GetKnockbackDirection(target.transform, knockbackDirection);
-        Vector2 knockback = knockbackDirectionVector * knockbackForce;
+        // Apply knockback immediately
+        ApplyKnockback(target);
+    }
 
-        // Apply hitstop effect directly
-        StartCoroutine(ApplyHitstop(GetHitstopDurationInSeconds(hitstopDuration)));
+    private void ApplyKnockback(Damageable target)
+    {
+        if (target == null) return;
 
-        // Apply knockback directly to the Rigidbody2D of the target
+        // Use the class-level knockbackDirection property directly
+        Vector2 calculatedKnockbackDirection = GetKnockbackDirection(target.transform, knockbackDirection);
+        float knockbackForce = baseKnockback;
+        Vector2 knockback = calculatedKnockbackDirection * knockbackForce;
+
         Rigidbody2D targetRb = target.GetComponentInParent<Rigidbody2D>();
         if (targetRb != null)
         {
-            targetRb.linearVelocity = Vector2.zero; // Reset velocity before applying knockback
             targetRb.AddForce(knockback, ForceMode2D.Impulse);
+            Debug.Log($"Knockback applied to {target.name}: Direction={calculatedKnockbackDirection}, Force={knockbackForce}");
         }
-
-        // Apply damage to the target
-        target.TakeDamage(damage, knockback, originatingPlayer);
-
-        hitObjects.Add(collision.gameObject);
     }
 
     private IEnumerator ApplyHitstop(float duration)
@@ -134,28 +109,6 @@ public class AttackHitbox : MonoBehaviour
             HitstopDuration.Quarter => 0.25f,     // 1/4 second
             _ => 0.1f // Default to 1/10 second
         };
-    }
-
-    private void ApplyKnockback(Damageable target, KnockbackDirection directionType, float force)
-    {
-        if (target == null || target.gameObject == null)
-        {
-            return;
-        }
-
-        // Calculate knockback direction directly away from the attacker
-        Vector2 knockbackDirection = (target.transform.position - transform.position).normalized;
-
-        // Apply knockback as an impulse
-        Rigidbody2D targetRigidbody = target.GetComponentInParent<Rigidbody2D>();
-        if (targetRigidbody != null)
-        {
-            // Reset velocity before applying knockback to avoid conflicts
-            targetRigidbody.linearVelocity = Vector2.zero;
-
-            // Apply knockback force
-            targetRigidbody.AddForce(knockbackDirection * force, ForceMode2D.Impulse);
-        }
     }
 
     private void ResetHitbox()

@@ -90,6 +90,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private int maxFreeRecovery = 1; // 1 free recovery
     private int freeRecoveryUsed = 0;
 
+    [Header("Attack Settings")]
+    [SerializeField] private bool attackUsesRootMotion = false; // Determines if root motion is used for attacks
+    [SerializeField] private float attackDuration = 0.5f; // Default attack duration
+    [SerializeField] private float attackSpeed = 5f; // Default attack movement speed
+
     // References
     private Rigidbody2D rb;
     private BoxCollider2D boxCollider;
@@ -201,7 +206,6 @@ public class PlayerController : MonoBehaviour
             PlayerAttack controlledPlayerAttack = controlledGameObject.GetComponent<PlayerAttack>();
             if (controlledPlayerAttack != null)
             {
-                // Use correct keys for each control scheme
                 if (controlScheme == ControlScheme.Keyboard1)
                 {
                     if (Keyboard.current.jKey.wasPressedThisFrame)
@@ -735,5 +739,16 @@ public class PlayerController : MonoBehaviour
     public void SetControllable(bool state)
     {
         isControllable = state;
+    }
+
+    private void PerformAttack()
+    {
+        rb.linearVelocity = new Vector2(isFacingRight ? attackSpeed : -attackSpeed, rb.linearVelocity.y);
+    }
+
+    private IEnumerator DisableRootMotionAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        anim.applyRootMotion = false; // Disable root motion after the attack
     }
 }

@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using System;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 public class PlayerAttack : MonoBehaviour
 {
@@ -20,46 +21,26 @@ public class PlayerAttack : MonoBehaviour
         GroundPound
     }
 
-    // Hitbox references for each attack type
-    public GameObject neutralLight;
-    public GameObject sideLight;
-    public GameObject downLight;
-    public GameObject neutralAir;
-    public GameObject sideAir;
-    public GameObject downAir;
-    public GameObject neutralHeavy;
-    public GameObject sideHeavy;
-    public GameObject downHeavy;
-    public GameObject recovery;
-    public GameObject groundPound;
-
-    [Header("Light Attack Durations")]
-    [SerializeField] private float neutralLightDuration = 0.5f;
-    [SerializeField] private float sideLightDuration = 0.5f;
-    [SerializeField] private float downLightDuration = 0.5f;
-    [SerializeField] private float neutralAirDuration = 0.5f;
-    [SerializeField] private float sideAirDuration = 0.5f;
-    [SerializeField] private float downAirDuration = 0.5f;
-
-    [Header("Heavy Attack Durations")]
-    [SerializeField] private float neutralHeavyDuration = 1.0f;
-    [SerializeField] private float sideHeavyDuration = 1.0f;
-    [SerializeField] private float downHeavyDuration = 1.0f;
-    [SerializeField] private float recoveryDuration = 1.0f;
-    [SerializeField] private float groundPoundDuration = 1.0f;
+    // Single hitbox reference
+    public GameObject attackHitbox;
 
     // Event triggered when an attack is performed
-    public static event Action<AttackHitbox> OnAttackPerformed; // Removed ulong parameter
-    private PlayerController playerController;
-    private float currentAttackDuration;
+    public static event Action<AttackHitbox> OnAttackPerformed;
 
-    [Header("Attack Prioritization")]
-    [SerializeField] private bool prioritizeUpOverSide = true;
+    private PlayerController playerController;
+    private Animator anim; // Reference to the Animator component
+    private Dictionary<Damageable, Vector2> storedKnockbacks = new Dictionary<Damageable, Vector2>();
+    private Dictionary<AttackType, Action> attackBehaviors;
+    private ICharacterBehavior characterBehavior;
+    private Damageable selfDamageable; // Reference to the player's own Damageable component
 
     private void Start()
     {
-        // Ensure all hitboxes are hidden at the start
-        HideAllHitboxes();
+        // Ensure the hitbox is hidden at the start
+        if (attackHitbox != null)
+        {
+            attackHitbox.SetActive(false);
+        }
 
         // Get reference to PlayerController
         playerController = GetComponent<PlayerController>();
@@ -67,179 +48,189 @@ public class PlayerAttack : MonoBehaviour
         {
             Debug.LogError("PlayerController component not found on the same GameObject.");
         }
+
+        // Get reference to Animator
+        anim = GetComponent<Animator>();
+        if (anim == null)
+        {
+            Debug.LogError("Animator component not found on the same GameObject.");
+        }
+
+        // Get reference to the connected character controller
+        characterBehavior = GetComponent<ICharacterBehavior>();
+        if (characterBehavior == null)
+        {
+            Debug.LogError("ICharacterBehavior component not found on the same GameObject.");
+        }
+
+        // Get reference to the player's own Damageable component
+        selfDamageable = GetComponentInChildren<Damageable>();
+        if (selfDamageable == null)
+        {
+            Debug.LogError("Damageable component not found on the player or its children.");
+        }
+
+        InitializeAttackBehaviors();
+    }
+
+    private void InitializeAttackBehaviors()
+    {
+        attackBehaviors = new Dictionary<AttackType, Action>
+        {
+            { AttackType.NeutralLight, () => characterBehavior?.PerformAttack(AttackType.NeutralLight) },
+            { AttackType.SideLight, () => characterBehavior?.PerformAttack(AttackType.SideLight) },
+            { AttackType.DownLight, () => characterBehavior?.PerformAttack(AttackType.DownLight) },
+            { AttackType.NeutralAir, () => characterBehavior?.PerformAttack(AttackType.NeutralAir) },
+            { AttackType.SideAir, () => characterBehavior?.PerformAttack(AttackType.SideAir) },
+            { AttackType.DownAir, () => characterBehavior?.PerformAttack(AttackType.DownAir) },
+            { AttackType.NeutralHeavy, () => characterBehavior?.PerformAttack(AttackType.NeutralHeavy) },
+            { AttackType.SideHeavy, () => characterBehavior?.PerformAttack(AttackType.SideHeavy) },
+            { AttackType.DownHeavy, () => characterBehavior?.PerformAttack(AttackType.DownHeavy) },
+            { AttackType.Recovery, () => characterBehavior?.PerformAttack(AttackType.Recovery) },
+            { AttackType.GroundPound, () => characterBehavior?.PerformAttack(AttackType.GroundPound) }
+        };
     }
 
     private void Update()
     {
-        // Removed network ownership checks
-    }
+        if (anim == null) return;
 
-    private bool Grounded()
-    {
-        return playerController != null && playerController.Grounded();
-    }
+        // Check animator parameters
+        float hitboxActiveValue = anim.GetFloat("Hitbox.Active");
+        float lockEnemyActiveValue = anim.GetFloat("LockEnemy.Active");
+        float attackWindowOpenValue = anim.GetFloat("Attack.Window.Open");
 
-    public void PerformAttack(AttackType attackType, float duration)
-    {
-        currentAttackDuration = duration;
+        bool isHitboxActive = hitboxActiveValue > 0.5f;
+        bool isLockEnemyActive = lockEnemyActiveValue > 0.5f;
+        bool isAttackWindowOpen = attackWindowOpenValue > 0.5f;
 
-        GameObject hitboxObject = GetHitboxForAttackType(attackType);
-        if (hitboxObject != null)
+        // Activate or deactivate the hitbox
+        if (isHitboxActive)
         {
-            AttackHitbox hitbox = hitboxObject.GetComponent<AttackHitbox>();
-            if (hitbox != null)
+            if (attackHitbox != null && !attackHitbox.activeInHierarchy)
             {
-                hitbox.Initialize(gameObject); // Set the originating player
-                hitboxObject.SetActive(true);
-                hitbox.StartAttack(duration); // Start the attack and reset hit objects after the duration
-                _ = DeactivateHitboxAfterDuration(hitboxObject, duration, hitbox); // Suppress CS4014 warning
+                attackHitbox.SetActive(true);
+            }
+            HandleHitboxLogic(isLockEnemyActive);
+        }
+        else
+        {
+            if (attackHitbox != null && attackHitbox.activeInHierarchy)
+            {
+                attackHitbox.SetActive(false);
+            }
+        }
 
-                // Trigger the OnAttackPerformed event only for this character
-                OnAttackPerformed?.Invoke(hitbox);
+        if (!isAttackWindowOpen)
+        {
+            // Attack window closed logic
+        }
+    }
+
+    private void HandleHitboxLogic(bool isLockEnemyActive)
+    {
+        if (attackHitbox == null) return;
+
+        // Perform hitbox-related operations
+        Collider2D[] hitObjects = Physics2D.OverlapBoxAll(
+            attackHitbox.transform.position,
+            attackHitbox.GetComponent<BoxCollider2D>().size,
+            0
+        );
+
+        foreach (Collider2D collider in hitObjects)
+        {
+            Damageable target = collider.GetComponent<Damageable>();
+            if (target != null && target != selfDamageable) // Ensure target is not self
+            {
+                Transform targetParent = target.transform.parent; // Move the parent of the Damageable
+                if (targetParent == null)
+                {
+                    continue;
+                }
+
+                if (isLockEnemyActive)
+                {
+                    // Lock enemy to the center of the attack hitbox collider
+                    var hitboxCollider = attackHitbox.GetComponent<BoxCollider2D>();
+                    if (hitboxCollider != null)
+                    {
+                        Vector3 hitboxCenter = hitboxCollider.bounds.center;
+                        targetParent.position = hitboxCenter;
+                    }
+                }
             }
         }
     }
 
-    public float GetCurrentAttackDuration()
+    public void PerformAttack(AttackType attackType)
     {
-        return currentAttackDuration;
+        if (attackHitbox != null && attackHitbox.activeInHierarchy) // Ensure hitbox is active
+        {
+            AttackHitbox hitbox = attackHitbox.GetComponent<AttackHitbox>();
+            if (hitbox != null)
+            {
+                hitbox.Initialize(gameObject); // Set the originating player
+                hitbox.StartAttack(anim.GetCurrentAnimatorStateInfo(0).length); // Use animation duration
+                OnAttackPerformed?.Invoke(hitbox); // Trigger the OnAttackPerformed event
+            }
+        }
+        else
+        {
+            Debug.LogWarning("Hitbox is inactive. Cannot start attack.");
+        }
+    }
+
+    private async Task DeactivateHitboxAfterDuration(float duration, AttackHitbox attackHitbox)
+    {
+        await Task.Delay((int)(duration * 1000)); // Convert seconds to milliseconds
+        attackHitbox.ResetHitObjects(); // Ensure hit objects are reset
     }
 
     public void HandleAttack(bool isGrounded, float verticalInput, float horizontalInput, bool isLightAttack)
     {
-        if (isLightAttack)
-        {
-            HandleLightAttack(isGrounded, verticalInput, horizontalInput);
-        }
-        else
-        {
-            HandleHeavyAttack(isGrounded, verticalInput, horizontalInput);
-        }
-    }
+        AttackType attackType;
 
-    private void HandleLightAttack(bool isGrounded, float verticalInput, float horizontalInput)
-    {
         if (isGrounded)
         {
-            if (prioritizeUpOverSide && verticalInput > 0)
+            if (horizontalInput != 0)
             {
-                PerformAttack(AttackType.NeutralLight, neutralLightDuration); // Neutral Light (Upward priority)
+                attackType = isLightAttack ? AttackType.SideLight : AttackType.SideHeavy;
+            }
+            else if (verticalInput > 0)
+            {
+                attackType = isLightAttack ? AttackType.NeutralLight : AttackType.NeutralHeavy;
             }
             else if (verticalInput < 0)
             {
-                PerformAttack(AttackType.DownLight, downLightDuration); // Down Light
-            }
-            else if (Mathf.Abs(horizontalInput) > 0)
-            {
-                PerformAttack(AttackType.SideLight, sideLightDuration); // Side Light
+                attackType = isLightAttack ? AttackType.DownLight : AttackType.DownHeavy;
             }
             else
             {
-                PerformAttack(AttackType.NeutralLight, neutralLightDuration); // Neutral Light
+                attackType = isLightAttack ? AttackType.NeutralLight : AttackType.NeutralHeavy;
             }
         }
         else
         {
-            if (prioritizeUpOverSide && verticalInput > 0)
+            if (horizontalInput != 0)
             {
-                PerformAttack(AttackType.NeutralAir, neutralAirDuration); // Neutral Air (Upward priority)
+                attackType = isLightAttack ? AttackType.SideAir : AttackType.Recovery;
+            }
+            else if (verticalInput > 0)
+            {
+                attackType = isLightAttack ? AttackType.NeutralAir : AttackType.Recovery;
             }
             else if (verticalInput < 0)
             {
-                PerformAttack(AttackType.DownAir, downAirDuration); // Down Air
-            }
-            else if (Mathf.Abs(horizontalInput) > 0)
-            {
-                PerformAttack(AttackType.SideAir, sideAirDuration); // Side Air
+                attackType = isLightAttack ? AttackType.DownAir : AttackType.GroundPound;
             }
             else
             {
-                PerformAttack(AttackType.NeutralAir, neutralAirDuration); // Neutral Air
+                attackType = isLightAttack ? AttackType.NeutralAir : AttackType.Recovery;
             }
         }
-    }
 
-    private void HandleHeavyAttack(bool isGrounded, float verticalInput, float horizontalInput)
-    {
-        if (isGrounded)
-        {
-            if (prioritizeUpOverSide && verticalInput > 0)
-            {
-                PerformAttack(AttackType.NeutralHeavy, neutralHeavyDuration); // Neutral Heavy (Upward priority)
-            }
-            else if (verticalInput < 0)
-            {
-                PerformAttack(AttackType.DownHeavy, downHeavyDuration); // Down Heavy
-            }
-            else if (Mathf.Abs(horizontalInput) > 0)
-            {
-                PerformAttack(AttackType.SideHeavy, sideHeavyDuration); // Side Heavy
-            }
-            else
-            {
-                PerformAttack(AttackType.NeutralHeavy, neutralHeavyDuration); // Neutral Heavy
-            }
-        }
-        else
-        {
-            if (prioritizeUpOverSide && verticalInput > 0)
-            {
-                PerformAttack(AttackType.Recovery, recoveryDuration); // Recovery
-            }
-            else if (verticalInput < 0)
-            {
-                PerformAttack(AttackType.GroundPound, groundPoundDuration); // Ground Pound
-            }
-            else if (Mathf.Abs(horizontalInput) > 0)
-            {
-                PerformAttack(AttackType.Recovery, recoveryDuration); // Recovery
-            }
-            else
-            {
-                PerformAttack(AttackType.Recovery, recoveryDuration); // Default to Recovery when no input is pressed
-            }
-        }
-    }
-
-    private async Task DeactivateHitboxAfterDuration(GameObject hitbox, float duration, AttackHitbox attackHitbox)
-    {
-        await Task.Delay((int)(duration * 1000)); // Convert seconds to milliseconds
-        hitbox.SetActive(false); // Hide the hitbox after the duration
-        attackHitbox.ResetHitObjects(); // Ensure hit objects are reset
-    }
-
-    private void HideAllHitboxes()
-    {
-        // Deactivate all hitboxes
-        if (neutralLight) neutralLight.SetActive(false);
-        if (sideLight) sideLight.SetActive(false);
-        if (downLight) downLight.SetActive(false);
-        if (neutralAir) neutralAir.SetActive(false);
-        if (sideAir) sideAir.SetActive(false);
-        if (downAir) downAir.SetActive(false);
-        if (neutralHeavy) neutralHeavy.SetActive(false);
-        if (sideHeavy) sideHeavy.SetActive(false);
-        if (downHeavy) downHeavy.SetActive(false);
-        if (recovery) recovery.SetActive(false);
-        if (groundPound) groundPound.SetActive(false);
-    }
-
-    private GameObject GetHitboxForAttackType(AttackType attackType)
-    {
-        return attackType switch
-        {
-            AttackType.NeutralLight => neutralLight,
-            AttackType.SideLight => sideLight,
-            AttackType.DownLight => downLight,
-            AttackType.NeutralAir => neutralAir,
-            AttackType.SideAir => sideAir,
-            AttackType.DownAir => downAir,
-            AttackType.NeutralHeavy => neutralHeavy,
-            AttackType.SideHeavy => sideHeavy,
-            AttackType.DownHeavy => downHeavy,
-            AttackType.Recovery => recovery,
-            AttackType.GroundPound => groundPound,
-            _ => null
-        };
+        // Delegate attack handling to the connected character controller
+        characterBehavior?.PerformAttack(attackType);
     }
 }

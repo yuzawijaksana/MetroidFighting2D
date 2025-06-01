@@ -32,15 +32,15 @@ public class DummyController : MonoBehaviour
         AttackHitbox hitbox = collision.GetComponent<AttackHitbox>();
         if (hitbox != null)
         {
-            HandleHit(hitbox.attackType, hitbox.damage, collision.transform.position);
+            HandleHit(hitbox.damage, collision.transform.position); // Removed attackType reference
         }
     }
 
-    private void HandleHit(PlayerAttack.AttackType attackType, float damage, Vector3 attackerPosition)
+    private void HandleHit(float damage, Vector3 attackerPosition)
     {
         anim.SetTrigger(spinAnimationTrigger);
         StartCoroutine(ResetToIdleAfterDelay(1f));
-        Debug.Log($"Hit by {attackType} with {damage} damage.");
+        Debug.Log($"Hit with {damage} damage.");
 
         if (parentRb != null)
         {

@@ -1,17 +1,15 @@
 using UnityEngine;
-using UnityEngine.InputSystem; // Add this import for the new Input System
 using System.Collections.Generic;
-using static PlayerAttack;
+using System;
 using System.Collections;
-using System.Threading.Tasks;
 
 public class SquirrelController : MonoBehaviour, ICharacterBehavior
 {
     private BoxCollider2D boxCollider;
     private Vector2 originalColliderSize;
     private Rigidbody2D rb;
-    private PlayerAttack playerAttack;
     private Animator anim;
+    private PlayerAttack playerAttack;
     private PlayerController playerController;
 
     [Header("Squirrel Settings")]
@@ -23,9 +21,7 @@ public class SquirrelController : MonoBehaviour, ICharacterBehavior
     [SerializeField] private float jumpShrinkX = 1.0f;
     [SerializeField] private float jumpShrinkY = 1.0f;
 
-    private Dictionary<AttackType, System.Action> attackBehaviors;
-    private bool isAttackActive = false;
-    private const float attackCooldown = 0.25f;
+    private Dictionary<PlayerAttack.AttackType, Action> attackBehaviors;
 
     private void Start()
     {
@@ -44,194 +40,34 @@ public class SquirrelController : MonoBehaviour, ICharacterBehavior
         InitializeAttackBehaviors();
     }
 
-    private void OnEnable()
-    {
-        PlayerAttack.OnAttackPerformed += HandleAttack;
-    }
-
-    private void OnDisable()
-    {
-        PlayerAttack.OnAttackPerformed -= HandleAttack;
-    }
-
     private void InitializeAttackBehaviors()
     {
-        attackBehaviors = new Dictionary<AttackType, System.Action>
+        attackBehaviors = new Dictionary<PlayerAttack.AttackType, Action>
         {
-            { AttackType.NeutralLight, HandleNeutralLightAttack },
-            { AttackType.SideLight, HandleSideLightAttack },
-            { AttackType.DownLight, HandleDownLightAttack },
-            { AttackType.NeutralAir, HandleNeutralAirAttack },
-            { AttackType.SideAir, HandleSideAirAttack },
-            { AttackType.DownAir, HandleDownAirAttack },
-            { AttackType.NeutralHeavy, HandleNeutralHeavyAttack },
-            { AttackType.SideHeavy, HandleSideHeavyAttack },
-            { AttackType.DownHeavy, HandleDownHeavyAttack },
-            { AttackType.Recovery, HandleRecoveryAttack },
-            { AttackType.GroundPound, HandleGroundPoundAttack }
+            { PlayerAttack.AttackType.NeutralLight, HandleNeutralLightAttack },
+            { PlayerAttack.AttackType.SideLight, HandleSideLightAttack },
+            { PlayerAttack.AttackType.DownLight, HandleDownLightAttack },
+            { PlayerAttack.AttackType.NeutralAir, HandleNeutralAirAttack },
+            { PlayerAttack.AttackType.SideAir, HandleSideAirAttack },
+            { PlayerAttack.AttackType.DownAir, HandleDownAirAttack },
+            { PlayerAttack.AttackType.NeutralHeavy, HandleNeutralHeavyAttack },
+            { PlayerAttack.AttackType.SideHeavy, HandleSideHeavyAttack },
+            { PlayerAttack.AttackType.DownHeavy, HandleDownHeavyAttack },
+            { PlayerAttack.AttackType.Recovery, HandleRecoveryAttack },
+            { PlayerAttack.AttackType.GroundPound, HandleGroundPoundAttack }
         };
     }
 
-    private async void HandleAttack(AttackHitbox hitbox)
+    public void PerformAttack(PlayerAttack.AttackType attackType)
     {
-        if (hitbox.originatingPlayer != gameObject || isAttackActive) return;
-
-        if (attackBehaviors.TryGetValue(hitbox.attackType, out var behavior))
+        if (attackBehaviors.TryGetValue(attackType, out var behavior))
         {
             behavior.Invoke();
         }
-
-        isAttackActive = true;
-        float attackDuration = playerAttack.GetCurrentAttackDuration();
-        await ResetAttackActiveAfterDuration(attackDuration + attackCooldown);
-    }
-
-    private async Task ResetAttackActiveAfterDuration(float duration)
-    {
-        await Task.Delay((int)(duration * 1000)); // Convert seconds to milliseconds
-        isAttackActive = false;
-    }
-
-    private void HandleNeutralLightAttack()
-    {
-        // Implement Neutral Light Attack behavior
-    }
-
-    private void HandleSideLightAttack()
-    {
-        // Roll forward (spin and dash)
-        float dashSpeed = 7.5f;
-        float dashDuration = playerAttack.GetCurrentAttackDuration();
-        float spinSpeed = 1080f; // degrees per second for roll
-        float elapsed = 0f;
-        float direction = (playerController != null && playerController.isFacingRight) ? 1f : -1f;
-        anim.SetBool("NeutralAir", true);
-        Vector2 originalVelocity = rb.linearVelocity;
-
-        // Always spin forward (positive spinSpeed) regardless of facing direction
-        async void Spin()
+        else
         {
-            float spinElapsed = 0f;
-            var t = transform;
-            Vector3 axis = Vector3.forward;
-            while (spinElapsed < dashDuration)
-            {
-                float delta = Mathf.Min(Time.deltaTime, dashDuration - spinElapsed);
-                t.Rotate(axis, spinSpeed * delta, Space.Self);
-                spinElapsed += delta;
-                await Task.Yield();
-            }
-            t.rotation = Quaternion.identity;
+            Debug.LogWarning($"No behavior defined for attack type: {attackType}");
         }
-        Spin();
-
-        async void Dash()
-        {
-            while (elapsed < dashDuration)
-            {
-                rb.linearVelocity = new Vector2(direction * dashSpeed, rb.linearVelocity.y);
-                elapsed += Time.deltaTime;
-                await Task.Yield();
-            }
-            rb.linearVelocity = originalVelocity;
-            anim.SetBool("NeutralAir", false);
-        }
-        Dash();
-    }
-
-    private void HandleDownLightAttack()
-    {
-        // Implement Down Light Attack behavior
-    }
-
-    private void HandleNeutralAirAttack()
-    {
-        anim.SetBool("NeutralAir", true);
-        float spinSpeed = 2190f; // degrees per second (faster spin)
-        float duration = playerAttack.GetCurrentAttackDuration();
-        float direction = (playerController != null && playerController.isFacingRight) ? 1f : -1f;
-
-        // Moved StartSpin here, only used for NeutralAir
-        void StartSpin(float duration, float spinSpeed, float direction)
-        {
-            var t = transform;
-            Vector3 axis = Vector3.forward;
-            float elapsed = 0f;
-
-            async void Spin()
-            {
-                while (elapsed < duration)
-                {
-                    float delta = Mathf.Min(Time.deltaTime, duration - elapsed);
-                    t.Rotate(axis, spinSpeed * delta * direction, Space.Self);
-                    elapsed += delta;
-                    await Task.Yield();
-                }
-                t.rotation = Quaternion.identity;
-            }
-            Spin();
-        }
-
-        StartSpin(duration, spinSpeed, direction);
-
-        async void EndAnim()
-        {
-            await Task.Delay((int)(duration * 1000));
-            anim.SetBool("NeutralAir", false);
-        }
-        EndAnim();
-    }
-
-    private void HandleSideAirAttack()
-    {
-        // Implement Side Air Attack behavior
-    }
-
-    private void HandleDownAirAttack()
-    {
-        // Implement Down Air Attack behavior
-    }
-
-    private void HandleNeutralHeavyAttack()
-    {
-        // Implement Neutral Heavy Attack behavior
-    }
-
-    private void HandleSideHeavyAttack()
-    {
-        // Implement Side Heavy Attack behavior
-    }
-
-    private void HandleDownHeavyAttack()
-    {
-        // Implement Down Heavy Attack behavior
-    }
-
-    private void HandleRecoveryAttack()
-    {
-        // Implement Recovery Attack behavior
-    }
-
-    private void HandleGroundPoundAttack()
-    {
-        // Implement Ground Pound Attack behavior
-    }
-
-    private IEnumerator MaintainAttackVelocity(Vector2 velocity, float duration)
-    {
-        float elapsedTime = 0f;
-        while (elapsedTime < duration)
-        {
-            rb.linearVelocity = velocity;
-            elapsedTime += Time.deltaTime;
-            yield return null;
-        }
-    }
-
-    private IEnumerator ResetBoolAfterDelay(string parameterName, float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        anim.SetBool(parameterName, false);
     }
 
     private void RevertGravityScale()
@@ -257,5 +93,60 @@ public class SquirrelController : MonoBehaviour, ICharacterBehavior
     public void RestoreCollider()
     {
         boxCollider.size = originalColliderSize;
+    }
+
+    private void HandleNeutralLightAttack()
+    {
+        // Blank handler for Neutral Light Attack
+    }
+
+    private void HandleSideLightAttack()
+    {
+        // Blank handler for Side Light Attack
+    }
+
+    private void HandleDownLightAttack()
+    {
+        // Blank handler for Down Light Attack
+    }
+
+    private void HandleNeutralAirAttack()
+    {
+        // Blank handler for Neutral Air Attack
+    }
+
+    private void HandleSideAirAttack()
+    {
+        // Blank handler for Side Air Attack
+    }
+
+    private void HandleDownAirAttack()
+    {
+        // Blank handler for Down Air Attack
+    }
+
+    private void HandleNeutralHeavyAttack()
+    {
+        // Blank handler for Neutral Heavy Attack
+    }
+
+    private void HandleSideHeavyAttack()
+    {
+        // Blank handler for Side Heavy Attack
+    }
+
+    private void HandleDownHeavyAttack()
+    {
+        // Blank handler for Down Heavy Attack
+    }
+
+    private void HandleRecoveryAttack()
+    {
+        // Blank handler for Recovery Attack
+    }
+
+    private void HandleGroundPoundAttack()
+    {
+        // Blank handler for Ground Pound Attack
     }
 }
