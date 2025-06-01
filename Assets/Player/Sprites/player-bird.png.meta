@@ -701,6 +701,28 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: player-bird_23
+      rect:
+        serializedVersion: 2
+        x: 180
+        y: 0
+        width: 60
+        height: 60
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 45ccf7c7364b7fa47a1d87f0af6dd4e4
+      internalID: -1002303786
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
@@ -731,6 +753,7 @@ TextureImporter:
       player-bird_20: 1548621037
       player-bird_21: 179656288
       player-bird_22: -1324465181
+      player-bird_23: -1002303786
       player-bird_3: -1648047011682351928
       player-bird_4: 3294314318891774413
       player-bird_5: -3685881749049566207

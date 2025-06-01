@@ -2996,6 +2996,10 @@ PrefabInstance:
       propertyPath: controlScheme
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 6361782867400926053, guid: d23b6b964cc110440b1140bf7f0205dd, type: 3}
+      propertyPath: wallSlidingSpeed
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8857296223491982749, guid: d23b6b964cc110440b1140bf7f0205dd, type: 3}
       propertyPath: m_Offset.y
       value: 0

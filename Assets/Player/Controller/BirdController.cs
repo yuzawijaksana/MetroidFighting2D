@@ -98,7 +98,57 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
         boxCollider.size = originalColliderSize;
     }
 
+    private IEnumerator FlyingStraight(string attackAnim, Vector2 pushDirection)
+    {
+        anim.SetTrigger(attackAnim);
 
+        // Wait until the animator transitions to the correct state
+        yield return null;
+        float maxWait = 2.5f; // Prevent infinite loop
+        while (!anim.GetCurrentAnimatorStateInfo(0).IsName(attackAnim) && maxWait-- > 0)
+            yield return null;
+
+        // Lock gravity while flying straight
+        float originalGravity = rb.gravityScale;
+        rb.gravityScale = 0;
+
+        // Flip horizontally if needed (like PlayerController), including for diagonal attacks
+        float sign = pushDirection.x != 0 ? Mathf.Sign(pushDirection.x) : Mathf.Sign(transform.localScale.x);
+        float scaleX = Mathf.Abs(transform.localScale.x) * sign;
+        transform.localScale = new Vector2(scaleX, transform.localScale.y);
+
+        // Only rotate for diagonal (not pure left/right) attacks
+        float angle = 0f;
+        if (Mathf.Abs(pushDirection.x) > 0.01f && Mathf.Abs(pushDirection.y) > 0.01f)
+        {
+            float facing = Mathf.Sign(transform.localScale.x);
+            angle = Mathf.Atan2(pushDirection.y, Mathf.Abs(pushDirection.x)) * Mathf.Rad2Deg;
+            if (facing < 0)
+                angle = -angle;
+            transform.rotation = Quaternion.Euler(0, 0, angle);
+        }
+        else
+        {
+            transform.rotation = Quaternion.identity;
+        }
+
+        float animationDuration = anim.GetCurrentAnimatorStateInfo(0).length;
+        float elapsedTime = 0f;
+        Debug.Log($"Side Light Attack animation duration: {animationDuration} seconds");
+
+        while (elapsedTime < animationDuration)
+        {
+            rb.linearVelocity = pushDirection.normalized * 7.5f;
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        rb.gravityScale = birdGravityReset; // Restore gravity
+        anim.SetBool("Idle", true); // Set Idle state after attack
+
+        // Reset rotation after attack
+        transform.rotation = Quaternion.identity;
+    }
 
     private void HandleNeutralLightAttack()
     {
@@ -108,28 +158,8 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
 
     public void HandleSideLightAttack()
     {
-        anim.SetTrigger("SideLight"); // Trigger the SideLight animation
-        StartCoroutine(SideLightAttackRoutine());
-    }
-
-    private IEnumerator SideLightAttackRoutine()
-    {
-        float elapsedTime = 0f;
-        float animationDuration = anim.GetCurrentAnimatorStateInfo(0).length; // Use animation duration
-        Vector2 pushDirection = transform.localScale.x > 0 ? Vector2.right : Vector2.left;
-
-        while (elapsedTime < animationDuration)
-        {
-            // Push the bird during the attack
-            rb.linearVelocity = new Vector2(pushDirection.x * 5f, rb.linearVelocity.y);
-
-            elapsedTime += Time.deltaTime;
-            yield return null;
-        }
-
-        // Ensure the bird stops moving after the attack
-        rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
-        anim.SetBool("Idle", true); // Set Idle state after attack
+        Vector2 dir = transform.localScale.x > 0 ? Vector2.right : Vector2.left;
+        StartCoroutine(FlyingStraight("SideLight", dir));
     }
 
     private void HandleDownLightAttack()
@@ -140,20 +170,36 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
 
     private void HandleNeutralAirAttack()
     {
-        Debug.Log("Neutral Air Attack executed.");
-        // Add specific logic for Neutral Air Attack
+        // Just play the NeutralAir animation, do not use FlyingStraight
+        anim.SetTrigger("NeutralAir");
+        anim.SetBool("Jumping", false);
+        anim.SetBool("Falling", false);
+        StartCoroutine(ResetToIdleAfterAnimCoroutine("NeutralAir"));
+    }
+
+    // Add this coroutine to handle resetting to idle after animation
+    private IEnumerator ResetToIdleAfterAnimCoroutine(string animName)
+    {
+        yield return null;
+        float duration = anim.GetCurrentAnimatorStateInfo(0).length;
+        yield return new WaitForSeconds(duration);
+        anim.SetBool("Idle", true);
     }
 
     private void HandleSideAirAttack()
     {
-        Debug.Log("Side Air Attack executed.");
-        // Add specific logic for Side Air Attack
+        Vector2 dir = transform.localScale.x > 0 ? Vector2.right : Vector2.left;
+        anim.SetBool("Jumping", false);
+        anim.SetBool("Falling", false);
+        StartCoroutine(FlyingStraight("SideAir", dir));
     }
 
     private void HandleDownAirAttack()
     {
-        Debug.Log("Down Air Attack executed.");
-        // Add specific logic for Down Air Attack
+        Vector2 diagonalDown = (transform.localScale.x > 0) ? new Vector2(1, -1) : new Vector2(-1, -1);
+        anim.SetBool("Jumping", false);
+        anim.SetBool("Falling", false);
+        StartCoroutine(FlyingStraight("DownAir", diagonalDown));
     }
 
     private void HandleNeutralHeavyAttack()
@@ -176,8 +222,9 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
 
     private void HandleRecoveryAttack()
     {
-        Debug.Log("Recovery Attack executed.");
-        // Add specific logic for Recovery Attack
+        // Diagonal up (left or right)
+        Vector2 diagonalUp = (transform.localScale.x > 0) ? new Vector2(1, 1) : new Vector2(-1, 1);
+        StartCoroutine(FlyingStraight("Recovery", diagonalUp));
     }
 
     private void HandleGroundPoundAttack()

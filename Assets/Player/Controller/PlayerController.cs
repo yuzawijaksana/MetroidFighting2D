@@ -158,7 +158,7 @@ public class PlayerController : MonoBehaviour
                 Jump();
                 WallJump();
             }
-            if (!isWallJumping) Flip();
+            if (!isWallJumping) Flip(); // Only flip if not wall jumping
         }
         else
         {
@@ -518,6 +518,13 @@ public class PlayerController : MonoBehaviour
 
             jumpCount = 1;
             isDoubleJumping = false;
+
+            // Flip towards the wall if movement input is towards the wall after walljump
+            if (xAxis != 0 && Mathf.Sign(xAxis) != Mathf.Sign(wallJumpingDirection))
+            {
+                isFacingRight = !isFacingRight;
+                transform.localScale = new Vector2(-transform.localScale.x, transform.localScale.y);
+            }
 
             Invoke(nameof(StopWallJumping), wallJumpingDuration);
         }

@@ -180,17 +180,17 @@ public class PlayerAttack : MonoBehaviour
 
         if (isGrounded)
         {
-            if (horizontalInput != 0)
-            {
-                attackType = isLightAttack ? AttackType.SideLight : AttackType.SideHeavy;
-            }
-            else if (verticalInput > 0)
+            if (verticalInput > 0)
             {
                 attackType = isLightAttack ? AttackType.NeutralLight : AttackType.NeutralHeavy;
             }
             else if (verticalInput < 0)
             {
                 attackType = isLightAttack ? AttackType.DownLight : AttackType.DownHeavy;
+            }
+            else if (horizontalInput != 0)
+            {
+                attackType = isLightAttack ? AttackType.SideLight : AttackType.SideHeavy;
             }
             else
             {
@@ -199,17 +199,17 @@ public class PlayerAttack : MonoBehaviour
         }
         else
         {
-            if (horizontalInput != 0)
-            {
-                attackType = isLightAttack ? AttackType.SideAir : AttackType.Recovery;
-            }
-            else if (verticalInput > 0)
+            if (verticalInput > 0)
             {
                 attackType = isLightAttack ? AttackType.NeutralAir : AttackType.Recovery;
             }
             else if (verticalInput < 0)
             {
                 attackType = isLightAttack ? AttackType.DownAir : AttackType.GroundPound;
+            }
+            else if (horizontalInput != 0)
+            {
+                attackType = isLightAttack ? AttackType.SideAir : AttackType.Recovery;
             }
             else
             {
