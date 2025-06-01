@@ -21,6 +21,9 @@ public class GlobalSettings : MonoBehaviour
     [Header("Pixel Game Speed")]
     [SerializeField] private float pixelGameTimeScale = 1f; // 1 = normal, <1 = slower, >1 = faster
 
+    private bool isFrameByFramePaused = false;
+    private bool advanceOneFrame = false;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -38,10 +41,47 @@ public class GlobalSettings : MonoBehaviour
 
     private void Update()
     {
+        // Toggle frame-by-frame pause with backquote `
         if (Keyboard.current.backquoteKey.wasPressedThisFrame)
+        {
+            isFrameByFramePaused = !isFrameByFramePaused;
+            if (isFrameByFramePaused)
+            {
+                Time.timeScale = 0f;
+            }
+            else
+            {
+                Time.timeScale = pixelGameTimeScale;
+            }
+        }
+
+        // Advance one frame with period key (>)
+        if (isFrameByFramePaused && Keyboard.current.periodKey.wasPressedThisFrame)
+        {
+            advanceOneFrame = true;
+        }
+
+        if (Keyboard.current.backspaceKey.wasPressedThisFrame)
         {
             ToggleSlowMotion();
         }
+    }
+
+    private void LateUpdate()
+    {
+        // If advancing one frame, set timeScale to 1 for one frame, then back to 0
+        if (isFrameByFramePaused && advanceOneFrame)
+        {
+            StartCoroutine(AdvanceOneFrame());
+            advanceOneFrame = false;
+        }
+    }
+
+    private IEnumerator AdvanceOneFrame()
+    {
+        Time.timeScale = 1f;
+        yield return null; // Wait one frame
+        Time.timeScale = 0f;
     }
 
     public void ToggleSlowMotion()

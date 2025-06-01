@@ -127,15 +127,22 @@ public class PlayerController : MonoBehaviour
         characterBehavior = GetComponent<ICharacterBehavior>();
         originalColliderSize = boxCollider.size;
     }
-    
+
     private void Update()
     {
         if (!isControllable || controlScheme == ControlScheme.None) return; // Prevent all actions if not controllable or control scheme is None
 
+        // Prevent all input if attack is locked (including jump, dash, etc.)
         if (isAttackLocked)
         {
             // Allow natural physics (e.g., falling) while locking player input
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y);
+
+            // Unlock attack if animation is done
+            if (anim != null && !anim.GetCurrentAnimatorStateInfo(0).IsTag("Attack"))
+            {
+                isAttackLocked = false;
+            }
             return;
         }
 
@@ -145,8 +152,12 @@ public class PlayerController : MonoBehaviour
         {
             Move();
             WallSlide();
-            Jump();
-            WallJump();
+            // Prevent jumping while attacking
+            if (!isAttackLocked)
+            {
+                Jump();
+                WallJump();
+            }
             if (!isWallJumping) Flip();
         }
         else
@@ -208,86 +219,100 @@ public class PlayerController : MonoBehaviour
             {
                 if (controlScheme == ControlScheme.Keyboard1)
                 {
-                    if (Keyboard.current.jKey.wasPressedThisFrame)
+                    if (Keyboard.current.jKey.wasPressedThisFrame && !isAttackLocked)
                     {
+                        isAttackLocked = true;
                         controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, true);
                     }
-                    else if (Keyboard.current.kKey.wasPressedThisFrame)
+                    else if (Keyboard.current.kKey.wasPressedThisFrame && !isAttackLocked)
                     {
                         // Perform recovery if jumps are available
                         if (!isGrounded && jumpCount > 0)
                         {
                             jumpCount--; // Decrement jump count for recovery
+                            isAttackLocked = true;
                             controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, false);
                         }
                     }
                 }
                 else if (controlScheme == ControlScheme.Keyboard2)
                 {
-                    if (Keyboard.current.numpad4Key.wasPressedThisFrame)
+                    if (Keyboard.current.numpad4Key.wasPressedThisFrame && !isAttackLocked)
                     {
+                        isAttackLocked = true;
                         controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, true);
                     }
-                    else if (Keyboard.current.numpad5Key.wasPressedThisFrame)
+                    else if (Keyboard.current.numpad5Key.wasPressedThisFrame && !isAttackLocked)
                     {
                         if (!isGrounded && jumpCount > 0)
                         {
                             jumpCount--; // Decrement jump count for recovery
+                            isAttackLocked = true;
                             controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, false);
                         }
                     }
                 }
             }
         }
+        bool isIdle = 
+            Grounded() &&
+            Mathf.Abs(rb.linearVelocity.x) < 0.1f &&
+            !anim.GetBool("Jumping") &&
+            !anim.GetBool("Falling") &&
+            !anim.GetBool("Sliding") &&
+            !isAttackLocked &&
+            !isDashing;
+
+        anim.SetBool("Idle", isIdle);
     }
 
     private void FixedUpdate()
     {
-        if (!isAttackLocked && Keyboard.current.sKey.isPressed) // Only allow fast fall when not attacking
-        {
-            // Apply controlled falling force when S key is pressed
-            rb.AddForce(new Vector2(0, -fallingSpeed), ForceMode2D.Force);
+    if (!isAttackLocked && Keyboard.current.sKey.isPressed) // Only allow fast fall when not attacking
+    {
+        // Apply controlled falling force when S key is pressed
+        rb.AddForce(new Vector2(0, -fallingSpeed), ForceMode2D.Force);
 
-            // Limit the falling speed to the fast fall maximum
-            if (rb.linearVelocity.y < fastFallSpeed)
-            {
-                rb.linearVelocity = new Vector2(rb.linearVelocity.x, fastFallSpeed);
-            }
-        }
-        else
+        // Limit the falling speed to the fast fall maximum
+        if (rb.linearVelocity.y < fastFallSpeed)
         {
-            // Reset to normal falling speed when S key is not pressed
-            if (rb.linearVelocity.y < maxFallSpeed)
-            {
-                rb.linearVelocity = new Vector2(rb.linearVelocity.x, maxFallSpeed);
-            }
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, fastFallSpeed);
         }
+    }
+    else
+    {
+        // Reset to normal falling speed when S key is not pressed
+        if (rb.linearVelocity.y < maxFallSpeed)
+        {
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, maxFallSpeed);
+        }
+    }
 
-        // Fast fall for both S key (Keyboard1) and DownArrow (Keyboard2)
-        bool fastFallPressed = false;
-        if (controlScheme == ControlScheme.Keyboard1)
-        {
-            fastFallPressed = Keyboard.current.sKey.wasPressedThisFrame;
-        }
-        else if (controlScheme == ControlScheme.Keyboard2)
-        {
-            fastFallPressed = Keyboard.current.downArrowKey.wasPressedThisFrame;
-        }
+    // Fast fall for both S key (Keyboard1) and DownArrow (Keyboard2)
+    bool fastFallPressed = false;
+    if (controlScheme == ControlScheme.Keyboard1)
+    {
+        fastFallPressed = Keyboard.current.sKey.wasPressedThisFrame;
+    }
+    else if (controlScheme == ControlScheme.Keyboard2)
+    {
+        fastFallPressed = Keyboard.current.downArrowKey.wasPressedThisFrame;
+    }
 
-        if (fastFallPressed && !Grounded())
-        {
-            rb.AddForce(new Vector2(0, -fallingSpeed), ForceMode2D.Impulse);
-        }
+    if (fastFallPressed && !Grounded())
+    {
+        rb.AddForce(new Vector2(0, -fallingSpeed), ForceMode2D.Impulse);
+    }
 
-        // Only apply deceleration if dashing and not recovering from a hit
-        if (isDashing && !isRecoveringFromHit)
+    // Only apply deceleration if dashing and not recovering from a hit
+    if (isDashing && !isRecoveringFromHit)
+    {
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x * deceleration, rb.linearVelocity.y);
+        if (Mathf.Abs(rb.linearVelocity.x) < 0.1f)
         {
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x * deceleration, rb.linearVelocity.y);
-            if (Mathf.Abs(rb.linearVelocity.x) < 0.1f)
-            {
-                rb.linearVelocity = new Vector2(0, rb.linearVelocity.y); // Stop horizontal movement completely
-            }
+            rb.linearVelocity = new Vector2(0, rb.linearVelocity.y); // Stop horizontal movement completely
         }
+    }
     }
 
     private void GetInputs()
@@ -376,6 +401,7 @@ public class PlayerController : MonoBehaviour
         if (IsTouchingWall() && !Grounded())
         {
             isWallSliding = true;
+            isWallJumping = false; // <-- Reset wall jump state when touching wall again
             jumpCount = 0; // Reset the jump count when touching the wall
             characterBehavior?.ShrinkColliderForWallSlide();
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Clamp(rb.linearVelocity.y, -wallSlidingSpeed, float.MaxValue));
@@ -505,14 +531,24 @@ public class PlayerController : MonoBehaviour
         Vector2 initialPosition = rb.position;
         Vector2 targetPosition = initialPosition + new Vector2(wallJumpingDirection * wallJumpingPower.x, wallJumpingPower.y);
 
+        // Preserve upward velocity if it's greater than the target's y velocity
+        float currentYVelocity = rb.linearVelocity.y;
+        float targetYVelocity = wallJumpingPower.y / jumpDuration;
+        float finalYVelocity = Mathf.Max(currentYVelocity, targetYVelocity);
+
         while (elapsedTime < jumpDuration)
         {
-            rb.position = Vector2.Lerp(initialPosition, targetPosition, elapsedTime / jumpDuration);
+            float t = elapsedTime / jumpDuration;
+            Vector2 lerped = Vector2.Lerp(initialPosition, targetPosition, t);
+            // Maintain the higher upward velocity if present
+            rb.position = new Vector2(lerped.x, lerped.y);
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, finalYVelocity);
             elapsedTime += Time.deltaTime;
             await Task.Yield();
         }
 
         rb.position = targetPosition;
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, finalYVelocity);
     }
 
     private void StopWallJumping()

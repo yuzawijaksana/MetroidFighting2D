@@ -23,6 +23,7 @@ public class PlayerAttack : MonoBehaviour
 
     // Single hitbox reference
     public GameObject attackHitbox;
+    public GameObject knockbackObject;
 
     // Event triggered when an attack is performed
     public static event Action<AttackHitbox> OnAttackPerformed;
@@ -36,40 +37,18 @@ public class PlayerAttack : MonoBehaviour
 
     private void Start()
     {
-        // Ensure the hitbox is hidden at the start
-        if (attackHitbox != null)
-        {
-            attackHitbox.SetActive(false);
-        }
+        
+        attackHitbox.SetActive(false);
+        knockbackObject.SetActive(false);
 
         // Get reference to PlayerController
         playerController = GetComponent<PlayerController>();
-        if (playerController == null)
-        {
-            Debug.LogError("PlayerController component not found on the same GameObject.");
-        }
-
         // Get reference to Animator
         anim = GetComponent<Animator>();
-        if (anim == null)
-        {
-            Debug.LogError("Animator component not found on the same GameObject.");
-        }
-
         // Get reference to the connected character controller
         characterBehavior = GetComponent<ICharacterBehavior>();
-        if (characterBehavior == null)
-        {
-            Debug.LogError("ICharacterBehavior component not found on the same GameObject.");
-        }
-
         // Get reference to the player's own Damageable component
         selfDamageable = GetComponentInChildren<Damageable>();
-        if (selfDamageable == null)
-        {
-            Debug.LogError("Damageable component not found on the player or its children.");
-        }
-
         InitializeAttackBehaviors();
     }
 
@@ -97,10 +76,12 @@ public class PlayerAttack : MonoBehaviour
 
         // Check animator parameters
         float hitboxActiveValue = anim.GetFloat("Hitbox.Active");
+        float knockbackActiveValue = anim.GetFloat("Knockback.Active");
         float lockEnemyActiveValue = anim.GetFloat("LockEnemy.Active");
         float attackWindowOpenValue = anim.GetFloat("Attack.Window.Open");
 
         bool isHitboxActive = hitboxActiveValue > 0.5f;
+        bool isKnockbackActive = knockbackActiveValue > 0.5f;
         bool isLockEnemyActive = lockEnemyActiveValue > 0.5f;
         bool isAttackWindowOpen = attackWindowOpenValue > 0.5f;
 
@@ -121,6 +102,12 @@ public class PlayerAttack : MonoBehaviour
             }
         }
 
+        // Activate or deactivate the knockback object
+        if (knockbackObject != null)
+        {
+            knockbackObject.SetActive(isKnockbackActive);
+        }
+
         if (!isAttackWindowOpen)
         {
             // Attack window closed logic
@@ -134,7 +121,7 @@ public class PlayerAttack : MonoBehaviour
         // Perform hitbox-related operations
         Collider2D[] hitObjects = Physics2D.OverlapBoxAll(
             attackHitbox.transform.position,
-            attackHitbox.GetComponent<BoxCollider2D>().size,
+            attackHitbox.GetComponent<CapsuleCollider2D>().size,
             0
         );
 
@@ -151,12 +138,18 @@ public class PlayerAttack : MonoBehaviour
 
                 if (isLockEnemyActive)
                 {
-                    // Lock enemy to the center of the attack hitbox collider
-                    var hitboxCollider = attackHitbox.GetComponent<BoxCollider2D>();
+                    // Suck enemy in slowly toward the center of the attack hitbox collider
+                    var hitboxCollider = attackHitbox.GetComponent<CapsuleCollider2D>();
                     if (hitboxCollider != null)
                     {
                         Vector3 hitboxCenter = hitboxCollider.bounds.center;
-                        targetParent.position = hitboxCenter;
+                        float suckSpeed = 15f; // Units per second
+                        // Move the target parent towards the hitbox center smoothly
+                        targetParent.position = Vector3.MoveTowards(
+                            targetParent.position,
+                            hitboxCenter,
+                            suckSpeed * Time.deltaTime
+                        );
                     }
                 }
             }
@@ -179,12 +172,6 @@ public class PlayerAttack : MonoBehaviour
         {
             Debug.LogWarning("Hitbox is inactive. Cannot start attack.");
         }
-    }
-
-    private async Task DeactivateHitboxAfterDuration(float duration, AttackHitbox attackHitbox)
-    {
-        await Task.Delay((int)(duration * 1000)); // Convert seconds to milliseconds
-        attackHitbox.ResetHitObjects(); // Ensure hit objects are reset
     }
 
     public void HandleAttack(bool isGrounded, float verticalInput, float horizontalInput, bool isLightAttack)

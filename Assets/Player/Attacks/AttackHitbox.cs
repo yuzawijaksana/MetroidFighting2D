@@ -4,15 +4,6 @@ using UnityEngine;
 
 public class AttackHitbox : MonoBehaviour
 {
-    public enum KnockbackDirection
-    {
-        Up,
-        Down,
-        Side,
-        SideUp,
-        SideDown
-    }
-
     public enum HitstopDuration
     {
         OneTwentieth, // 1/20 second
@@ -22,15 +13,23 @@ public class AttackHitbox : MonoBehaviour
     }
 
     public float damage = 5f; // Light attack damage
-    public KnockbackDirection knockbackDirection;
     public GameObject originatingPlayer; // Reference to the player who initiated the attack
     public float baseKnockback = 5f; // Base knockback force
     public float knockbackGrowth = 0.5f; // Reduced from 0.5f for slower scaling
-    public float damageScaling = 0.005f; // Reduced from 0.005f for less knockback contribution from damage
     public HitstopDuration hitstopDuration = HitstopDuration.OneTenth; // Default hitstop duration
+
+    [System.Serializable]
+    public struct KnockbackVector
+    {
+        public float x; // Use -1, 0, or 1 for X, will be multiplied by facingSign
+        public float y; // Use -1, 0, or 1 for Y
+    }
+
+    public KnockbackVector knockback = new KnockbackVector { x = 1, y = 0 }; // Set in inspector
 
     private HashSet<GameObject> hitObjects = new HashSet<GameObject>(); // Track objects already hit
     private PlayerController playerController; // Reference to PlayerController
+    private bool isHitstopActive = false; // Add this field
 
     private void Start()
     {
@@ -49,20 +48,17 @@ public class AttackHitbox : MonoBehaviour
 
     private void ProcessHit(Collider2D collision)
     {
-        if (collision == null || hitObjects.Contains(collision.gameObject)) return;
-
-        // Ignore collisions with the player's own GameObject
-        if (collision.gameObject == playerController?.gameObject) return;
-
-        // Ignore collisions with the originating player
-        if (collision.gameObject == originatingPlayer) return;
-
         // Search for the Damageable component in the collision object or its children
         Damageable target = collision.GetComponentInChildren<Damageable>();
         if (target == null) return;
 
-        // Ensure the target is not the originating player
-        if (target.gameObject == originatingPlayer) return;
+        if (
+            collision == null ||
+            hitObjects.Contains(collision.gameObject) ||
+            collision.gameObject == playerController?.gameObject ||
+            collision.gameObject == originatingPlayer ||
+            target.gameObject == originatingPlayer
+        ) return;
 
         // Add the object to the hitObjects set to prevent further hits
         hitObjects.Add(collision.gameObject);
@@ -72,31 +68,34 @@ public class AttackHitbox : MonoBehaviour
 
         // Apply knockback immediately
         ApplyKnockback(target);
+
+        // Apply hitstop after hit (handled locally)
+        // StartCoroutine(ApplyHitstop(GetHitstopDurationInSeconds(hitstopDuration)));
     }
 
     private void ApplyKnockback(Damageable target)
     {
         if (target == null) return;
 
-        // Use the class-level knockbackDirection property directly
-        Vector2 calculatedKnockbackDirection = GetKnockbackDirection(target.transform, knockbackDirection);
-        float knockbackForce = baseKnockback;
-        Vector2 knockback = calculatedKnockbackDirection * knockbackForce;
+        // Always use the knockback values, with facingsign applied to X
+        int facingSign = (playerController != null && playerController.isFacingRight) ? 1 : -1;
+        Vector2 calculatedKnockbackDirection = new Vector2(knockback.x * facingSign, knockback.y).normalized;
+
+        // Only use knockbackGrowth for scaling (no damageScaling)
+        const float maxDamage = 300f;
+        float damageRatio = Mathf.Clamp01(target.currentHealth / maxDamage);
+        float knockbackForce = baseKnockback * (1f + damageRatio * knockbackGrowth);
+
+        Debug.Log($"[Knockback] {target.name} currentHealth={target.currentHealth}, ratio={damageRatio}, force={knockbackForce}");
+
+        Vector2 knockbackVec = calculatedKnockbackDirection * knockbackForce;
 
         Rigidbody2D targetRb = target.GetComponentInParent<Rigidbody2D>();
         if (targetRb != null)
         {
-            targetRb.AddForce(knockback, ForceMode2D.Impulse);
+            targetRb.AddForce(knockbackVec, ForceMode2D.Impulse);
             Debug.Log($"Knockback applied to {target.name}: Direction={calculatedKnockbackDirection}, Force={knockbackForce}");
         }
-    }
-
-    private IEnumerator ApplyHitstop(float duration)
-    {
-        float originalTimeScale = Time.timeScale; // Store the original time scale
-        Time.timeScale = 0f; // Pause the game
-        yield return new WaitForSecondsRealtime(duration); // Wait for the hitstop duration
-        Time.timeScale = originalTimeScale; // Restore the original time scale
     }
 
     private float GetHitstopDurationInSeconds(HitstopDuration duration)
@@ -110,21 +109,7 @@ public class AttackHitbox : MonoBehaviour
             _ => 0.1f // Default to 1/10 second
         };
     }
-
-    private void ResetHitbox()
-    {
-        // Reset the hitbox state to ensure it can detect collisions again
-        Collider2D collider = GetComponent<Collider2D>();
-        if (collider != null)
-        {
-            collider.enabled = false; // Temporarily disable the collider
-            collider.enabled = true;  // Re-enable the collider to reset its state
-        }
-
-        // Clear the hitObjects set to allow new hits in the next attack
-        hitObjects.Clear();
-    }
-
+    
     public void ResetHitObjects()
     {
         hitObjects.Clear();
@@ -139,39 +124,6 @@ public class AttackHitbox : MonoBehaviour
     {
         // Reset hit objects when the hitbox is disabled
         ResetHitObjects();
-    }
-
-    private Vector2 GetKnockbackDirection(Transform targetTransform, KnockbackDirection directionType)
-    {
-        // Calculate relative position between attacker and target
-        Vector2 relativePosition = (targetTransform.position - transform.position).normalized;
-
-        switch (directionType)
-        {
-            case KnockbackDirection.Up:
-                return Vector2.up;
-            case KnockbackDirection.Down:
-                return Vector2.down;
-            case KnockbackDirection.Side:
-                return new Vector2(relativePosition.x, 0).normalized; // Horizontal knockback
-            case KnockbackDirection.SideUp:
-                return new Vector2(relativePosition.x, 1).normalized; // Diagonal upward knockback
-            case KnockbackDirection.SideDown:
-                return new Vector2(relativePosition.x, -1).normalized; // Diagonal downward knockback
-            default:
-                return relativePosition; // Default to relative position for dynamic knockback
-        }
-    }
-
-    private void FlipTargetToFaceAttack(Transform targetTransform)
-    {
-        // Flip the parent of the target to face the direction of the attack
-        Transform parentTransform = targetTransform.parent;
-        if (parentTransform != null)
-        {
-            float attackDirection = playerController != null && playerController.isFacingRight ? -1 : 1;
-            parentTransform.localScale = new Vector3(Mathf.Abs(parentTransform.localScale.x) * attackDirection, parentTransform.localScale.y, parentTransform.localScale.z);
-        }
     }
 
     public void StartAttack(float duration)
@@ -189,5 +141,17 @@ public class AttackHitbox : MonoBehaviour
     public void Initialize(GameObject player)
     {
         originatingPlayer = player;
+    }
+
+    private IEnumerator ApplyHitstop(float duration)
+    {
+        if (isHitstopActive) yield break; // Prevent overlapping hitstop
+        isHitstopActive = true;
+        Debug.Log($"Hitstop applied for {duration} seconds.");
+        float originalTimeScale = Time.timeScale; // Store the original time scale
+        Time.timeScale = 0f; // Pause the game
+        yield return new WaitForSecondsRealtime(duration); // Wait for the hitstop duration
+        Time.timeScale = originalTimeScale; // Restore the original time scale
+        isHitstopActive = false;
     }
 }

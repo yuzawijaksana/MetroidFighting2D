@@ -129,6 +129,7 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
 
         // Ensure the bird stops moving after the attack
         rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
+        anim.SetBool("Idle", true); // Set Idle state after attack
     }
 
     private void HandleDownLightAttack()
