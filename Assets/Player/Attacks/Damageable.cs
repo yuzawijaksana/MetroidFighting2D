@@ -64,22 +64,22 @@ public class Damageable : MonoBehaviour
     }
 
     // Applies damage, knockback, and stun to the object
-    public void TakeDamage(float damage, Vector2 knockback, GameObject attacker)
+    public void TakeDamage(float damage, Vector2 knockback, GameObject attacker, float hitstopDuration = 0.1f)
     {
-        // Log the hit effect application
-        Debug.Log($"Applying hit effect: Damage={damage}, Knockback={knockback}, Attacker={attacker.name}");
+        Debug.Log($"Applying hit effect: Damage={damage}, Knockback={knockback}, Attacker={attacker?.name}");
 
-        if (attacker == transform.parent?.gameObject)
+        if (attacker == transform.parent?.gameObject) return;
+
+        // Only apply hitstop, not damage (damage is 0 for knockback frames)
+        var hitStop = FindObjectOfType<HitStop>();
+        if (hitStop != null)
+            hitStop.Stop(hitstopDuration);
+
+        if (damage > 0)
         {
-            return; // Ignore damage from the same player
-        }
-
-        currentHealth += damage;
-
-        // Update health color immediately
-        if (cellUI != null)
-        {
-            cellUI.UpdateMaskColor(this); // Update mask color based on health
+            currentHealth += damage;
+            if (cellUI != null)
+                cellUI.UpdateMaskColor(this);
         }
     }
 

@@ -164,7 +164,6 @@ public class PlayerAttack : MonoBehaviour
             if (hitbox != null)
             {
                 hitbox.Initialize(gameObject); // Set the originating player
-                hitbox.StartAttack(anim.GetCurrentAnimatorStateInfo(0).length); // Use animation duration
                 OnAttackPerformed?.Invoke(hitbox); // Trigger the OnAttackPerformed event
             }
         }
