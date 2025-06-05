@@ -15,6 +15,7 @@ public class CharacterSelection : MonoBehaviour
     public GameObject mapObject; // Assign your map GameObject here
     public GameObject countdownTextObject; // Assign a UI Text for countdown (optional)
     public GameStarter gameStarter; // Assign this in the inspector
+    public GameObject readyIndicator; // Assign in inspector, shown when both players are ready
     private int player1Index = 0;
     private int player2Index = 0;
     private bool player1Confirmed = false;
@@ -182,6 +183,10 @@ public class CharacterSelection : MonoBehaviour
                 Time.deltaTime * indicatorMoveSpeed
             );
         }
+
+        // Show/hide ready indicator based on both players confirmed
+        if (readyIndicator != null)
+            readyIndicator.SetActive(player1Confirmed && player2Confirmed);
     }
 
     private void spawnCharacterCard(CharacterCard card)

@@ -111,11 +111,11 @@ public class AttackHitbox : MonoBehaviour
             Debug.Log($"Applying knockback to {target.name} at time {now}");
             ApplyKnockback(target, knockbackAccum[target]);
 
-            // Only apply hitstop if Time.timeScale is 1 and NO OTHER hitstop is running
+            // Improved hitstop: disable this collider during hitstop to prevent OnTriggerStay2D spam
             if (!hitStopActive && Time.timeScale == 1f)
             {
-                Debug.Log($"Applying hitstop to {target.name} for {hitstopDuration} seconds");
-                StartCoroutine(HitStopCoroutine(hitstopDuration));
+                Debug.Log($"Applying hitstop to {target.name} for {hitstopDuration} seconds and disabling collider");
+                StartCoroutine(HitStopAndDisableCollider(hitstopDuration));
             }
             else
             {
@@ -179,5 +179,28 @@ public class AttackHitbox : MonoBehaviour
     public void Initialize(GameObject player)
     {
         originatingPlayer = player;
+    }
+
+    private IEnumerator HitStopAndDisableCollider(float duration)
+    {
+        hitStopActive = true;
+        Collider2D col = GetComponent<Collider2D>();
+        if (col != null)
+            col.enabled = false;
+
+        Time.timeScale = 0.0f;
+        Debug.Log("[AttackHitbox] Time.timeScale set to 0 (hit pause started, collider disabled)");
+
+        float pauseStart = Time.realtimeSinceStartup;
+        while (Time.realtimeSinceStartup - pauseStart < duration)
+        {
+            yield return null;
+        }
+
+        Time.timeScale = 1.0f;
+        hitStopActive = false;
+        if (col != null)
+            col.enabled = true;
+        Debug.Log("[AttackHitbox] Time.timeScale set to 1 (hit pause ended, collider enabled)");
     }
 }
