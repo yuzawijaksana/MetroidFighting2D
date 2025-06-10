@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 using System.Collections.Generic;
 
 public class CharacterIngameCellUI : MonoBehaviour
@@ -8,6 +9,7 @@ public class CharacterIngameCellUI : MonoBehaviour
     public Image maskImage; // The mask image to change color
     public Image artworkImage; // The character artwork image
     public Text nameText; // The character name text
+    public Text damageText; // The damage percentage text (assign in inspector)
 
     [Header("Health UI")]
     public Transform heartsGrid;   // Assign your grid transform in inspector
@@ -17,6 +19,10 @@ public class CharacterIngameCellUI : MonoBehaviour
     public CharacterCard characterCard;
 
     private List<Image> heartImages = new List<Image>();
+    private Coroutine damageTextEffectCoroutine;
+    private int defaultFontSize = 0;
+    private float hitEffectScale = 1.3f;
+    private float hitEffectDuration = 0.15f;
 
     // Call this to update the mask color (e.g., for health)
     public void SetMaskColor(Color color)
@@ -42,17 +48,62 @@ public class CharacterIngameCellUI : MonoBehaviour
             if (artworkImage != null)
                 artworkImage.sprite = characterCard.characterSprite;
             if (nameText != null)
-                nameText.text = playerLabel;
+                nameText.text = characterCard.characterName; // Always show character name
         }
     }
 
     // Call this to update the mask color based on a Damageable component
     public void UpdateMaskColor(Damageable damageable)
     {
-        if (damageable != null && maskImage != null)
+        if (damageable != null)
         {
-            maskImage.color = damageable.GetHealthColor();
+            if (maskImage != null)
+                maskImage.color = damageable.GetHealthColor();
+            if (damageText != null)
+            {
+                damageText.text = Mathf.RoundToInt(damageable.currentHealth) + "%";
+                DamageTextHitEffect();
+            }
         }
+    }
+
+    private void DamageTextHitEffect()
+    {
+        if (damageText == null) return;
+        if (defaultFontSize == 0)
+            defaultFontSize = damageText.fontSize;
+        if (damageTextEffectCoroutine != null)
+            StopCoroutine(damageTextEffectCoroutine);
+        damageTextEffectCoroutine = StartCoroutine(DamageTextHitEffectCoroutine());
+    }
+
+    private IEnumerator DamageTextHitEffectCoroutine()
+    {
+        float elapsed = 0f;
+        float upTime = hitEffectDuration * 0.5f;
+        float downTime = hitEffectDuration * 0.5f;
+        int bigFont = Mathf.RoundToInt(defaultFontSize * hitEffectScale);
+
+        // Scale up
+        while (elapsed < upTime)
+        {
+            float t = elapsed / upTime;
+            damageText.fontSize = Mathf.RoundToInt(Mathf.Lerp(defaultFontSize, bigFont, t));
+            elapsed += Time.unscaledDeltaTime;
+            yield return null;
+        }
+        damageText.fontSize = bigFont;
+
+        // Scale down
+        elapsed = 0f;
+        while (elapsed < downTime)
+        {
+            float t = elapsed / downTime;
+            damageText.fontSize = Mathf.RoundToInt(Mathf.Lerp(bigFont, defaultFontSize, t));
+            elapsed += Time.unscaledDeltaTime;
+            yield return null;
+        }
+        damageText.fontSize = defaultFontSize;
     }
 
     // Call this to initialize the hearts UI, now takes maxHearts from Damageable

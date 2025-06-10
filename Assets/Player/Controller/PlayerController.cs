@@ -76,6 +76,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float dashTrailLifetime = 0.5f;
     [SerializeField] private float dashTrailFadeSpeed = 2f;
 
+    [Header("Dash Duration & End Multiplier")]
+    [SerializeField] private float dashDuration = 0.2f;
+    [SerializeField] private float dashMultiplier = 0.8f;
+
     private bool isDashing;
 
     [Header("Slow Motion Settings")]
@@ -221,35 +225,55 @@ public class PlayerController : MonoBehaviour
                 {
                     if (Keyboard.current.jKey.wasPressedThisFrame && !isAttackLocked)
                     {
-                        isAttackLocked = true;
-                        controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, true);
+                        if (controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, true))
+                        {
+                            isAttackLocked = true;
+                        }
                     }
                     else if (Keyboard.current.kKey.wasPressedThisFrame && !isAttackLocked)
                     {
-                        // Perform recovery if jumps are available
-                        if (!isGrounded && jumpCount > 0)
+                        // Perform recovery if jumps are available (example for heavy/special)
+                        // For a recovery move, it might not always consume a jump or might have specific conditions.
+                        // The current HandleAttack determines type based on isLightAttack=false.
+                        // If it's a recovery that consumes a jump:
+                        if (!isGrounded && jumpCount > 0) 
                         {
-                            jumpCount--; // Decrement jump count for recovery
-                            isAttackLocked = true;
-                            controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, false);
+                            if (controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, false))
+                            {
+                                jumpCount--; // Decrement jump count for recovery
+                                isAttackLocked = true;
+                            }
                         }
+                        // If it's a general heavy attack not tied to jump count:
+                        // else if (controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, false))
+                        // {
+                        //     isAttackLocked = true;
+                        // }
                     }
                 }
                 else if (controlScheme == ControlScheme.Keyboard2)
                 {
                     if (Keyboard.current.numpad4Key.wasPressedThisFrame && !isAttackLocked)
                     {
-                        isAttackLocked = true;
-                        controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, true);
+                        if (controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, true))
+                        {
+                            isAttackLocked = true;
+                        }
                     }
                     else if (Keyboard.current.numpad5Key.wasPressedThisFrame && !isAttackLocked)
                     {
                         if (!isGrounded && jumpCount > 0)
                         {
-                            jumpCount--; // Decrement jump count for recovery
-                            isAttackLocked = true;
-                            controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, false);
+                             if (controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, false))
+                             {
+                                jumpCount--; // Decrement jump count for recovery
+                                isAttackLocked = true;
+                             }
                         }
+                        // else if (controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, false))
+                        // {
+                        //     isAttackLocked = true;
+                        // }
                     }
                 }
             }
@@ -402,7 +426,7 @@ public class PlayerController : MonoBehaviour
         {
             isWallSliding = true;
             isWallJumping = false; // <-- Reset wall jump state when touching wall again
-            jumpCount = 0; // Reset the jump count when touching the wall
+            jumpCount = 3; // Reset the jump count when touching the wall
             characterBehavior?.ShrinkColliderForWallSlide();
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Clamp(rb.linearVelocity.y, -wallSlidingSpeed, float.MaxValue));
             anim.SetBool("Sliding", isWallSliding);
@@ -575,14 +599,21 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            rb.linearVelocity = new Vector2(isFacingRight ? dashForce : -dashForce, rb.linearVelocity.y);
+            // Lock vertical velocity during dash
+            rb.linearVelocity = new Vector2(isFacingRight ? dashForce : -dashForce, 0);
         }
 
         SpawnDashSmoke();
         SpawnMultipleDashTrails(); // Spawn multiple dash trails
 
-        float dashDuration = 0.2f;
-        EndDashAfterDuration(dashDuration);
+        DashDuration(dashDuration);
+    }
+
+    private async void DashDuration(float duration)
+    {
+        await Task.Delay((int)(duration * 1000)); // Convert seconds to milliseconds
+        isDashing = false;
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x * dashMultiplier, rb.linearVelocity.y);
     }
 
     private async void SpawnMultipleDashTrails()

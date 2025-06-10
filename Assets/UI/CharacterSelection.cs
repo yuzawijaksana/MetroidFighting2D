@@ -162,6 +162,7 @@ public class CharacterSelection : MonoBehaviour
                 gameStarter.StartGame();
             }
             if (characterSelectionPanel != null) characterSelectionPanel.SetActive(false);
+            if (mainMenuPanel != null) mainMenuPanel.SetActive(false); // Hide menu on start
         }
 
         // Smoothly move indicators (anchoredPosition)

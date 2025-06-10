@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e5f4f43ee959c77449e9b7166fa6ea80, type: 3}
   m_Name: Bird
   m_EditorClassIdentifier: 
-  characterName: Bird
+  characterName: bird
   characterSprite: {fileID: 21300000, guid: c865552cb2acae74ab0626b198a286ce, type: 3}
   characterPrefab: {fileID: 4883880204484489955, guid: d23b6b964cc110440b1140bf7f0205dd, type: 3}

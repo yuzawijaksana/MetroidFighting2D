@@ -64,22 +64,36 @@ public class Damageable : MonoBehaviour
     }
 
     // Applies damage, knockback, and stun to the object
-    public void TakeDamage(float damage, Vector2 knockback, GameObject attacker, float hitstopDuration = 0.1f)
+    private float lastHitTime = -1f;
+    private float hitCooldown = 0.05f; // Minimum time between knockbacks (seconds)
+
+    public void TakeDamage(float damage, Vector2 knockback, GameObject attacker)
     {
+        // Prevent double application in the same frame or from spamming
+        if (Time.time - lastHitTime < hitCooldown)
+            return;
+        lastHitTime = Time.time;
+
         Debug.Log($"Applying hit effect: Damage={damage}, Knockback={knockback}, Attacker={attacker?.name}");
 
         if (attacker == transform.parent?.gameObject) return;
 
-        // Only apply hitstop, not damage (damage is 0 for knockback frames)
-        var hitStop = FindObjectOfType<HitStop>();
-        if (hitStop != null)
-            hitStop.Stop(hitstopDuration);
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        if (rb == null)
+            rb = GetComponentInParent<Rigidbody2D>();
+        if (rb != null)
+        {
+            // Reset momentum before applying new knockback
+            rb.linearVelocity = Vector2.zero;
+            rb.angularVelocity = 0f;
+            rb.AddForce(knockback, ForceMode2D.Impulse);
+        }
 
         if (damage > 0)
         {
             currentHealth += damage;
             if (cellUI != null)
-                cellUI.UpdateMaskColor(this);
+                cellUI.UpdateMaskColor(this); // This will update both color and damage text
         }
     }
 

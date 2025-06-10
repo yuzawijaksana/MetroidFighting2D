@@ -396,6 +396,8 @@ MonoBehaviour:
   dashSmokeLifetime: 0.5
   dashTrailLifetime: 0.5
   dashTrailFadeSpeed: 2
+  dashDuration: 0.2
+  dashMultiplier: 0.8
   slowMotionFactor: 0.5
   platformLayer:
     serializedVersion: 2
@@ -492,6 +494,9 @@ MonoBehaviour:
   knockback:
     x: 1
     y: 0
+  singleHitPerActivation: 0
+  hitboxActiveTime: 0
+  knockbackMultiplier: 0.2
 --- !u!70 &8857296223491982749
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -541,6 +546,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f128c027d702d2f44a41c0c45d947024, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  duration: 0.1
 --- !u!1 &8527566263289191909
 GameObject:
   m_ObjectHideFlags: 0

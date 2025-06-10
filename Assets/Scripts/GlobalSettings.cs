@@ -15,7 +15,7 @@ public class GlobalSettings : MonoBehaviour
     private bool isSlowMotionActive = false;
 
     [Header("Hit Pause Settings")]
-    public float defaultHitPauseDuration = 0.1f;
+    public float defaultHitPauseDuration = 0.7f;
     private bool isHitPaused = false;
 
     [Header("Pixel Game Speed")]
@@ -105,24 +105,44 @@ public class GlobalSettings : MonoBehaviour
         return isSlowMotionActive;
     }
 
+    // New method to trigger hit pause
     public void TriggerHitPause(float duration = -1f)
     {
-        if (!isHitPaused)
+        if (isFrameByFramePaused && !advanceOneFrame) // Don't do hit pause if already fully paused by frame-by-frame, unless advancing
         {
-            StartCoroutine(HitPause(duration > 0 ? duration : defaultHitPauseDuration));
+            return;
+        }
+
+        if (!isHitPaused) // Only start if not already in a hit pause
+        {
+            StartCoroutine(HitPauseCoroutine(duration >= 0 ? duration : defaultHitPauseDuration));
         }
     }
 
-    private IEnumerator HitPause(float duration)
+    // New coroutine to handle the hit pause effect
+    private IEnumerator HitPauseCoroutine(float duration)
     {
         isHitPaused = true;
-
         float originalTimeScale = Time.timeScale;
+        
+        // If frame-by-frame is active, originalTimeScale would be 0.
+        // We want hitpause to effectively "pause" the game at its current speed, then restore.
+        // So, if originalTimeScale is 0 due to frame-by-frame, we still set it to 0 for hitpause.
         Time.timeScale = 0f;
 
-        yield return new WaitForSecondsRealtime(duration);
+        yield return new WaitForSecondsRealtime(duration); // Wait using unscaled time
 
-        Time.timeScale = originalTimeScale;
+        // Restore to the time scale that was active before this hitpause,
+        // unless frame-by-frame pause wants it to stay 0.
+        if (isFrameByFramePaused && !advanceOneFrame)
+        {
+            Time.timeScale = 0f; // Frame-by-frame pause overrides and keeps it at 0
+        }
+        else
+        {
+            Time.timeScale = originalTimeScale; // Restore to whatever it was
+        }
+        
         isHitPaused = false;
     }
 }

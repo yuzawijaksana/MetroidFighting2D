@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e5f4f43ee959c77449e9b7166fa6ea80, type: 3}
   m_Name: Squirrel
   m_EditorClassIdentifier: 
-  characterName: Squirrel
+  characterName: squirrel
   characterSprite: {fileID: 21300000, guid: cb238c6f6707b9448bd72caeb8b4d74b, type: 3}
   characterPrefab: {fileID: 783805097188824957, guid: 9d239a103ced7b341a8c9dbe235c5d32, type: 3}

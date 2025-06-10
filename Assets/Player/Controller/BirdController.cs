@@ -104,7 +104,7 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
 
         // Wait until the animator transitions to the correct state
         yield return null;
-        float maxWait = 2.5f; // Prevent infinite loop
+        float maxWait = 15f; // Prevent infinite loop
         while (!anim.GetCurrentAnimatorStateInfo(0).IsName(attackAnim) && maxWait-- > 0)
             yield return null;
 

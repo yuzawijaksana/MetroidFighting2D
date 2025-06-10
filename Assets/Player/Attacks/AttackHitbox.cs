@@ -6,15 +6,16 @@ public class AttackHitbox : MonoBehaviour
 {
     public GameObject originatingPlayer; // Reference to the player who initiated the attack
     public float damage = 5f; // Light attack damage
-    public float baseKnockback = 0.5f; // Small knockback per frame
-    public float knockbackGrowth = 0.1f; // Growth per hit/frame
+    public float baseKnockback = 0.5f; // Base knockback
+    public float knockbackGrowth = 0.1f; // Knockback growth per damage percent
 
     [Tooltip("Hitstop duration in frames (e.g., 7 = 7 frames)")]
     [Range(1, 30)]
     public int hitstopFrames = 7;
 
     [System.Serializable]
-    public struct KnockbackVector{
+    public struct KnockbackVector
+    {
         public float x; // Use -1, 0, or 1 for X, will be multiplied by facingSign
         public float y; // Use -1, 0, or 1 for Y
     }
@@ -22,15 +23,30 @@ public class AttackHitbox : MonoBehaviour
     public KnockbackVector knockback = new KnockbackVector { x = 1, y = 0 }; // Set in inspector
     private PlayerController playerController; // Reference to PlayerController
 
-    // Per-target: last knockback time, accumulated knockback
+    // Per-target: last hit time
     private Dictionary<Damageable, float> hitCooldown = new Dictionary<Damageable, float>();
-    private Dictionary<Damageable, float> knockbackAccum = new Dictionary<Damageable, float>();
 
-    private bool hitStopActive = false;
+    [Header("Hitbox Settings")]
+    public bool singleHitPerActivation = false; // If true, disables after first hit
+    public float hitboxActiveTime = 0f; // If > 0, disables after this time
+
+    [Header("Knockback Tuning")]
+    [Tooltip("Multiplier for knockback force. Adjust for game feel. 0.05 is a good start for gravity scale 2.5.")]
+    public float knockbackMultiplier = 0.5f;
+
+    private bool hitboxActive = true;
+    private HashSet<Damageable> hitThisActivation = new HashSet<Damageable>();
+    private Collider2D hitboxCollider;
+
+    private void Awake()
+    {
+        hitboxCollider = GetComponent<Collider2D>();
+        if (hitboxCollider == null)
+            Debug.LogError("AttackHitbox requires a Collider2D.");
+    }
 
     private void Start()
     {
-        // Get the PlayerController from the parent or attached GameObject
         playerController = GetComponentInParent<PlayerController>();
         if (playerController == null)
         {
@@ -50,88 +66,56 @@ public class AttackHitbox : MonoBehaviour
         foreach (var key in expired)
         {
             hitCooldown.Remove(key);
-            knockbackAccum.Remove(key);
         }
     }
 
-    private IEnumerator HitStopCoroutine(float duration)
+    private void OnEnable()
     {
-        hitStopActive = true;
-        Time.timeScale = 0.0f;
-        Debug.Log("[AttackHitbox] Time.timeScale set to 0 (hit pause started)");
-
-        float timer = 0f;
-        while (timer < duration)
-        {
-            yield return null;
-            timer += Time.unscaledDeltaTime;
-        }
-
-        Time.timeScale = 1.0f;
-        hitStopActive = false;
-        Debug.Log("[AttackHitbox] Time.timeScale set to 1 (hit pause ended)");
+        hitboxActive = true;
+        hitThisActivation.Clear();
+        if (hitboxCollider != null)
+            hitboxCollider.enabled = true;
     }
 
-    private void OnTriggerStay2D(Collider2D collision)
+    private void OnDisable()
     {
-        Debug.Log($"[AttackHitbox] Time.timeScale={Time.timeScale}");
+        hitThisActivation.Clear();
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (!hitboxActive) return;
 
         Damageable target = collision.GetComponentInChildren<Damageable>();
-        if (target == null)
-        {
-            Debug.Log("No Damageable found on collision: " + collision?.name);
-            return;
-        }
+        if (target == null) return;
         if (collision == null ||
             collision.gameObject == playerController?.gameObject ||
             collision.gameObject == originatingPlayer ||
             target.gameObject == originatingPlayer)
         {
-            Debug.Log("Collision ignored: " + collision?.name);
             return;
         }
 
-        // Calculate hitstop duration in seconds (7 frames at 60fps)
-        float hitstopDuration = hitstopFrames / 60f;
+        // Prevent multiple hits per activation (even if OnTriggerEnter2D is called multiple times)
+        if (hitThisActivation.Contains(target))
+            return;
 
-        // Only apply if not in hitstop for this target
-        float now = Time.time;
-        if (!hitCooldown.TryGetValue(target, out float nextValidTime) || now >= nextValidTime)
+        ApplyKnockback(target);
+        hitThisActivation.Add(target);
+
+        // Trigger hitstop using GlobalSettings
+        if (GlobalSettings.Instance != null && hitstopFrames > 0)
         {
-            // Accumulate knockback for this target
-            if (!knockbackAccum.ContainsKey(target))
-            {
-                knockbackAccum[target] = 0f;
-                Debug.Log($"First knockback for {target.name}");
-            }
-            knockbackAccum[target] += knockbackGrowth;
-            Debug.Log($"Accum knockback for {target.name}: {knockbackAccum[target]}");
-
-            // Apply knockback
-            Debug.Log($"Applying knockback to {target.name} at time {now}");
-            ApplyKnockback(target, knockbackAccum[target]);
-
-            // Improved hitstop: disable this collider during hitstop to prevent OnTriggerStay2D spam
-            if (!hitStopActive && Time.timeScale == 1f)
-            {
-                Debug.Log($"Applying hitstop to {target.name} for {hitstopDuration} seconds and disabling collider");
-                StartCoroutine(HitStopAndDisableCollider(hitstopDuration));
-            }
-            else
-            {
-                Debug.Log($"Skipped hitstop for {target.name} because a hitstop is already active or Time.timeScale != 1");
-            }
-
-            // Set next valid time for this target
-            hitCooldown[target] = now + hitstopDuration;
-        }
-        else
-        {
-            Debug.Log($"Hit cooldown active for {target.name}, next valid: {nextValidTime}, now: {now}");
+            // Convert frames to seconds, assuming 60 FPS as a common baseline for "frames"
+            // Alternatively, use a fixed small value or Time.fixedDeltaTime * hitstopFrames
+            float hitstopDurationSeconds = hitstopFrames / 60.0f; 
+            GlobalSettings.Instance.TriggerHitPause(hitstopDurationSeconds);
         }
 
-        // Reset knockback accumulation if not in hitbox anymore (prevents infinite stacking)
-        // This should be handled in OnTriggerExit2D
+        // Disable hitbox after first hit to prevent further hits until next activation
+        if (hitboxCollider != null)
+            hitboxCollider.enabled = false;
+        hitboxActive = false;
     }
 
     private void OnTriggerExit2D(Collider2D collision)
@@ -139,68 +123,34 @@ public class AttackHitbox : MonoBehaviour
         Damageable target = collision.GetComponentInChildren<Damageable>();
         if (target != null)
         {
-            Debug.Log($"Resetting knockback accumulation for {target.name} (OnTriggerExit2D)");
-            knockbackAccum.Remove(target);
-            hitCooldown.Remove(target);
+            hitThisActivation.Remove(target);
         }
     }
 
-    private void ApplyKnockback(Damageable target, float extraKnockback)
+    private void ApplyKnockback(Damageable target)
     {
-        if (target == null)
-        {
-            Debug.Log("ApplyKnockback: target is null");
+        if (target == null) return;
+
+        // Prevent multiple knockbacks per activation (per hit)
+        if (hitThisActivation.Contains(target))
             return;
-        }
 
         int facingSign = (playerController != null && playerController.isFacingRight) ? 1 : -1;
-        Vector2 calculatedKnockbackDirection = new Vector2(knockback.x * facingSign, knockback.y).normalized;
+        Vector2 knockbackDir = new Vector2(facingSign, knockback.y).normalized;
 
-        float knockbackForce = baseKnockback + extraKnockback;
-        knockbackForce = Mathf.Clamp(knockbackForce, 0, baseKnockback + knockbackGrowth * 10);
+        float percent = (target.currentHealth <= 0f) ? 1f : target.currentHealth;
+        float knockbackForce = (baseKnockback + (percent * knockbackGrowth)) * knockbackMultiplier;
 
-        Vector2 knockbackVec = calculatedKnockbackDirection * knockbackForce;
+        Vector2 knockbackVec = knockbackDir * knockbackForce;
 
-        Rigidbody2D targetRb = target.GetComponent<Rigidbody2D>();
-        if (targetRb == null)
-        {
-            targetRb = target.GetComponentInParent<Rigidbody2D>();
-            if (targetRb == null)
-            {
-                Debug.LogWarning($"No Rigidbody2D found for {target.name}");
-                return;
-            }
-        }
+        target.TakeDamage(damage, knockbackVec, originatingPlayer);
 
-        Debug.Log($"AddForce to {target.name}: {knockbackVec} (Force: {knockbackForce}, Dir: {calculatedKnockbackDirection})");
-        targetRb.AddForce(knockbackVec, ForceMode2D.Force);
+        // Mark as hit for this activation to prevent repeated knockback
+        hitThisActivation.Add(target);
     }
 
     public void Initialize(GameObject player)
     {
         originatingPlayer = player;
-    }
-
-    private IEnumerator HitStopAndDisableCollider(float duration)
-    {
-        hitStopActive = true;
-        Collider2D col = GetComponent<Collider2D>();
-        if (col != null)
-            col.enabled = false;
-
-        Time.timeScale = 0.0f;
-        Debug.Log("[AttackHitbox] Time.timeScale set to 0 (hit pause started, collider disabled)");
-
-        float pauseStart = Time.realtimeSinceStartup;
-        while (Time.realtimeSinceStartup - pauseStart < duration)
-        {
-            yield return null;
-        }
-
-        Time.timeScale = 1.0f;
-        hitStopActive = false;
-        if (col != null)
-            col.enabled = true;
-        Debug.Log("[AttackHitbox] Time.timeScale set to 1 (hit pause ended, collider enabled)");
     }
 }
