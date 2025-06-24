@@ -135,8 +135,24 @@ public class AttackHitbox : MonoBehaviour
         if (hitThisActivation.Contains(target))
             return;
 
-        int facingSign = (playerController != null && playerController.isFacingRight) ? 1 : -1;
-        Vector2 knockbackDir = new Vector2(facingSign, knockback.y).normalized;
+        Vector2 knockbackDir;
+
+        // Check if knockback is set to (0,0) - use relative positioning
+        if (knockback.x == 0 && knockback.y == 0)
+        {
+            // Calculate relative direction from hitbox center to target
+            Vector2 hitboxCenter = transform.position;
+            Vector2 targetPosition = target.transform.position;
+            knockbackDir = (targetPosition - hitboxCenter).normalized;
+            
+            Debug.Log($"Relative knockback direction for {target.name}: {knockbackDir}");
+        }
+        else
+        {
+            // Use predefined knockback direction
+            int facingSign = (playerController != null && playerController.isFacingRight) ? 1 : -1;
+            knockbackDir = new Vector2(knockback.x * facingSign, knockback.y).normalized;
+        }
 
         float percent = (target.currentHealth <= 0f) ? 1f : target.currentHealth;
         float knockbackForce = (baseKnockback + (percent * knockbackGrowth)) * knockbackMultiplier;
@@ -147,6 +163,8 @@ public class AttackHitbox : MonoBehaviour
 
         // Mark as hit for this activation to prevent repeated knockback
         hitThisActivation.Add(target);
+        
+        Debug.Log($"Knockback applied to {target.name}: Direction={knockbackDir}, Force={knockbackForce}");
     }
 
     public void Initialize(GameObject player)

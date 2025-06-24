@@ -104,7 +104,7 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
 
         // Wait until the animator transitions to the correct state
         yield return null;
-        float maxWait = 15f; // Prevent infinite loop
+        float maxWait = 10f; // Prevent infinite loop
         while (!anim.GetCurrentAnimatorStateInfo(0).IsName(attackAnim) && maxWait-- > 0)
             yield return null;
 
@@ -134,7 +134,7 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
 
         float animationDuration = anim.GetCurrentAnimatorStateInfo(0).length;
         float elapsedTime = 0f;
-        Debug.Log($"Side Light Attack animation duration: {animationDuration} seconds");
+        Debug.Log($"Flying Attack animation duration: {animationDuration} seconds");
 
         while (elapsedTime < animationDuration)
         {
@@ -152,8 +152,11 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
 
     private void HandleNeutralLightAttack()
     {
-        Debug.Log("Neutral Light Attack executed.");
-        // Add specific logic for Neutral Light Attack
+        anim.SetTrigger("NeutralLight");
+        float animationDuration = anim.GetCurrentAnimatorStateInfo(0).length;
+        float elapsedTime = 0f;
+        Debug.Log($"Neutral Light Attack animation duration: {animationDuration} seconds");
+        StartCoroutine(ResetToIdleAfterAnimCoroutine("NeutralLight"));
     }
 
     public void HandleSideLightAttack()
@@ -164,8 +167,11 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
 
     private void HandleDownLightAttack()
     {
-        Debug.Log("Down Light Attack executed.");
-        // Add specific logic for Down Light Attack
+        anim.SetTrigger("DownLight");
+        float animationDuration = anim.GetCurrentAnimatorStateInfo(0).length;
+        float elapsedTime = 0f;
+        Debug.Log($"Down Light Attack animation duration: {animationDuration} seconds");
+        StartCoroutine(ResetToIdleAfterAnimCoroutine("DownLight"));
     }
 
     private void HandleNeutralAirAttack()
@@ -180,10 +186,25 @@ public class BirdController : MonoBehaviour, ICharacterBehavior
     // Add this coroutine to handle resetting to idle after animation
     private IEnumerator ResetToIdleAfterAnimCoroutine(string animName)
     {
+        anim.SetTrigger(animName);
+
+        // Wait until the animator transitions to the correct state
         yield return null;
-        float duration = anim.GetCurrentAnimatorStateInfo(0).length;
-        yield return new WaitForSeconds(duration);
-        anim.SetBool("Idle", true);
+        float maxWait = 10f; // Prevent infinite loop
+        while (!anim.GetCurrentAnimatorStateInfo(0).IsName(animName) && maxWait-- > 0)
+            yield return null;
+
+        Debug.Log($"Current state: {anim.GetCurrentAnimatorStateInfo(0).IsName(animName)}");
+        Debug.Log($"Animation duration: {anim.GetCurrentAnimatorStateInfo(0).length}");
+
+        // Get the animation duration
+        float animationDuration = anim.GetCurrentAnimatorStateInfo(0).length;
+        Debug.Log($"{animName} animation duration: {animationDuration} seconds");
+
+        // Wait for the animation to finish
+        yield return new WaitForSeconds(animationDuration);
+
+        anim.SetBool("Idle", true); // Reset to idle
     }
 
     private void HandleSideAirAttack()
