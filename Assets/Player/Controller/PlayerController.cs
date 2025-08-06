@@ -735,16 +735,21 @@ public class PlayerController : MonoBehaviour
     private async void HandlePlatformDrop()
     {
         bool dropPressed = false;
+        bool attackInputActive = false;
         if (controlScheme == ControlScheme.Keyboard1)
         {
             dropPressed = Keyboard.current.sKey.wasPressedThisFrame;
+            // Check if attack input is active (light or heavy attack)
+            attackInputActive = Keyboard.current.jKey.wasPressedThisFrame || Keyboard.current.kKey.wasPressedThisFrame;
         }
         else if (controlScheme == ControlScheme.Keyboard2)
         {
             dropPressed = Keyboard.current.downArrowKey.wasPressedThisFrame;
+            attackInputActive = Keyboard.current.numpad4Key.wasPressedThisFrame || Keyboard.current.numpad5Key.wasPressedThisFrame;
         }
 
-        if (dropPressed)
+        // Only allow platform drop if NOT attacking this frame
+        if (dropPressed && !attackInputActive)
         {
             await DisablePlatformCollision();
         }
