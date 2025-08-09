@@ -55,6 +55,11 @@ public class Damageable : MonoBehaviour
             cellUI.UpdateMaskColor(this);
             cellUI.InitHearts(maxHearts);
             cellUI.SetHearts(maxHearts);
+            Debug.Log($"Damageable UI initialized for {gameObject.name}");
+        }
+        else
+        {
+            Debug.Log($"cellUI is null for {gameObject.name} - will be linked later by GameStarter");
         }
     }
 
@@ -92,8 +97,21 @@ public class Damageable : MonoBehaviour
         if (damage > 0)
         {
             currentHealth += damage;
+            Debug.Log($"Health updated to {currentHealth} for {gameObject.name}");
+            
+            // Start hit flash effect
+            StartCoroutine(HitFlashEffect());
+            
+            // Update UI
             if (cellUI != null)
+            {
                 cellUI.UpdateMaskColor(this); // This will update both color and damage text
+                Debug.Log($"UI updated for {gameObject.name}");
+            }
+            else
+            {
+                Debug.LogError($"cellUI is null for {gameObject.name}. UI will not update.");
+            }
         }
     }
 
@@ -125,7 +143,18 @@ public class Damageable : MonoBehaviour
             Debug.Log($"Health reset to {currentHealth} for {gameObject.name}. Hearts left: {maxHearts}");
         }
 
-        // Update UI via grid
+        // Update the individual cell UI for damage percentage and color
+        if (cellUI != null)
+        {
+            cellUI.UpdateMaskColor(this); // This will update both color and damage text to show 0%
+            Debug.Log($"Updated UI for {gameObject.name} - Health: {currentHealth}%, Hearts: {maxHearts}");
+        }
+        else
+        {
+            Debug.LogWarning($"cellUI is null for {gameObject.name}. Cannot update damage UI.");
+        }
+
+        // Update UI via grid (for hearts)
         if (GameStarter.Instance != null && GameStarter.Instance.ingameGridUI != null)
         {
             GameStarter.Instance.ingameGridUI.UpdateAllHearts(new Dictionary<int, int>
@@ -175,8 +204,8 @@ public class Damageable : MonoBehaviour
 
         if (t < 0.5f)
         {
-            // 0 to 75: green to yellow
-            return Color.Lerp(Color.green, Color.yellow, t * 2f);
+            // 0 to 75: white to yellow
+            return Color.Lerp(Color.white, Color.yellow, t * 2f);
         }
         else
         {

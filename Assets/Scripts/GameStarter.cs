@@ -47,6 +47,7 @@ public class GameStarter : MonoBehaviour
         InitializeSpawnPositions();
         InitializePlayers();
         InitializeUI();
+        LinkPlayersToUI(); // Link players to their UI cells
         UpdateTargetGroup(); // Call the reusable method
         StartCountdownAndEnableControls();
     }
@@ -56,6 +57,7 @@ public class GameStarter : MonoBehaviour
         ResetGameState();
         InitializePlayers();
         InitializeUI(); // Ensure UI is recreated before updating hearts
+        LinkPlayersToUI(); // Link players to their UI cells
         UpdateTargetGroup(); // Call the reusable method
         StartCountdownAndEnableControls();
     }
@@ -170,6 +172,47 @@ public class GameStarter : MonoBehaviour
         });
     }
 
+    private void LinkPlayersToUI()
+    {
+        // Link each player's Damageable component to its corresponding UI cell
+        for (int i = 0; i < spawnedPlayers.Count; i++)
+        {
+            var playerObj = spawnedPlayers[i];
+            var damageable = playerObj.GetComponentInChildren<Damageable>();
+            
+            if (damageable != null && ingameGridUI != null)
+            {
+                // Get the UI cell for this player (index i corresponds to player i)
+                var cellUI = GetCellUIForPlayer(i);
+                if (cellUI != null)
+                {
+                    damageable.cellUI = cellUI;
+                    Debug.Log($"Linked player {i + 1} Damageable to UI cell");
+                    
+                    // Initialize the UI with current health
+                    cellUI.UpdateMaskColor(damageable);
+                }
+                else
+                {
+                    Debug.LogError($"Could not find UI cell for player {i + 1}");
+                }
+            }
+            else
+            {
+                Debug.LogError($"Damageable component not found for player {i + 1}");
+            }
+        }
+    }
+
+    private CharacterIngameCellUI GetCellUIForPlayer(int playerIndex)
+    {
+        if (ingameGridUI == null || playerIndex < 0 || playerIndex >= ingameGridUI.transform.childCount)
+            return null;
+            
+        var cellTransform = ingameGridUI.transform.GetChild(playerIndex);
+        return cellTransform?.GetComponent<CharacterIngameCellUI>();
+    }
+
     private void UpdateTargetGroup()
     {
         // Update TargetGroupManager
@@ -179,7 +222,7 @@ public class GameStarter : MonoBehaviour
         }
 
         // Update OffscreenIndicator
-        var offscreenIndicator = FindObjectOfType<OffscreenIndicator>();
+        var offscreenIndicator = FindFirstObjectByType<OffscreenIndicator>();
         if (offscreenIndicator != null)
         {
             offscreenIndicator.UpdateTargets();
