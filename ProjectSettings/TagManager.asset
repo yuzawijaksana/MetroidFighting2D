@@ -7,6 +7,7 @@ TagManager:
   - OneWayPlatform
   - PlayerAttack
   - Hurtbox
+  - CameraBound
   layers:
   - Default
   - TransparentFX

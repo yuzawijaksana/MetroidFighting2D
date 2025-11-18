@@ -57,7 +57,7 @@ public class DeadzoneHandler : MonoBehaviour
         }
         Vector3 startPosition = cachedTransform != null ? cachedTransform.position : Vector3.zero;
         float elapsedTime = 0f;
-        float duration = 3f;
+        float duration = 2f;
 
         while (elapsedTime < duration)
         {

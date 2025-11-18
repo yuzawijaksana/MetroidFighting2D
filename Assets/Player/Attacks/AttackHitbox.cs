@@ -33,6 +33,33 @@ public class AttackHitbox : MonoBehaviour
     [Header("Knockback Tuning")]
     [Tooltip("Multiplier for knockback force. Adjust for game feel. 0.05 is a good start for gravity scale 2.5.")]
     public float knockbackMultiplier = 0.5f;
+    
+    public enum FeedbackType
+    {
+        None,           // No feedback
+        Backwards,      // Push player backwards
+        Jump,           // Make player jump (pogo effect)
+        BackwardsJump   // Push backwards and make jump
+    }
+    
+    [Tooltip("Type of feedback when attack connects")]
+    public FeedbackType feedbackType = FeedbackType.Backwards;
+    
+    [Tooltip("Horizontal knockback force applied to the attacking player when hit connects")]
+    public float attackerHorizontalForce = 5f;
+    
+    [Tooltip("Vertical force applied to the attacking player (for jump/pogo effects)")]
+    public float attackerVerticalForce = 8f;
+    
+    [Tooltip("Force multiplier for moving attacks (higher values to overcome movement momentum)")]
+    public float movingAttackForceMultiplier = 2f;
+    
+    [Tooltip("Stop attack animation immediately when hit connects")]
+    public bool stopAnimationOnHit = true;
+    [Tooltip("Disable hitbox immediately when hit connects")]
+    public bool disableHitboxOnHit = true;
+    [Tooltip("Stop any ongoing movement/attack coroutines")]
+    public bool stopMovementOnHit = true;
 
     private bool hitboxActive = true;
     private HashSet<Damageable> hitThisActivation = new HashSet<Damageable>();
@@ -101,6 +128,10 @@ public class AttackHitbox : MonoBehaviour
             return;
 
         ApplyKnockback(target);
+        
+        // Apply feedback knockback to attacking player
+        ApplyAttackerFeedback();
+        
         hitThisActivation.Add(target);
 
         // Trigger hitstop using GlobalSettings
@@ -109,11 +140,11 @@ public class AttackHitbox : MonoBehaviour
             // Convert frames to seconds, assuming 60 FPS as a common baseline for "frames"
             // Alternatively, use a fixed small value or Time.fixedDeltaTime * hitstopFrames
             float hitstopDurationSeconds = hitstopFrames / 60.0f; 
-            GlobalSettings.Instance.TriggerHitPause(hitstopDurationSeconds);
+            // GlobalSettings.Instance.TriggerHitPause(hitstopDurationSeconds);
         }
 
         // Disable hitbox after first hit to prevent further hits until next activation
-        if (hitboxCollider != null)
+        if (disableHitboxOnHit && hitboxCollider != null)
             hitboxCollider.enabled = false;
         hitboxActive = false;
     }
@@ -165,6 +196,113 @@ public class AttackHitbox : MonoBehaviour
         hitThisActivation.Add(target);
         
         Debug.Log($"Knockback applied to {target.name}: Direction={knockbackDir}, Force={knockbackForce}");
+    }
+
+    private void ApplyAttackerFeedback()
+    {
+        if (playerController == null || feedbackType == FeedbackType.None) return;
+
+        // Get player's Rigidbody2D
+        Rigidbody2D playerRb = playerController.GetComponent<Rigidbody2D>();
+        if (playerRb == null)
+        {
+            Debug.LogWarning("Player Rigidbody2D not found for attacker feedback");
+            return;
+        }
+
+        // Stop ongoing movement/attack coroutines if enabled
+        if (stopMovementOnHit)
+        {
+            // Stop all coroutines on the player to interrupt moving attacks
+            playerController.StopAllCoroutines();
+            
+            // Try to get BirdController and stop its coroutines too
+            BirdController birdController = playerController.GetComponent<BirdController>();
+            if (birdController != null)
+            {
+                birdController.StopAllCoroutines();
+                Debug.Log("Stopped BirdController coroutines for moving attack feedback");
+            }
+
+            // Reset gravity if it was modified by flying attacks
+            if (playerRb.gravityScale != 2.5f) // Assuming 2.5f is normal gravity
+            {
+                playerRb.gravityScale = 2.5f;
+                Debug.Log("Reset gravity scale for feedback");
+            }
+
+            // Reset rotation if it was modified by diagonal attacks
+            if (playerController.transform.rotation != Quaternion.identity)
+            {
+                playerController.transform.rotation = Quaternion.identity;
+                Debug.Log("Reset rotation for feedback");
+            }
+        }
+
+        // Calculate force multiplier - higher for moving attacks to overcome momentum
+        float forceMultiplier = IsMovingAttack() ? movingAttackForceMultiplier : 1f;
+        
+        Vector2 feedbackForce = Vector2.zero;
+        
+        // First, reset current velocity to ensure feedback works
+        Vector2 currentVelocity = playerRb.linearVelocity;
+        
+        switch (feedbackType)
+        {
+            case FeedbackType.Backwards:
+                // Push player backwards (opposite to facing direction)
+                int backwardSign = playerController.isFacingRight ? -1 : 1;
+                // Reset horizontal velocity first, then apply stronger feedback force
+                playerRb.linearVelocity = new Vector2(0f, currentVelocity.y);
+                feedbackForce = new Vector2(backwardSign * attackerHorizontalForce * forceMultiplier, 0f);
+                playerRb.AddForce(feedbackForce, ForceMode2D.Impulse);
+                Debug.Log($"Backwards feedback applied: Force={feedbackForce}, Multiplier={forceMultiplier}");
+                break;
+                
+            case FeedbackType.Jump:
+                // Make player jump (pogo effect) - reset Y velocity first for consistent jump
+                playerRb.linearVelocity = new Vector2(currentVelocity.x, 0f);
+                feedbackForce = new Vector2(0f, attackerVerticalForce * forceMultiplier);
+                playerRb.AddForce(feedbackForce, ForceMode2D.Impulse);
+                Debug.Log($"Jump feedback applied: Force={feedbackForce}, Multiplier={forceMultiplier}");
+                break;
+                
+            case FeedbackType.BackwardsJump:
+                // Combine backwards push with jump
+                int backJumpSign = playerController.isFacingRight ? -1 : 1;
+                playerRb.linearVelocity = Vector2.zero; // Reset all velocity for maximum effect
+                feedbackForce = new Vector2(backJumpSign * attackerHorizontalForce * forceMultiplier, 
+                                          attackerVerticalForce * forceMultiplier);
+                playerRb.AddForce(feedbackForce, ForceMode2D.Impulse);
+                Debug.Log($"Backwards+Jump feedback applied: Force={feedbackForce}, Multiplier={forceMultiplier}");
+                break;
+        }
+
+        // Stop attack animation immediately
+        if (stopAnimationOnHit)
+        {
+            Animator playerAnimator = playerController.GetComponent<Animator>();
+            if (playerAnimator != null)
+            {
+                // Force transition to idle state
+                playerAnimator.SetBool("Idle", true);
+                playerAnimator.SetTrigger("Idle");
+                Debug.Log("Attack animation stopped due to hit connect");
+            }
+        }
+    }
+
+    // Helper method to detect if this is a moving attack
+    private bool IsMovingAttack()
+    {
+        // Check if the player has significant velocity (indicating a moving attack)
+        Rigidbody2D playerRb = playerController.GetComponent<Rigidbody2D>();
+        if (playerRb != null)
+        {
+            float speed = playerRb.linearVelocity.magnitude;
+            return speed > 5f; // Threshold for "moving attack"
+        }
+        return false;
     }
 
     public void Initialize(GameObject player)

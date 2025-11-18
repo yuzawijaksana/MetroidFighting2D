@@ -68,7 +68,7 @@ public class CharacterAnimationController : MonoBehaviour
                 {
                     float fps = clip.frameRate;
                     int totalFrames = Mathf.RoundToInt(clip.length * fps);
-                    Debug.Log($"[Animation Debug] Animation: {clip.name}, Frames: {totalFrames}, FPS: {fps}");
+                    // Debug.Log($"[Animation Debug] Animation: {clip.name}, Frames: {totalFrames}, FPS: {fps}");
                     lastAnimationName = clip.name;
                 }
                 break;
