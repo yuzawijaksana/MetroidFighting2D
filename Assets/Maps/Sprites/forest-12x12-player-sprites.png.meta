@@ -1,0 +1,897 @@
+fileFormatVersion: 2
+guid: f148fb2723494644db9debf6579f044e
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 463123876899252011
+    second: forest-12x12-player-sprites_0
+  - first:
+      213: 6519984813530807181
+    second: forest-12x12-player-sprites_1
+  - first:
+      213: -3943041982196177274
+    second: forest-12x12-player-sprites_2
+  - first:
+      213: 4282947410478607941
+    second: forest-12x12-player-sprites_3
+  - first:
+      213: -5358477456350909316
+    second: forest-12x12-player-sprites_4
+  - first:
+      213: 293059306376432314
+    second: forest-12x12-player-sprites_5
+  - first:
+      213: 8414423710880783832
+    second: forest-12x12-player-sprites_6
+  - first:
+      213: -7893355073363562615
+    second: forest-12x12-player-sprites_7
+  - first:
+      213: -7542926927060475046
+    second: forest-12x12-player-sprites_8
+  - first:
+      213: -8900976615377504468
+    second: forest-12x12-player-sprites_9
+  - first:
+      213: -5329946360016021149
+    second: forest-12x12-player-sprites_10
+  - first:
+      213: -7379972853322668704
+    second: forest-12x12-player-sprites_11
+  - first:
+      213: 4204709786062955899
+    second: forest-12x12-player-sprites_12
+  - first:
+      213: -4384899420001817884
+    second: forest-12x12-player-sprites_13
+  - first:
+      213: -7745724907979096861
+    second: forest-12x12-player-sprites_14
+  - first:
+      213: 4598784685054513292
+    second: forest-12x12-player-sprites_15
+  - first:
+      213: 6684185184346164109
+    second: forest-12x12-player-sprites_16
+  - first:
+      213: 5663350072393219999
+    second: forest-12x12-player-sprites_17
+  - first:
+      213: 6914277645809855893
+    second: forest-12x12-player-sprites_18
+  - first:
+      213: -1307907018314197821
+    second: forest-12x12-player-sprites_19
+  - first:
+      213: 7052390188919648805
+    second: forest-12x12-player-sprites_20
+  - first:
+      213: -6894609758346381798
+    second: forest-12x12-player-sprites_21
+  - first:
+      213: 6446139647728488060
+    second: forest-12x12-player-sprites_22
+  - first:
+      213: -356942290553328708
+    second: forest-12x12-player-sprites_23
+  - first:
+      213: 4175939534008220489
+    second: forest-12x12-player-sprites_24
+  - first:
+      213: 8583160249198914966
+    second: forest-12x12-player-sprites_25
+  - first:
+      213: 964338668447302541
+    second: forest-12x12-player-sprites_26
+  - first:
+      213: 911171245475483862
+    second: forest-12x12-player-sprites_27
+  - first:
+      213: 689232340263931107
+    second: forest-12x12-player-sprites_28
+  - first:
+      213: -2911617748059777106
+    second: forest-12x12-player-sprites_29
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 11
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_0
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 85
+        width: 10
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b27e49956b85d6600800000000000000
+      internalID: 463123876899252011
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_1
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 73
+        width: 10
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d8bf17fb4a3ab7a50800000000000000
+      internalID: 6519984813530807181
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_2
+      rect:
+        serializedVersion: 2
+        x: 13
+        y: 85
+        width: 10
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 686aeb455308749c0800000000000000
+      internalID: -3943041982196177274
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_3
+      rect:
+        serializedVersion: 2
+        x: 13
+        y: 73
+        width: 10
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 54ea1415af5107b30800000000000000
+      internalID: 4282947410478607941
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_4
+      rect:
+        serializedVersion: 2
+        x: 25
+        y: 85
+        width: 10
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c7ce345d42dd2a5b0800000000000000
+      internalID: -5358477456350909316
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_5
+      rect:
+        serializedVersion: 2
+        x: 25
+        y: 73
+        width: 10
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aba80bee2e7211400800000000000000
+      internalID: 293059306376432314
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_6
+      rect:
+        serializedVersion: 2
+        x: 37
+        y: 85
+        width: 10
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8dd5ca498c906c470800000000000000
+      internalID: 8414423710880783832
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_7
+      rect:
+        serializedVersion: 2
+        x: 37
+        y: 73
+        width: 10
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98f232ea16b257290800000000000000
+      internalID: -7893355073363562615
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_8
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 61
+        width: 12
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a53e4d98ce3225790800000000000000
+      internalID: -7542926927060475046
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_9
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 61
+        width: 13
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c277d5e7de0697480800000000000000
+      internalID: -8900976615377504468
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_10
+      rect:
+        serializedVersion: 2
+        x: 23
+        y: 61
+        width: 13
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 369db5b560a3806b0800000000000000
+      internalID: -5329946360016021149
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_11
+      rect:
+        serializedVersion: 2
+        x: 35
+        y: 61
+        width: 13
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0652da96ac1159990800000000000000
+      internalID: -7379972853322668704
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_12
+      rect:
+        serializedVersion: 2
+        x: 36
+        y: 49
+        width: 11
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b7524edd5412a5a30800000000000000
+      internalID: 4204709786062955899
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_13
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 49
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4eaa9fea535b523c0800000000000000
+      internalID: -4384899420001817884
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_14
+      rect:
+        serializedVersion: 2
+        x: 13
+        y: 49
+        width: 10
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ecb20c1c38a18490800000000000000
+      internalID: -7745724907979096861
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_15
+      rect:
+        serializedVersion: 2
+        x: 25
+        y: 49
+        width: 10
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c805e2f3e4a22df30800000000000000
+      internalID: 4598784685054513292
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_16
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 25
+        width: 9
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d8bc1e5c20ff2cc50800000000000000
+      internalID: 6684185184346164109
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_17
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 37
+        width: 8
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f9f3ea792e2489e40800000000000000
+      internalID: 5663350072393219999
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_18
+      rect:
+        serializedVersion: 2
+        x: 12
+        y: 25
+        width: 9
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 59dabeca2e274ff50800000000000000
+      internalID: 6914277645809855893
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_19
+      rect:
+        serializedVersion: 2
+        x: 13
+        y: 37
+        width: 8
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3c454261f7169dde0800000000000000
+      internalID: -1307907018314197821
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_20
+      rect:
+        serializedVersion: 2
+        x: 24
+        y: 25
+        width: 9
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 522710cf28f1fd160800000000000000
+      internalID: 7052390188919648805
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_21
+      rect:
+        serializedVersion: 2
+        x: 25
+        y: 37
+        width: 8
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a1672d834fc6150a0800000000000000
+      internalID: -6894609758346381798
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_22
+      rect:
+        serializedVersion: 2
+        x: 37
+        y: 37
+        width: 8
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c7e0b634bd9457950800000000000000
+      internalID: 6446139647728488060
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_23
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 0
+        width: 10
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cbb214eb0e2eb0bf0800000000000000
+      internalID: -356942290553328708
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_24
+      rect:
+        serializedVersion: 2
+        x: 12
+        y: 6
+        width: 11
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 94bf11091eae3f930800000000000000
+      internalID: 4175939534008220489
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_25
+      rect:
+        serializedVersion: 2
+        x: 25
+        y: 12
+        width: 10
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 69d21c765c28d1770800000000000000
+      internalID: 8583160249198914966
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_26
+      rect:
+        serializedVersion: 2
+        x: 36
+        y: 20
+        width: 9
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d8389ffd8e4026d00800000000000000
+      internalID: 964338668447302541
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_27
+      rect:
+        serializedVersion: 2
+        x: 13
+        y: 0
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d0dd109b6125ac00800000000000000
+      internalID: 911171245475483862
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_28
+      rect:
+        serializedVersion: 2
+        x: 25
+        y: 0
+        width: 10
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ec84296925a09900800000000000000
+      internalID: 689232340263931107
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-12x12-player-sprites_29
+      rect:
+        serializedVersion: 2
+        x: 37
+        y: 0
+        width: 10
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ea79c25a51bd797d0800000000000000
+      internalID: -2911617748059777106
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      forest-12x12-player-sprites_0: 463123876899252011
+      forest-12x12-player-sprites_1: 6519984813530807181
+      forest-12x12-player-sprites_10: -5329946360016021149
+      forest-12x12-player-sprites_11: -7379972853322668704
+      forest-12x12-player-sprites_12: 4204709786062955899
+      forest-12x12-player-sprites_13: -4384899420001817884
+      forest-12x12-player-sprites_14: -7745724907979096861
+      forest-12x12-player-sprites_15: 4598784685054513292
+      forest-12x12-player-sprites_16: 6684185184346164109
+      forest-12x12-player-sprites_17: 5663350072393219999
+      forest-12x12-player-sprites_18: 6914277645809855893
+      forest-12x12-player-sprites_19: -1307907018314197821
+      forest-12x12-player-sprites_2: -3943041982196177274
+      forest-12x12-player-sprites_20: 7052390188919648805
+      forest-12x12-player-sprites_21: -6894609758346381798
+      forest-12x12-player-sprites_22: 6446139647728488060
+      forest-12x12-player-sprites_23: -356942290553328708
+      forest-12x12-player-sprites_24: 4175939534008220489
+      forest-12x12-player-sprites_25: 8583160249198914966
+      forest-12x12-player-sprites_26: 964338668447302541
+      forest-12x12-player-sprites_27: 911171245475483862
+      forest-12x12-player-sprites_28: 689232340263931107
+      forest-12x12-player-sprites_29: -2911617748059777106
+      forest-12x12-player-sprites_3: 4282947410478607941
+      forest-12x12-player-sprites_4: -5358477456350909316
+      forest-12x12-player-sprites_5: 293059306376432314
+      forest-12x12-player-sprites_6: 8414423710880783832
+      forest-12x12-player-sprites_7: -7893355073363562615
+      forest-12x12-player-sprites_8: -7542926927060475046
+      forest-12x12-player-sprites_9: -8900976615377504468
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

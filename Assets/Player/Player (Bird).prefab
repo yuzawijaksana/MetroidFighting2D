@@ -238,9 +238,9 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 2
+  m_SortingLayerID: -1225916975
+  m_SortingLayer: 6
+  m_SortingOrder: 0
   m_Sprite: {fileID: 6498123461263120364, guid: fb2fd081bd5ba994a86e0f134e5e2e00, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -373,11 +373,11 @@ MonoBehaviour:
     m_Bits: 264
   walkSpeed: 5
   deceleration: 0.99
-  maxFallSpeed: -3
+  maxFallSpeed: -4
   fallingSpeed: 1
   fastFallSpeed: -1.5
   wallCheck: {fileID: 810622594460516444}
-  wallSlidingSpeed: 2
+  wallSlidingSpeed: 0
   wallInteractionLayers:
     serializedVersion: 2
     m_Bits: 136
@@ -511,6 +511,13 @@ MonoBehaviour:
   singleHitPerActivation: 0
   hitboxActiveTime: 0
   knockbackMultiplier: 0.2
+  feedbackType: 1
+  attackerHorizontalForce: 5
+  attackerVerticalForce: 8
+  movingAttackForceMultiplier: 2
+  stopAnimationOnHit: 1
+  disableHitboxOnHit: 1
+  stopMovementOnHit: 1
 --- !u!70 &8857296223491982749
 CapsuleCollider2D:
   m_ObjectHideFlags: 0

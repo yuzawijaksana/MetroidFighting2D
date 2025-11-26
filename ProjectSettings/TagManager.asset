@@ -8,6 +8,7 @@ TagManager:
   - PlayerAttack
   - Hurtbox
   - CameraBound
+  - Enemy
   layers:
   - Default
   - TransparentFX
@@ -22,7 +23,7 @@ TagManager:
   - Attacks
   - Hurtbox
   - Deadzone
-  - 
+  - Enemy
   - 
   - 
   - 
@@ -44,6 +45,30 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: 1Sky
+    uniqueID: 3632878577
+    locked: 0
+  - name: 2Cloud
+    uniqueID: 1757263295
+    locked: 0
+  - name: 3Background
+    uniqueID: 3936404169
+    locked: 0
+  - name: 4Foreground
+    uniqueID: 1838654807
+    locked: 0
+  - name: 5Extra
+    uniqueID: 3482815447
+    locked: 0
+  - name: Player
+    uniqueID: 3069050321
+    locked: 0
+  - name: Enemies
+    uniqueID: 1708719249
+    locked: 0
+  - name: Platform
+    uniqueID: 3355377387
     locked: 0
   m_RenderingLayers:
   - Default

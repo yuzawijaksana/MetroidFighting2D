@@ -1,0 +1,1625 @@
+fileFormatVersion: 2
+guid: 6f7e671960709d446905d85484f8025b
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -3202234543451467353
+    second: forest-16x16-animated-environ-sprites_0
+  - first:
+      213: 6391640522554664348
+    second: forest-16x16-animated-environ-sprites_1
+  - first:
+      213: 863320242150356205
+    second: forest-16x16-animated-environ-sprites_2
+  - first:
+      213: -126179858884910434
+    second: forest-16x16-animated-environ-sprites_3
+  - first:
+      213: 7935388520168583169
+    second: forest-16x16-animated-environ-sprites_4
+  - first:
+      213: 7932154706210531914
+    second: forest-16x16-animated-environ-sprites_5
+  - first:
+      213: 2780341958878535608
+    second: forest-16x16-animated-environ-sprites_6
+  - first:
+      213: -5577617154418142993
+    second: forest-16x16-animated-environ-sprites_7
+  - first:
+      213: -1973124930867550389
+    second: forest-16x16-animated-environ-sprites_8
+  - first:
+      213: -3277309150444701399
+    second: forest-16x16-animated-environ-sprites_9
+  - first:
+      213: 7074013675583499699
+    second: forest-16x16-animated-environ-sprites_10
+  - first:
+      213: -855208862674028455
+    second: forest-16x16-animated-environ-sprites_11
+  - first:
+      213: 7274253816170109765
+    second: forest-16x16-animated-environ-sprites_12
+  - first:
+      213: 2335514210739945790
+    second: forest-16x16-animated-environ-sprites_13
+  - first:
+      213: 8553043372847525450
+    second: forest-16x16-animated-environ-sprites_14
+  - first:
+      213: -4640831250264832967
+    second: forest-16x16-animated-environ-sprites_15
+  - first:
+      213: -7875045143978752317
+    second: forest-16x16-animated-environ-sprites_16
+  - first:
+      213: -4783613881918997538
+    second: forest-16x16-animated-environ-sprites_17
+  - first:
+      213: -5004028519988115569
+    second: forest-16x16-animated-environ-sprites_18
+  - first:
+      213: -2090971733522402683
+    second: forest-16x16-animated-environ-sprites_19
+  - first:
+      213: -69289430245382904
+    second: forest-16x16-animated-environ-sprites_20
+  - first:
+      213: -4529617497034435280
+    second: forest-16x16-animated-environ-sprites_21
+  - first:
+      213: -8752190072354466820
+    second: forest-16x16-animated-environ-sprites_22
+  - first:
+      213: -4999083611795179882
+    second: forest-16x16-animated-environ-sprites_23
+  - first:
+      213: -5002376653019441632
+    second: forest-16x16-animated-environ-sprites_24
+  - first:
+      213: -6438336839566792778
+    second: forest-16x16-animated-environ-sprites_25
+  - first:
+      213: -2802678781894241903
+    second: forest-16x16-animated-environ-sprites_26
+  - first:
+      213: 5833036900266894813
+    second: forest-16x16-animated-environ-sprites_27
+  - first:
+      213: -333932673381680883
+    second: forest-16x16-animated-environ-sprites_28
+  - first:
+      213: 5106438119901083674
+    second: forest-16x16-animated-environ-sprites_29
+  - first:
+      213: 3789622079353015816
+    second: forest-16x16-animated-environ-sprites_30
+  - first:
+      213: 9010730165966443496
+    second: forest-16x16-animated-environ-sprites_31
+  - first:
+      213: -6556306677004448772
+    second: forest-16x16-animated-environ-sprites_32
+  - first:
+      213: -4621017213517352938
+    second: forest-16x16-animated-environ-sprites_33
+  - first:
+      213: 657665096776720753
+    second: forest-16x16-animated-environ-sprites_34
+  - first:
+      213: 8948140142872255116
+    second: forest-16x16-animated-environ-sprites_35
+  - first:
+      213: -2743356771827373236
+    second: forest-16x16-animated-environ-sprites_36
+  - first:
+      213: 8954159463671315916
+    second: forest-16x16-animated-environ-sprites_37
+  - first:
+      213: 6052518462282104608
+    second: forest-16x16-animated-environ-sprites_38
+  - first:
+      213: 1058455954858651140
+    second: forest-16x16-animated-environ-sprites_39
+  - first:
+      213: 939899587565008378
+    second: forest-16x16-animated-environ-sprites_40
+  - first:
+      213: -6751553342324944326
+    second: forest-16x16-animated-environ-sprites_41
+  - first:
+      213: 5479934622207408372
+    second: forest-16x16-animated-environ-sprites_42
+  - first:
+      213: -7221481238763849657
+    second: forest-16x16-animated-environ-sprites_43
+  - first:
+      213: 730778560118560782
+    second: forest-16x16-animated-environ-sprites_44
+  - first:
+      213: 1786048975944390039
+    second: forest-16x16-animated-environ-sprites_45
+  - first:
+      213: -5849814957594720947
+    second: forest-16x16-animated-environ-sprites_46
+  - first:
+      213: 1368239850687823413
+    second: forest-16x16-animated-environ-sprites_47
+  - first:
+      213: -4065551475319393517
+    second: forest-16x16-animated-environ-sprites_48
+  - first:
+      213: 959967200291356053
+    second: forest-16x16-animated-environ-sprites_49
+  - first:
+      213: 5569139092094946463
+    second: forest-16x16-animated-environ-sprites_50
+  - first:
+      213: -6631120792354853057
+    second: forest-16x16-animated-environ-sprites_51
+  - first:
+      213: 1628009065496196591
+    second: forest-16x16-animated-environ-sprites_52
+  - first:
+      213: 7622497970760013347
+    second: forest-16x16-animated-environ-sprites_53
+  - first:
+      213: -6690496367710119316
+    second: forest-16x16-animated-environ-sprites_54
+  - first:
+      213: -8109894416700075706
+    second: forest-16x16-animated-environ-sprites_55
+  - first:
+      213: 6348472687412896213
+    second: forest-16x16-animated-environ-sprites_56
+  - first:
+      213: 7490421057316327105
+    second: forest-16x16-animated-environ-sprites_57
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 15
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_0
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 111
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7a1171e16a06f83d0800000000000000
+      internalID: -3202234543451467353
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_1
+      rect:
+        serializedVersion: 2
+        x: 19
+        y: 111
+        width: 10
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c95ecded03ba3b850800000000000000
+      internalID: 6391640522554664348
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_2
+      rect:
+        serializedVersion: 2
+        x: 35
+        y: 111
+        width: 10
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: de4b6c8af212bfb00800000000000000
+      internalID: 863320242150356205
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_3
+      rect:
+        serializedVersion: 2
+        x: 51
+        y: 111
+        width: 10
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e922b5d3618bf3ef0800000000000000
+      internalID: -126179858884910434
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_4
+      rect:
+        serializedVersion: 2
+        x: 67
+        y: 111
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1007c5bc0d9202e60800000000000000
+      internalID: 7935388520168583169
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_5
+      rect:
+        serializedVersion: 2
+        x: 69
+        y: 95
+        width: 6
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a4a2f1fcdaca41e60800000000000000
+      internalID: 7932154706210531914
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_6
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 111
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8bf911dd742c59620800000000000000
+      internalID: 2780341958878535608
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_7
+      rect:
+        serializedVersion: 2
+        x: 85
+        y: 103
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fe018c1efb25892b0800000000000000
+      internalID: -5577617154418142993
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_8
+      rect:
+        serializedVersion: 2
+        x: 99
+        y: 103
+        width: 9
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b472c26545d0e94e0800000000000000
+      internalID: -1973124930867550389
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_9
+      rect:
+        serializedVersion: 2
+        x: 115
+        y: 105
+        width: 10
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9293b9c01b8a482d0800000000000000
+      internalID: -3277309150444701399
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_10
+      rect:
+        serializedVersion: 2
+        x: 117
+        y: 95
+        width: 6
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3bde86d45f1fb2260800000000000000
+      internalID: 7074013675583499699
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_11
+      rect:
+        serializedVersion: 2
+        x: 5
+        y: 95
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9587c8b0210b124f0800000000000000
+      internalID: -855208862674028455
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_12
+      rect:
+        serializedVersion: 2
+        x: 21
+        y: 95
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 54b59de1e4753f460800000000000000
+      internalID: 7274253816170109765
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_13
+      rect:
+        serializedVersion: 2
+        x: 36
+        y: 79
+        width: 8
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e310803fcc9696020800000000000000
+      internalID: 2335514210739945790
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_14
+      rect:
+        serializedVersion: 2
+        x: 53
+        y: 95
+        width: 6
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a4ee513b1a382b670800000000000000
+      internalID: 8553043372847525450
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_15
+      rect:
+        serializedVersion: 2
+        x: 85
+        y: 95
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 934ce69e094789fb0800000000000000
+      internalID: -4640831250264832967
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_16
+      rect:
+        serializedVersion: 2
+        x: 101
+        y: 95
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3c64bf25a2836b290800000000000000
+      internalID: -7875045143978752317
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_17
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 56
+        width: 10
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: edb3791e4803d9db0800000000000000
+      internalID: -4783613881918997538
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_18
+      rect:
+        serializedVersion: 2
+        x: 19
+        y: 56
+        width: 10
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f874f24d29e1e8ab0800000000000000
+      internalID: -5004028519988115569
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_19
+      rect:
+        serializedVersion: 2
+        x: 35
+        y: 57
+        width: 8
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 582b30c69406bf2e0800000000000000
+      internalID: -2090971733522402683
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_20
+      rect:
+        serializedVersion: 2
+        x: 40
+        y: 56
+        width: 6
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 805e88b51a5d90ff0800000000000000
+      internalID: -69289430245382904
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_21
+      rect:
+        serializedVersion: 2
+        x: 51
+        y: 57
+        width: 8
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0355ed8a2e09321c0800000000000000
+      internalID: -4529617497034435280
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_22
+      rect:
+        serializedVersion: 2
+        x: 52
+        y: 79
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cf39c921089f98680800000000000000
+      internalID: -8752190072354466820
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_23
+      rect:
+        serializedVersion: 2
+        x: 56
+        y: 56
+        width: 6
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 696b87cf0ffaf9ab0800000000000000
+      internalID: -4999083611795179882
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_24
+      rect:
+        serializedVersion: 2
+        x: 67
+        y: 57
+        width: 6
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 026911410fcf39ab0800000000000000
+      internalID: -5002376653019441632
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_25
+      rect:
+        serializedVersion: 2
+        x: 68
+        y: 79
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b76f4591ce66a6a0800000000000000
+      internalID: -6438336839566792778
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_26
+      rect:
+        serializedVersion: 2
+        x: 70
+        y: 56
+        width: 8
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1915ba14f72ea19d0800000000000000
+      internalID: -2802678781894241903
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_27
+      rect:
+        serializedVersion: 2
+        x: 84
+        y: 79
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dd56722f72c13f050800000000000000
+      internalID: 5833036900266894813
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_28
+      rect:
+        serializedVersion: 2
+        x: 84
+        y: 57
+        width: 7
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d093038b002ad5bf0800000000000000
+      internalID: -333932673381680883
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_29
+      rect:
+        serializedVersion: 2
+        x: 88
+        y: 56
+        width: 6
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a18b73c3a66bdd640800000000000000
+      internalID: 5106438119901083674
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_30
+      rect:
+        serializedVersion: 2
+        x: 100
+        y: 79
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 80e40d0f331779430800000000000000
+      internalID: 3789622079353015816
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_31
+      rect:
+        serializedVersion: 2
+        x: 100
+        y: 56
+        width: 10
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8e39355585b8c0d70800000000000000
+      internalID: 9010730165966443496
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_32
+      rect:
+        serializedVersion: 2
+        x: 116
+        y: 79
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cfbc0a660d15305a0800000000000000
+      internalID: -6556306677004448772
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_33
+      rect:
+        serializedVersion: 2
+        x: 116
+        y: 56
+        width: 9
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6103557d359dedfb0800000000000000
+      internalID: -4621017213517352938
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_34
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 39
+        width: 8
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 171ac8acbee702900800000000000000
+      internalID: 657665096776720753
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_35
+      rect:
+        serializedVersion: 2
+        x: 19
+        y: 39
+        width: 8
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c8a5058fc0e2e2c70800000000000000
+      internalID: 8948140142872255116
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_36
+      rect:
+        serializedVersion: 2
+        x: 35
+        y: 39
+        width: 10
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4b211b0d83ade9d0800000000000000
+      internalID: -2743356771827373236
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_37
+      rect:
+        serializedVersion: 2
+        x: 51
+        y: 39
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ccdb45e4790934c70800000000000000
+      internalID: 8954159463671315916
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_38
+      rect:
+        serializedVersion: 2
+        x: 67
+        y: 39
+        width: 8
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 02f71dc497ddef350800000000000000
+      internalID: 6052518462282104608
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_39
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 39
+        width: 7
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 40e2fbf351460be00800000000000000
+      internalID: 1058455954858651140
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_40
+      rect:
+        serializedVersion: 2
+        x: 99
+        y: 39
+        width: 7
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: af53951f1b13b0d00800000000000000
+      internalID: 939899587565008378
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_41
+      rect:
+        serializedVersion: 2
+        x: 115
+        y: 39
+        width: 8
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a32de94a10aad42a0800000000000000
+      internalID: -6751553342324944326
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_42
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 15
+        width: 10
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4f879054183ac0c40800000000000000
+      internalID: 5479934622207408372
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_43
+      rect:
+        serializedVersion: 2
+        x: 19
+        y: 15
+        width: 10
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 748355b031528cb90800000000000000
+      internalID: -7221481238763849657
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_44
+      rect:
+        serializedVersion: 2
+        x: 35
+        y: 15
+        width: 10
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e0896558a3f342a00800000000000000
+      internalID: 730778560118560782
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_45
+      rect:
+        serializedVersion: 2
+        x: 51
+        y: 15
+        width: 10
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7959d9aa41259c810800000000000000
+      internalID: 1786048975944390039
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_46
+      rect:
+        serializedVersion: 2
+        x: 67
+        y: 15
+        width: 10
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d45ccca2a4841dea0800000000000000
+      internalID: -5849814957594720947
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_47
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 15
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 53ef7cb15e6fcf210800000000000000
+      internalID: 1368239850687823413
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_48
+      rect:
+        serializedVersion: 2
+        x: 99
+        y: 15
+        width: 10
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 313b58139724497c0800000000000000
+      internalID: -4065551475319393517
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_49
+      rect:
+        serializedVersion: 2
+        x: 115
+        y: 15
+        width: 10
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 59d7461251d725d00800000000000000
+      internalID: 959967200291356053
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_50
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 0
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f9c8f096f7e894d40800000000000000
+      internalID: 5569139092094946463
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_51
+      rect:
+        serializedVersion: 2
+        x: 19
+        y: 0
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f3f6bf4c5c689f3a0800000000000000
+      internalID: -6631120792354853057
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_52
+      rect:
+        serializedVersion: 2
+        x: 35
+        y: 0
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fe534089e99d79610800000000000000
+      internalID: 1628009065496196591
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_53
+      rect:
+        serializedVersion: 2
+        x: 51
+        y: 0
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3265948c48d88c960800000000000000
+      internalID: 7622497970760013347
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_54
+      rect:
+        serializedVersion: 2
+        x: 67
+        y: 0
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c6ad89750059623a0800000000000000
+      internalID: -6690496367710119316
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_55
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 0
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6411baefefdd37f80800000000000000
+      internalID: -8109894416700075706
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_56
+      rect:
+        serializedVersion: 2
+        x: 99
+        y: 0
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5d1e387064e4a1850800000000000000
+      internalID: 6348472687412896213
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest-16x16-animated-environ-sprites_57
+      rect:
+        serializedVersion: 2
+        x: 115
+        y: 0
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ce0273044253f760800000000000000
+      internalID: 7490421057316327105
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      forest-16x16-animated-environ-sprites_0: -3202234543451467353
+      forest-16x16-animated-environ-sprites_1: 6391640522554664348
+      forest-16x16-animated-environ-sprites_10: 7074013675583499699
+      forest-16x16-animated-environ-sprites_11: -855208862674028455
+      forest-16x16-animated-environ-sprites_12: 7274253816170109765
+      forest-16x16-animated-environ-sprites_13: 2335514210739945790
+      forest-16x16-animated-environ-sprites_14: 8553043372847525450
+      forest-16x16-animated-environ-sprites_15: -4640831250264832967
+      forest-16x16-animated-environ-sprites_16: -7875045143978752317
+      forest-16x16-animated-environ-sprites_17: -4783613881918997538
+      forest-16x16-animated-environ-sprites_18: -5004028519988115569
+      forest-16x16-animated-environ-sprites_19: -2090971733522402683
+      forest-16x16-animated-environ-sprites_2: 863320242150356205
+      forest-16x16-animated-environ-sprites_20: -69289430245382904
+      forest-16x16-animated-environ-sprites_21: -4529617497034435280
+      forest-16x16-animated-environ-sprites_22: -8752190072354466820
+      forest-16x16-animated-environ-sprites_23: -4999083611795179882
+      forest-16x16-animated-environ-sprites_24: -5002376653019441632
+      forest-16x16-animated-environ-sprites_25: -6438336839566792778
+      forest-16x16-animated-environ-sprites_26: -2802678781894241903
+      forest-16x16-animated-environ-sprites_27: 5833036900266894813
+      forest-16x16-animated-environ-sprites_28: -333932673381680883
+      forest-16x16-animated-environ-sprites_29: 5106438119901083674
+      forest-16x16-animated-environ-sprites_3: -126179858884910434
+      forest-16x16-animated-environ-sprites_30: 3789622079353015816
+      forest-16x16-animated-environ-sprites_31: 9010730165966443496
+      forest-16x16-animated-environ-sprites_32: -6556306677004448772
+      forest-16x16-animated-environ-sprites_33: -4621017213517352938
+      forest-16x16-animated-environ-sprites_34: 657665096776720753
+      forest-16x16-animated-environ-sprites_35: 8948140142872255116
+      forest-16x16-animated-environ-sprites_36: -2743356771827373236
+      forest-16x16-animated-environ-sprites_37: 8954159463671315916
+      forest-16x16-animated-environ-sprites_38: 6052518462282104608
+      forest-16x16-animated-environ-sprites_39: 1058455954858651140
+      forest-16x16-animated-environ-sprites_4: 7935388520168583169
+      forest-16x16-animated-environ-sprites_40: 939899587565008378
+      forest-16x16-animated-environ-sprites_41: -6751553342324944326
+      forest-16x16-animated-environ-sprites_42: 5479934622207408372
+      forest-16x16-animated-environ-sprites_43: -7221481238763849657
+      forest-16x16-animated-environ-sprites_44: 730778560118560782
+      forest-16x16-animated-environ-sprites_45: 1786048975944390039
+      forest-16x16-animated-environ-sprites_46: -5849814957594720947
+      forest-16x16-animated-environ-sprites_47: 1368239850687823413
+      forest-16x16-animated-environ-sprites_48: -4065551475319393517
+      forest-16x16-animated-environ-sprites_49: 959967200291356053
+      forest-16x16-animated-environ-sprites_5: 7932154706210531914
+      forest-16x16-animated-environ-sprites_50: 5569139092094946463
+      forest-16x16-animated-environ-sprites_51: -6631120792354853057
+      forest-16x16-animated-environ-sprites_52: 1628009065496196591
+      forest-16x16-animated-environ-sprites_53: 7622497970760013347
+      forest-16x16-animated-environ-sprites_54: -6690496367710119316
+      forest-16x16-animated-environ-sprites_55: -8109894416700075706
+      forest-16x16-animated-environ-sprites_56: 6348472687412896213
+      forest-16x16-animated-environ-sprites_57: 7490421057316327105
+      forest-16x16-animated-environ-sprites_6: 2780341958878535608
+      forest-16x16-animated-environ-sprites_7: -5577617154418142993
+      forest-16x16-animated-environ-sprites_8: -1973124930867550389
+      forest-16x16-animated-environ-sprites_9: -3277309150444701399
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

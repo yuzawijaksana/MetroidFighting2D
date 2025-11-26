@@ -7,8 +7,10 @@ public class CameraBound : MonoBehaviour
     [SerializeField] private string boundName = "Camera Bound";
     
     [Header("Transition Settings")]
-    [SerializeField] private bool useTransition = true;
-    [SerializeField] private float transitionDelay = 0.2f; // Small delay before transition starts
+    [Tooltip("Enable/disable blackout transition when entering this camera bound")]
+    [SerializeField] private bool enableBlackoutTransition = true;
+    [Tooltip("Small delay before transition starts (in seconds)")]
+    [SerializeField] private float transitionDelay = 0.2f;
     
     [Header("References")]
     [SerializeField] private CinemachineConfiner2D confiner2D;
@@ -84,12 +86,14 @@ public class CameraBound : MonoBehaviour
             // Check if we're already transitioning to avoid multiple transitions
             if (!isTransitioning && currentBound != this)
             {
-                if (useTransition)
+                if (enableBlackoutTransition)
                 {
+                    Debug.Log($"🎬 STARTING BLACKOUT TRANSITION for '{boundName}'");
                     StartTransition();
                 }
                 else
                 {
+                    Debug.Log($"⚡ INSTANT CAMERA CHANGE for '{boundName}' (no transition)");
                     ApplyCameraBound();
                 }
             }
