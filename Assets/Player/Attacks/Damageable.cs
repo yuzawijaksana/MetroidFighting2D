@@ -1,36 +1,60 @@
 using UnityEngine;
 using System.Collections;
 using System.Threading.Tasks;
-using System.Collections.Generic; // Add this namespace for Dictionary
+using System.Collections.Generic;
 
 public class Damageable : MonoBehaviour
 {
+    // ==================== SHARED COMPONENTS ====================
     private Rigidbody2D rb;
     private Animator anim;
-    private SpriteRenderer spriteRenderer; // Reference to parent SpriteRenderer
+    private SpriteRenderer spriteRenderer;
+    private PlayerController playerController;
+    public CharacterIngameCellUI cellUI;
 
-    [Header("Health Settings")]
+    // ==================== GAME MODE ====================
+    [Header("═══════════════ GAME MODE ═══════════════")]
+    [Space(10)]
+    [Tooltip("TRUE = Story Mode (dies at max health) | FALSE = PvP Mode (infinite damage)")]
+    [SerializeField] private bool isStoryMode = true;
+    [Space(20)]
+    
+    // ==================== SHARED SETTINGS ====================
+    [Header("═══════════════ SHARED SETTINGS ═══════════════")]
+    [Space(10)]
     [SerializeField] public float currentHealth;
-    [SerializeField] public int maxHearts = 3; // Add this for max health/lives
-
-    [Header("Stun Settings")]
-    private float stunDuration = 0.75f;
-    private bool isStunned = false;
+    [SerializeField] public int maxHearts = 3;
 
     [Header("Ground Check Settings")]
     [SerializeField] private Transform groundCheckPoint;
     [SerializeField] private LayerMask whatIsGround;
     [SerializeField] private float groundCheckRadius = 0.2f;
 
-    private PlayerController playerController;
-
-    public CharacterIngameCellUI cellUI; // Assign after spawn
-
-    private Material flashMaterial;
-    private Material originalMaterial;
-    private SpriteRenderer sr;
-
-    // Initializes references and sets up ground check
+    [Header("Stun Settings")]
+    private float stunDuration = 0.75f;
+    private bool isStunned = false;
+    
+    private float lastHitTime = -1f;
+    private float hitCooldown = 0.05f;
+    [Space(20)]
+    
+    // ==================== PVP MODE SETTINGS ====================
+    [Header("█████████ PVP MODE █████████")]
+    [Space(5)]
+    [TextArea(2, 3)]
+    [SerializeField] private string pvpInfo = "PvP Mode:\n• Damage accumulates infinitely\n• No death - eliminated by ring-outs";
+    [Space(20)]
+    
+    // ==================== STORY MODE SETTINGS ====================
+    [Header("█████████ STORY MODE █████████")]
+    [Space(5)]
+    [Tooltip("Player dies when health reaches this value")]
+    [SerializeField] private float maxHealthThreshold = 300f;
+    [TextArea(2, 3)]
+    [SerializeField] private string storyInfo = "Story Mode:\n• Dies at 300% damage\n• Respawn/Game Over on death";
+    private bool isDead = false;
+    
+    // ==================== INITIALIZATION ====================
     private void Start()
     {
         currentHealth = 0f;
@@ -68,13 +92,13 @@ public class Damageable : MonoBehaviour
         
     }
 
+    // ==================== CORE DAMAGE SYSTEM ====================
     // Applies damage, knockback, and stun to the object
-    private float lastHitTime = -1f;
-    private float hitCooldown = 0.05f; // Minimum time between knockbacks (seconds)
-
     public void TakeDamage(float damage, Vector2 knockback, GameObject attacker)
     {
-        // Prevent double application in the same frame or from spamming
+        if (isDead) return; // Story mode only
+        
+        // Prevent double application in the same frame
         if (Time.time - lastHitTime < hitCooldown)
             return;
         lastHitTime = Time.time;
@@ -83,6 +107,13 @@ public class Damageable : MonoBehaviour
 
         if (attacker == transform.parent?.gameObject) return;
 
+        if (damage > 0)
+        {
+            currentHealth += damage;
+            Debug.Log($"Health updated to {currentHealth} for {gameObject.name}");
+        }
+
+        // Apply knockback based on game mode
         Rigidbody2D rb = GetComponent<Rigidbody2D>();
         if (rb == null)
             rb = GetComponentInParent<Rigidbody2D>();
@@ -91,14 +122,30 @@ public class Damageable : MonoBehaviour
             // Reset momentum before applying new knockback
             rb.linearVelocity = Vector2.zero;
             rb.angularVelocity = 0f;
-            rb.AddForce(knockback, ForceMode2D.Impulse);
+            
+            Vector2 finalKnockback;
+            
+            if (isStoryMode)
+            {
+                // ==================== STORY MODE: CONSISTENT KNOCKBACK ====================
+                // No scaling - use base knockback as-is
+                finalKnockback = knockback;
+                Debug.Log($"[STORY MODE] Applying consistent knockback: {finalKnockback}");
+            }
+            else
+            {
+                // ==================== PVP MODE: SCALED KNOCKBACK ====================
+                // Scale knockback with damage percentage (Smash Bros style)
+                float damageMultiplier = 1f + (currentHealth / 100f); // 1x at 0%, 2x at 100%, 3x at 200%, etc.
+                finalKnockback = knockback * damageMultiplier;
+                Debug.Log($"[PVP MODE] Knockback scaled by {damageMultiplier}x (health: {currentHealth}%) = {finalKnockback}");
+            }
+            
+            rb.AddForce(finalKnockback, ForceMode2D.Impulse);
         }
 
         if (damage > 0)
         {
-            currentHealth += damage;
-            Debug.Log($"Health updated to {currentHealth} for {gameObject.name}");
-            
             // Start hit flash effect
             StartCoroutine(HitFlashEffect());
             
@@ -112,7 +159,72 @@ public class Damageable : MonoBehaviour
             {
                 Debug.LogError($"cellUI is null for {gameObject.name}. UI will not update.");
             }
+            
+            // ==================== STORY MODE: DEATH CHECK ====================
+            if (isStoryMode && currentHealth >= maxHealthThreshold)
+            {
+                Debug.Log($"[DEATH CHECK] Health {currentHealth} >= Threshold {maxHealthThreshold} - Calling Die()");
+                Die();
+            }
+            else if (isStoryMode)
+            {
+                Debug.Log($"[STORY MODE] Health {currentHealth} < Threshold {maxHealthThreshold} - Still alive");
+            }
+            // ==================== PVP MODE: NO DEATH ====================
+            // In PvP, damage keeps accumulating for knockback scaling
+            // Players are eliminated by ring-outs, not health
         }
+    }
+    
+    // ==================== STORY MODE METHODS ====================
+    // Called when player dies (story mode only)
+    private void Die()
+    {
+        if (isDead) return;
+        isDead = true;
+        
+        Debug.Log($"[STORY MODE] {gameObject.name} has died! Health: {currentHealth}/{maxHealthThreshold}");
+        
+        // Disable player control
+        if (playerController != null)
+        {
+            playerController.isControllable = false;
+        }
+        
+        // Trigger death animation
+        if (anim != null)
+        {
+            anim.SetTrigger("Death");
+        }
+        
+        // Disable the player GameObject or destroy it
+        StartCoroutine(DeathSequence());
+    }
+    
+    private IEnumerator DeathSequence()
+    {
+        // Wait for death animation or effects
+        yield return new WaitForSeconds(1f);
+        
+        // Despawn/destroy the player
+        Debug.Log($"{gameObject.name} despawning...");
+        
+        // Option 1: Disable the entire player
+        transform.parent.gameObject.SetActive(false);
+        
+        // Option 2: Destroy the player (uncomment if you want to destroy instead)
+        // Destroy(transform.parent.gameObject);
+        
+        // Option 3: Respawn (you can implement respawn logic here)
+    }
+    
+    // ==================== SHARED UTILITY METHODS ====================
+    // Public method to set game mode
+    public void SetStoryMode(bool storyMode)
+    {
+        isStoryMode = storyMode;
+        isDead = false; // Reset death state when switching modes
+        Debug.Log($"Game mode set to: {(isStoryMode ? "Story" : "PvP")} for {gameObject.name}");
     }
 
     // Checks if the object is grounded

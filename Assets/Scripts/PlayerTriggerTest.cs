@@ -53,25 +53,25 @@ public class PlayerTriggerTest : MonoBehaviour
         Debug.Log($"🎮 PLAYER TRIGGER: Player entered trigger with {other.name} (Tag: {other.tag})");
     }
     
-    private void OnTriggerStay2D(Collider2D other)
-    {
-        if (Time.time % 1f < 0.1f) // Log once per second to avoid spam
-        {
-            Debug.Log($"🎮 PLAYER STAYING: Player staying in trigger with {other.name}");
-        }
-    }
+    // private void OnTriggerStay2D(Collider2D other)
+    // {
+    //     if (Time.time % 1f < 0.1f) // Log once per second to avoid spam
+    //     {
+    //         Debug.Log($"🎮 PLAYER STAYING: Player staying in trigger with {other.name}");
+    //     }
+    // }
     
     private void OnTriggerExit2D(Collider2D other)
     {
         Debug.Log($"🎮 PLAYER EXIT: Player exited trigger with {other.name}");
     }
     
-    private void Update()
-    {
-        // Log player position every few seconds to track movement
-        if (Time.time % 3f < 0.1f)
-        {
-            Debug.Log($"📍 PLAYER POSITION: {transform.position}");
-        }
-    }
+    // private void Update()
+    // {
+    //     // Log player position every few seconds to track movement
+    //     if (Time.time % 3f < 0.1f)
+    //     {
+    //         Debug.Log($"📍 PLAYER POSITION: {transform.position}");
+    //     }
+    // }
 }

@@ -61,14 +61,14 @@ TagManager:
   - name: 5Extra
     uniqueID: 3482815447
     locked: 0
+  - name: Ground&Platforms
+    uniqueID: 3355377387
+    locked: 0
   - name: Player
     uniqueID: 3069050321
     locked: 0
   - name: Enemies
     uniqueID: 1708719249
-    locked: 0
-  - name: Platform
-    uniqueID: 3355377387
     locked: 0
   m_RenderingLayers:
   - Default
