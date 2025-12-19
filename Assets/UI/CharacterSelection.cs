@@ -11,8 +11,8 @@ public class CharacterSelection : MonoBehaviour
     public GameObject player1Indicator;
     public GameObject player2Indicator;
     public GameObject mainMenuPanel; // Assign your MainMenu panel GameObject
+    public GameObject mainMenuGrid; // Assign your MainMenu grid GameObject
     public GameObject characterSelectionPanel; // (optional, if needed)
-    public GameObject mapObject; // Assign your map GameObject here
     public GameObject countdownTextObject; // Assign a UI Text for countdown (optional)
     public GameStarter gameStarter; // Assign this in the inspector
     public GameObject readyIndicator; // Assign in inspector, shown when both players are ready
@@ -139,6 +139,7 @@ public class CharacterSelection : MonoBehaviour
         if (keyboard.escapeKey.wasPressedThisFrame)
         {
             if (mainMenuPanel != null) mainMenuPanel.SetActive(true);
+            if (mainMenuGrid != null) mainMenuGrid.SetActive(true);
             if (characterSelectionPanel != null) characterSelectionPanel.SetActive(false);
         }
 

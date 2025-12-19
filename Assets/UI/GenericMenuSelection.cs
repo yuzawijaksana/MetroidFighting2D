@@ -9,6 +9,7 @@ public class GenericMenuSelection : MonoBehaviour
     {
         MainMenu,
         PlayMode,
+        StoryMode,
         Options
     }
 

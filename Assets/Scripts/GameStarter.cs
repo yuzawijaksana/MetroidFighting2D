@@ -3,11 +3,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using Unity.Cinemachine;
 // using YourProject.UI; // Uncomment and replace with your actual namespace if CharacterIngameGridUI is in a different namespace
 
 public class GameStarter : MonoBehaviour
 {
     public static GameStarter Instance { get; private set; }
+
+    [Header("Map Configuration")]
+    public GameObject mapObject; // Assign your default PVP map
+    [SerializeField] private Collider2D cameraBounds; // Assign camera bounds for the map
+    [SerializeField] private Vector3 player1SpawnPosition = new Vector3(-3, 2, 0);
+    [SerializeField] private Vector3 player2SpawnPosition = new Vector3(3, 2, 0);
 
     [Header("References (Assign in Inspector)")]
     public CharacterIngameGridUI ingameGridUI; // Assign in inspector
@@ -17,10 +24,10 @@ public class GameStarter : MonoBehaviour
 
     [HideInInspector] public GameObject player1Prefab;
     [HideInInspector] public GameObject player2Prefab;
-    public GameObject mapObject;
     public GameObject countdownTextObject;
     public GameObject playersParent; // Assign your Players GameObject in the Inspector
     public TargetGroupManager targetGroupManager; // Assign in Inspector
+    [SerializeField] private CinemachineConfiner2D cinemachineConfiner;
 
     [Header("Victory UI")]
     public VictoryScreenUI victoryScreenUI; // Assign in inspector
@@ -42,6 +49,12 @@ public class GameStarter : MonoBehaviour
 
     public void StartGame()
     {
+        // Validate map before starting
+        if (!ValidateMap())
+        {
+            return;
+        }
+        
         ResetGameState();
         InitializeMap();
         InitializeSpawnPositions();
@@ -55,6 +68,7 @@ public class GameStarter : MonoBehaviour
     public void Rematch()
     {
         ResetGameState();
+        InitializeMap(); // Re-enable map for rematch
         InitializePlayers();
         InitializeUI(); // Ensure UI is recreated before updating hearts
         LinkPlayersToUI(); // Link players to their UI cells
@@ -83,19 +97,61 @@ public class GameStarter : MonoBehaviour
             }
             ingameGridUI.transform.parent.gameObject.SetActive(false); // Hide the UI parent
         }
+        
+        // Disable all maps
+        DisableAllMaps();
+    }
+    
+    private bool ValidateMap()
+    {
+        if (mapObject == null)
+        {
+            Debug.LogWarning("GameStarter: Map Object is not assigned. Game will not start.");
+            return false;
+        }
+        
+        return true;
+    }
+    
+    private void DisableAllMaps()
+    {
+        if (mapObject != null)
+        {
+            mapObject.SetActive(false);
+        }
     }
 
     private void InitializeMap()
     {
-        if (mapObject != null) mapObject.SetActive(true);
+        // Enable the map
+        if (mapObject != null)
+        {
+            mapObject.SetActive(true);
+        }
+        
+        // Set camera bounds
+        if (cinemachineConfiner != null && cameraBounds != null)
+        {
+            cinemachineConfiner.BoundingShape2D = cameraBounds;
+            cinemachineConfiner.InvalidateBoundingShapeCache();
+            Debug.Log($"GameStarter: Camera bounds set to {cameraBounds.name}");
+        }
+        else if (cameraBounds == null)
+        {
+            Debug.LogWarning("GameStarter: Camera bounds not assigned.");
+        }
+        else if (cinemachineConfiner == null)
+        {
+            Debug.LogWarning("GameStarter: Cinemachine Confiner not assigned.");
+        }
     }
 
     private void InitializeSpawnPositions()
     {
         spawnPositions = new List<Vector3>
         {
-            new Vector3(-3, 2, 0), // Player 1 spawn position
-            new Vector3(3, 2, 0)   // Player 2 spawn position
+            player1SpawnPosition,
+            player2SpawnPosition
         };
     }
 
