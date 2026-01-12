@@ -25,10 +25,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] public GameObject hurtbox;
     [SerializeField] public GameObject parentCollider; // Reference to the player's parent collider
 
-    [Header("Key Bindings")]
-    public Key lightAttackKey = Key.J;
-    public Key heavyAttackKey = Key.K;
-    public Key dashKey = Key.L;
+    private GameInputs controls;
 
     [Header("Ground Check Settings")]
     [SerializeField] public Transform groundCheckPoint;
@@ -113,11 +110,33 @@ public class PlayerController : MonoBehaviour
     public float yAxis { get; private set; } // Add yAxis property
     public bool isFacingRight = true;
     private bool isAttackLocked = false;
+    private bool wasFalling = false; // Track if player was falling in previous frame
 
     public bool IsAttackLocked => isAttackLocked;
 
     // Add a new state variable to track if the character is recovering from a hit
     private bool isRecoveringFromHit = false;
+    
+    // Input buffering for controller support
+    private float jumpBufferTime = 0.15f;
+    private float jumpBufferCounter = 0f;
+    private float dashBufferTime = 0.15f;
+    private float dashBufferCounter = 0f;
+
+    private void Awake()
+    {
+        controls = new GameInputs();
+    }
+
+    private void OnEnable()
+    {
+        controls.Player.Enable();
+    }
+
+    private void OnDisable()
+    {
+        controls.Player.Disable();
+    }
 
     private void Start()
     {
@@ -135,6 +154,55 @@ public class PlayerController : MonoBehaviour
     private void Update()
     {
         if (!isControllable || controlScheme == ControlScheme.None) return; // Prevent all actions if not controllable or control scheme is None
+
+        // Prevent all input during dialog
+        if (StoryDialogTrigger.IsAnyDialogActive)
+        {
+            // Slow down velocity gradually
+            if (rb != null)
+            {
+                rb.linearVelocity = new Vector2(
+                    rb.linearVelocity.x * 0.9999f, // Slowly decelerate horizontal movement
+                    rb.linearVelocity.y
+                );
+            }
+            
+            // Stop animations but keep physics active
+            if (anim != null)
+            {
+                anim.SetBool("Walking", false);
+                anim.SetBool("Falling", false);
+                anim.SetBool("Jumping", false);
+                anim.SetBool("Sliding", false);
+                anim.SetBool("DoubleJumping", false);
+                anim.SetBool("Idle", true);
+            }
+            wasFalling = false; // Reset falling state during dialog
+            return;
+        }
+        
+        // Prevent input during cooldown after dialog
+        if (StoryDialogTrigger.InputCooldownTimer > 0) return;
+
+        // Buffer jump input
+        if (controls.Player.Jump.WasPressedThisFrame())
+        {
+            jumpBufferCounter = jumpBufferTime;
+        }
+        else
+        {
+            jumpBufferCounter -= Time.deltaTime;
+        }
+        
+        // Buffer dash input
+        if (controls.Player.Dash.WasPressedThisFrame())
+        {
+            dashBufferCounter = dashBufferTime;
+        }
+        else
+        {
+            dashBufferCounter -= Time.deltaTime;
+        }
 
         // Prevent all input if attack is locked (including jump, dash, etc.)
         if (isAttackLocked)
@@ -184,96 +252,63 @@ public class PlayerController : MonoBehaviour
             characterBehavior?.ShrinkColliderForWallSlide();
             anim.SetBool("Jumping", false); // Disable Jumping when sliding
             anim.SetBool("Falling", false); // Disable Falling when sliding
+            wasFalling = false;
         }
         else if (!Grounded() && rb.linearVelocity.y < 0)
         {
             anim.SetBool("Falling", true);
             anim.SetBool("Jumping", false); // Disable Jumping when falling
+            wasFalling = true;
+        }
+        else if (Grounded() && wasFalling)
+        {
+            // Just landed after falling - trigger landing animation
+            anim.SetTrigger("Landing");
+            anim.SetBool("Falling", false);
+            wasFalling = false;
         }
         else
         {
             anim.SetBool("Falling", false);
+            wasFalling = false;
         }
 
         if (Keyboard.current.rKey.wasPressedThisFrame) ResetPosition();
 
         isGrounded = Grounded();
 
-        float vertical, horizontal;
-        if (controlScheme == ControlScheme.Keyboard1)
-        {
-            vertical = Keyboard.current.wKey.isPressed ? 1 : (Keyboard.current.sKey.isPressed ? -1 : 0);
-            horizontal = Keyboard.current.aKey.isPressed ? -1 : (Keyboard.current.dKey.isPressed ? 1 : 0);
-        }
-        else if (controlScheme == ControlScheme.Keyboard2)
-        {
-            vertical = Keyboard.current.upArrowKey.isPressed ? 1 : (Keyboard.current.downArrowKey.isPressed ? -1 : 0);
-            horizontal = Keyboard.current.leftArrowKey.isPressed ? -1 : (Keyboard.current.rightArrowKey.isPressed ? 1 : 0);
-        }
-        else
-        {
-            vertical = 0;
-            horizontal = 0;
-        }
+        float vertical = yAxis;
+        float horizontal = xAxis;
+        
+        // Apply threshold for attack direction to prevent accidental neutral attacks on gamepad
+        float directionThreshold = 0.3f;
+        float attackVertical = Mathf.Abs(vertical) > directionThreshold ? vertical : 0f;
+        float attackHorizontal = Mathf.Abs(horizontal) > directionThreshold ? horizontal : 0f;
 
         if (controlledGameObject != null && !isWallSliding) // Prevent attacks while wall sliding
         {
             PlayerAttack controlledPlayerAttack = controlledGameObject.GetComponent<PlayerAttack>();
             if (controlledPlayerAttack != null)
             {
-                if (controlScheme == ControlScheme.Keyboard1)
+                // Light Attack
+                if (controls.Player.Attack.WasPressedThisFrame() && !isAttackLocked)
                 {
-                    if (Keyboard.current.jKey.wasPressedThisFrame && !isAttackLocked)
+                    if (controlledPlayerAttack.HandleAttack(isGrounded, attackVertical, attackHorizontal, true))
                     {
-                        if (controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, true))
-                        {
-                            isAttackLocked = true;
-                        }
-                    }
-                    else if (Keyboard.current.kKey.wasPressedThisFrame && !isAttackLocked)
-                    {
-                        // Perform recovery if jumps are available (example for heavy/special)
-                        // For a recovery move, it might not always consume a jump or might have specific conditions.
-                        // The current HandleAttack determines type based on isLightAttack=false.
-                        // If it's a recovery that consumes a jump:
-                        if (!isGrounded && jumpCount > 0) 
-                        {
-                            if (controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, false))
-                            {
-                                jumpCount--; // Decrement jump count for recovery
-                                isAttackLocked = true;
-                            }
-                        }
-                        // If it's a general heavy attack not tied to jump count:
-                        // else if (controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, false))
-                        // {
-                        //     isAttackLocked = true;
-                        // }
+                        isAttackLocked = true;
                     }
                 }
-                else if (controlScheme == ControlScheme.Keyboard2)
+                // Heavy Attack / Special Attack
+                else if (controls.Player.SpecialAttack.WasPressedThisFrame() && !isAttackLocked)
                 {
-                    if (Keyboard.current.numpad4Key.wasPressedThisFrame && !isAttackLocked)
+                    // Perform recovery if jumps are available (example for heavy/special)
+                    if (!isGrounded && jumpCount > 0) 
                     {
-                        if (controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, true))
+                        if (controlledPlayerAttack.HandleAttack(isGrounded, attackVertical, attackHorizontal, false))
                         {
+                            jumpCount--; // Decrement jump count for recovery
                             isAttackLocked = true;
                         }
-                    }
-                    else if (Keyboard.current.numpad5Key.wasPressedThisFrame && !isAttackLocked)
-                    {
-                        if (!isGrounded && jumpCount > 0)
-                        {
-                             if (controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, false))
-                             {
-                                jumpCount--; // Decrement jump count for recovery
-                                isAttackLocked = true;
-                             }
-                        }
-                        // else if (controlledPlayerAttack.HandleAttack(isGrounded, vertical, horizontal, false))
-                        // {
-                        //     isAttackLocked = true;
-                        // }
                     }
                 }
             }
@@ -292,9 +327,9 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-    if (!isAttackLocked && Keyboard.current.sKey.isPressed) // Only allow fast fall when not attacking
+    if (!isAttackLocked && yAxis < -0.5f) // Only allow fast fall when not attacking
     {
-        // Apply controlled falling force when S key is pressed
+        // Apply controlled falling force when moving down
         rb.AddForce(new Vector2(0, -fallingSpeed), ForceMode2D.Force);
 
         // Limit the falling speed to the fast fall maximum
@@ -305,27 +340,11 @@ public class PlayerController : MonoBehaviour
     }
     else
     {
-        // Reset to normal falling speed when S key is not pressed
+        // Reset to normal falling speed
         if (rb.linearVelocity.y < maxFallSpeed)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, maxFallSpeed);
         }
-    }
-
-    // Fast fall for both S key (Keyboard1) and DownArrow (Keyboard2)
-    bool fastFallPressed = false;
-    if (controlScheme == ControlScheme.Keyboard1)
-    {
-        fastFallPressed = Keyboard.current.sKey.wasPressedThisFrame;
-    }
-    else if (controlScheme == ControlScheme.Keyboard2)
-    {
-        fastFallPressed = Keyboard.current.downArrowKey.wasPressedThisFrame;
-    }
-
-    if (fastFallPressed && !Grounded())
-    {
-        rb.AddForce(new Vector2(0, -fallingSpeed), ForceMode2D.Impulse);
     }
 
     // Only apply deceleration if dashing and not recovering from a hit
@@ -343,27 +362,17 @@ public class PlayerController : MonoBehaviour
     {
         if (controlScheme == ControlScheme.None) return;
 
-        if (controlScheme == ControlScheme.Keyboard1)
-        {
-            xAxis = (Keyboard.current.dKey.isPressed ? 1 : 0) - (Keyboard.current.aKey.isPressed ? 1 : 0);
-            yAxis = (Keyboard.current.wKey.isPressed ? 1 : 0) - (Keyboard.current.sKey.isPressed ? 1 : 0);
-        }
-        else if (controlScheme == ControlScheme.Keyboard2)
-        {
-            xAxis = (Keyboard.current.rightArrowKey.isPressed ? 1 : 0) - (Keyboard.current.leftArrowKey.isPressed ? 1 : 0);
-            yAxis = (Keyboard.current.upArrowKey.isPressed ? 1 : 0) - (Keyboard.current.downArrowKey.isPressed ? 1 : 0);
-        }
-        else
-        {
-            Debug.LogWarning($"Control scheme '{controlScheme}' is not mapped to any input.");
-        }
+        // Get movement from Input Actions
+        Vector2 movement = controls.Player.Movement.ReadValue<Vector2>();
+        xAxis = movement.x;
+        yAxis = movement.y;
     }
 
     private void HandleDash()
     {
-        if ((controlScheme == ControlScheme.Keyboard1 && Keyboard.current.lKey.wasPressedThisFrame && !isDashing && Grounded()) ||
-            (controlScheme == ControlScheme.Keyboard2 && Keyboard.current.numpad6Key.wasPressedThisFrame && !isDashing && Grounded()))
+        if (dashBufferCounter > 0 && !isDashing && Grounded())
         {
+            dashBufferCounter = 0; // Consume the buffered input
             Dash();
         }
     }
@@ -449,18 +458,11 @@ public class PlayerController : MonoBehaviour
             isDoubleJumping = false;
         }
 
-        bool jumpPressed = false;
-        if (controlScheme == ControlScheme.Keyboard1)
-        {
-            jumpPressed = Keyboard.current.spaceKey.wasPressedThisFrame;
-        }
-        else if (controlScheme == ControlScheme.Keyboard2)
-        {
-            jumpPressed = Keyboard.current.numpad0Key.wasPressedThisFrame;
-        }
+        bool jumpPressed = jumpBufferCounter > 0;
 
         if (jumpPressed && jumpCount > 0)
         {
+            jumpBufferCounter = 0; // Consume the buffered input
             characterBehavior?.ShrinkColliderForJump();
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
             rb.AddForce(new Vector2(0, jumpForce), ForceMode2D.Impulse);
@@ -479,22 +481,14 @@ public class PlayerController : MonoBehaviour
         }
 
         // Jump release logic
-        bool jumpReleased = false;
-        if (controlScheme == ControlScheme.Keyboard1)
-        {
-            jumpReleased = Keyboard.current.spaceKey.wasReleasedThisFrame;
-        }
-        else if (controlScheme == ControlScheme.Keyboard2)
-        {
-            jumpReleased = Keyboard.current.numpad0Key.wasReleasedThisFrame;
-        }
+        bool jumpReleased = controls.Player.Jump.WasReleasedThisFrame();
 
         if (jumpReleased && rb.linearVelocity.y > 0)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
         }
 
-        if (Keyboard.current.sKey.wasPressedThisFrame && !Grounded())
+        if (yAxis < -0.5f && !Grounded())
         {
             rb.AddForce(new Vector2(0, -fallingSpeed), ForceMode2D.Impulse);
         }
@@ -518,18 +512,11 @@ public class PlayerController : MonoBehaviour
             wallJumpingCounter -= Time.deltaTime;
         }
 
-        bool jumpPressed = false;
-        if (controlScheme == ControlScheme.Keyboard1)
-        {
-            jumpPressed = Keyboard.current.spaceKey.wasPressedThisFrame;
-        }
-        else if (controlScheme == ControlScheme.Keyboard2)
-        {
-            jumpPressed = Keyboard.current.numpad0Key.wasPressedThisFrame;
-        }
+        bool jumpPressed = jumpBufferCounter > 0;
 
         if (jumpPressed && wallJumpingCounter > 0f)
         {
+            jumpBufferCounter = 0; // Consume the buffered input
             isWallJumping = true;
             SmoothWallJump();
             wallJumpingCounter = 0f;
@@ -668,21 +655,15 @@ public class PlayerController : MonoBehaviour
 
     private void JumpWhileDashing()
     {
-        bool jumpPressed = false;
-        if (controlScheme == ControlScheme.Keyboard1)
-        {
-            jumpPressed = Keyboard.current.spaceKey.wasPressedThisFrame;
-        }
-        else if (controlScheme == ControlScheme.Keyboard2)
-        {
-            jumpPressed = Keyboard.current.numpad0Key.wasPressedThisFrame;
-        }
+        bool jumpPressed = jumpBufferCounter > 0;
 
         if (isDashing && jumpPressed)
         {
+            jumpBufferCounter = 0; // Consume the buffered input
             isDashing = false;
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
             rb.AddForce(new Vector2(0, jumpForce), ForceMode2D.Impulse);
+            anim.SetBool("Jumping", true);
         }
     }
 

@@ -17,6 +17,7 @@ public class Slime_Controller : MonoBehaviour
     [SerializeField] private Vector2 contactKnockback = new Vector2(8f, 5f);
     [SerializeField] private float maxHealth = 50f;
     [SerializeField] private bool enableMovement = true;
+    [SerializeField] private string targetTag = "Player";
     
     private float currentHealth;
     private Rigidbody2D rb;
@@ -54,10 +55,17 @@ public class Slime_Controller : MonoBehaviour
         // Store starting position for patrol
         patrolStartPos = transform.position;
         
-        // Find player in scene
-        GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
+        // Find target using tag
+        GameObject playerObject = GameObject.FindGameObjectWithTag(targetTag);
         if (playerObject != null)
+        {
             player = playerObject.transform;
+            Debug.Log($"Slime found target with tag '{targetTag}': {playerObject.name}");
+        }
+        else
+        {
+            Debug.LogWarning($"Slime could not find target with tag '{targetTag}'. Will keep searching...");
+        }
     }
     
     // Check if there's a tile at a specific grid position
@@ -82,6 +90,17 @@ public class Slime_Controller : MonoBehaviour
     {
         if (isDead) return;
         
+        // Keep searching for target if not found yet
+        if (player == null)
+        {
+            GameObject playerObject = GameObject.FindGameObjectWithTag(targetTag);
+            if (playerObject != null)
+            {
+                player = playerObject.transform;
+                Debug.Log($"Slime found target with tag '{targetTag}': {playerObject.name}");
+            }
+        }
+        
         wasGrounded = isGrounded;
         CheckGrounded();
         
@@ -101,16 +120,19 @@ public class Slime_Controller : MonoBehaviour
                 
                 if (distanceToPlayer < detectionRange)
                 {
+                    // Debug.Log($"Slime chasing target! Distance: {distanceToPlayer:F2}");
                     HandleAI();
                 }
                 else
                 {
+                    // Debug.Log($"Slime patrolling - target out of range ({distanceToPlayer:F2} > {detectionRange})");
                     // Patrol when player is out of range
                     HandlePatrol();
                 }
             }
             else
             {
+                // Debug.Log("Slime patrolling - no target found");
                 // Patrol when no player found
                 HandlePatrol();
             }

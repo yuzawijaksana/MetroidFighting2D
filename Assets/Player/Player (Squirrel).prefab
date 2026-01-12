@@ -242,6 +242,8 @@ MonoBehaviour:
   dashSmokeLifetime: 0.5
   dashTrailLifetime: 0.5
   dashTrailFadeSpeed: 2
+  dashDuration: 0.2
+  dashMultiplier: 0.8
   slowMotionFactor: 0.5
   platformLayer:
     serializedVersion: 2
@@ -267,6 +269,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackHitbox: {fileID: 4542275187856999297}
   knockbackObject: {fileID: 2478678573119845979}
+  sameAttackCooldown: 0.75
+  differentAttackCooldown: 0.25
 --- !u!114 &4923067672565580513
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -326,7 +330,6 @@ GameObject:
   - component: {fileID: 8160685671567051868}
   - component: {fileID: 280280090596193160}
   - component: {fileID: 1193401977243812775}
-  - component: {fileID: 7073445086281078506}
   m_Layer: 10
   m_Name: Knockback
   m_TagString: PlayerAttack
@@ -369,6 +372,16 @@ MonoBehaviour:
   knockback:
     x: 1
     y: 0
+  singleHitPerActivation: 0
+  hitboxActiveTime: 0
+  knockbackMultiplier: 0.5
+  feedbackType: 1
+  attackerHorizontalForce: 5
+  attackerVerticalForce: 8
+  movingAttackForceMultiplier: 2
+  stopAnimationOnHit: 1
+  disableHitboxOnHit: 1
+  stopMovementOnHit: 1
 --- !u!70 &1193401977243812775
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -406,18 +419,6 @@ CapsuleCollider2D:
   m_Offset: {x: 0, y: 0}
   m_Size: {x: 1, y: 0.5}
   m_Direction: 1
---- !u!114 &7073445086281078506
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2478678573119845979}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f128c027d702d2f44a41c0c45d947024, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &2818618271427215471
 GameObject:
   m_ObjectHideFlags: 0
@@ -565,6 +566,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20971568201db7e4e8cb7ff94369fb71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cellUI: {fileID: 0}
+  isStoryMode: 1
   currentHealth: 0
   maxHearts: 3
   groundCheckPoint: {fileID: 7974717680858567174}
@@ -572,7 +575,11 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8
   groundCheckRadius: 0.2
-  cellUI: {fileID: 0}
+  pvpInfo: "PvP Mode:\n\u2022 Damage accumulates infinitely\n\u2022 No death - eliminated
+    by ring-outs"
+  maxHealthThreshold: 300
+  storyInfo: "Story Mode:\n\u2022 Dies at 300% damage\n\u2022 Respawn/Game Over on
+    death"
 --- !u!61 &5387637407005330445
 BoxCollider2D:
   m_ObjectHideFlags: 0

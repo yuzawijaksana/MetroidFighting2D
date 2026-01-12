@@ -34,10 +34,10 @@ public class Story_Handler : MonoBehaviour
         DisableAllMaps();
         
         // Removed auto-start to wait for user input
-        // if (spawnPlayerOnStart && stories.Length > 0)
-        // {
-        //     StartStory(defaultStoryIndex);
-        // }
+        if (spawnPlayerOnStart && stories.Length > 0)
+        {
+            StartStory(defaultStoryIndex);
+        }
     }
     
     void Update()
