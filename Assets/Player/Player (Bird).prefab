@@ -194,7 +194,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -3, y: -2, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 0}
+  m_LocalScale: {x: 2, y: 2, z: 0}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 4261778687795424222}
@@ -370,9 +370,6 @@ MonoBehaviour:
   controlledGameObject: {fileID: 4883880204484489955}
   hurtbox: {fileID: 2934075230927735691}
   parentCollider: {fileID: 4883880204484489955}
-  lightAttackKey: 24
-  heavyAttackKey: 25
-  dashKey: 26
   groundCheckPoint: {fileID: 3296633051192932678}
   whatIsGround:
     serializedVersion: 2

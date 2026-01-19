@@ -77,7 +77,17 @@ public class StoryDialogTrigger : MonoBehaviour
     
     private void Awake()
     {
-        controls = new GameInputs();
+        // Get GameInputs from InputRebindingManager to use custom bindings
+        var rebindManager = InputRebindingManager.Instance;
+        if (rebindManager != null)
+        {
+            controls = rebindManager.gameInputs;
+        }
+        else
+        {
+            Debug.LogWarning("InputRebindingManager not found! Dialog controls may not reflect custom bindings.");
+            controls = new GameInputs();
+        }
     }
     
     private void OnEnable()
