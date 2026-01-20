@@ -451,7 +451,6 @@ public class GenericMenuSelection : MonoBehaviour
     {
         if (audioSource != null && clip != null)
         {
-            Debug.Log($"Playing sound: {clip.name} at volume {soundVolume}");
             audioSource.PlayOneShot(clip, soundVolume);
         }
         else

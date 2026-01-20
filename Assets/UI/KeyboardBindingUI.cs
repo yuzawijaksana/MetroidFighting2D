@@ -220,12 +220,12 @@ public class KeyboardBindingUI : MonoBehaviour
     /// </summary>
     private IEnumerator RefreshAllUIsDelayed()
     {
-        yield return null; // Wait one frame
+        // Wait a bit longer to ensure all bindings are saved
+        yield return new WaitForSeconds(0.1f);
         
-        // Update display for this binding
-        UpdateKeyDisplay();
+        Debug.Log($"[KeyboardBinding] Refreshing all UIs after binding {actionName}");
         
-        // Refresh ALL binding UIs
+        // Refresh ALL binding UIs (including this one)
         RefreshAllBindingUIs();
     }
 
@@ -292,7 +292,16 @@ public class KeyboardBindingUI : MonoBehaviour
         if (action == null)
             return "???";
 
-        // Get the display string for this binding
+        // Get the binding path
+        string bindingPath = action.bindings[bindingIndex].effectivePath;
+        
+        // If this is a gamepad binding, use custom layout-aware names
+        if (isGamepad && ControllerLayoutManager.Instance != null)
+        {
+            return ControllerLayoutManager.Instance.GetButtonDisplayName(bindingPath);
+        }
+        
+        // For keyboard or if layout manager not available, use default display string
         return action.GetBindingDisplayString(bindingIndex);
     }
 
