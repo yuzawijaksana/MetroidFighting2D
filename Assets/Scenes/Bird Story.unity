@@ -5784,7 +5784,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 3.5, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 8932016875450616402}
   m_Father: {fileID: 0}
@@ -5806,7 +5806,7 @@ MonoBehaviour:
     characterPrefab: {fileID: 4883880204484489955, guid: d23b6b964cc110440b1140bf7f0205dd, type: 3}
     startPoint: {fileID: 941901257}
     mapGameObject: {fileID: 506431477298966428}
-    cameraBounds: {fileID: 0}
+    cameraBounds: {fileID: 2360578283846966683}
   spawnPlayerOnStart: 1
   cinemachineTargetGroup: {fileID: 189208765}
   cinemachineConfiner: {fileID: 1641211051}
