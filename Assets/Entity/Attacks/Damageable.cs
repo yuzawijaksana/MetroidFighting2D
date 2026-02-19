@@ -37,6 +37,18 @@ public class Damageable : MonoBehaviour
     private float lastHitTime = -1f;
     private float hitCooldown = 0.05f;
     [Space(20)]
+
+    [Header("Contact Damage Settings")]
+    [SerializeField] private float contactDamage = 5f;
+    [SerializeField] private Vector2 contactKnockback = new Vector2(5f, 3f);
+    [SerializeField] private float damageInterval = 0.5f;
+    private Dictionary<Damageable, float> damageCooldown = new Dictionary<Damageable, float>();
+    private HashSet<Damageable> currentlyCollidingWith = new HashSet<Damageable>(); // Track current collisions
+
+    [Header("I-Frame Settings")]
+    [SerializeField] private float iFrameDuration = 2f; // 2 second invulnerability
+    private float iFrameTimer = 0f;
+    [Space(20)]
     
     // ==================== PVP MODE SETTINGS ====================
     [Header("█████████ PVP MODE █████████")]
@@ -89,7 +101,83 @@ public class Damageable : MonoBehaviour
 
     private void Update()
     {
-        
+        // Update i-frame timer
+        if (iFrameTimer > 0)
+        {
+            iFrameTimer -= Time.deltaTime;
+        }
+        // When i-frames just ended, reset collision tracking so knockback can reapply
+        else if (iFrameTimer <= 0 && currentlyCollidingWith.Count > 0)
+        {
+            Debug.Log($"[Damageable] I-frames ended, resetting collision tracking for {currentlyCollidingWith.Count} targets");
+            currentlyCollidingWith.Clear();
+        }
+
+        // Backup detection method using physics overlap if triggers don't work
+        DetectNearbyDamageable();
+    }
+
+    // Fallback collision detection using Physics2D
+    private void DetectNearbyDamageable()
+    {
+        // Get capsule collider
+        CapsuleCollider2D capsuleCol = GetComponent<CapsuleCollider2D>();
+        if (capsuleCol == null) return;
+
+        // Use OverlapBox to detect nearby Damageable objects
+        Collider2D[] hits = Physics2D.OverlapBoxAll(transform.position, capsuleCol.size * 1.2f, 0f);
+        HashSet<Damageable> stillColliding = new HashSet<Damageable>();
+
+        foreach (Collider2D hit in hits)
+        {
+            if (hit == capsuleCol) continue; // Skip self
+
+            Damageable otherDamageable = hit.GetComponent<Damageable>();
+            if (otherDamageable == null)
+            {
+                otherDamageable = hit.GetComponentInChildren<Damageable>();
+            }
+            if (otherDamageable == null)
+            {
+                otherDamageable = hit.GetComponentInParent<Damageable>();
+            }
+
+            if (otherDamageable != null && otherDamageable != this)
+            {
+                // Only apply contact damage if the OTHER character is the player, not if it's an enemy
+                EnemyAIController enemyController = otherDamageable.GetComponentInParent<EnemyAIController>();
+                if (enemyController != null)
+                {
+                    continue; // Skip contact damage for enemies
+                }
+
+                stillColliding.Add(otherDamageable);
+
+                // Only apply knockback on FIRST contact (not already in collision list)
+                if (!currentlyCollidingWith.Contains(otherDamageable))
+                {
+                    // Knockback away from the enemy (relative to collision point)
+                    Vector2 knockbackDirection = (hit.transform.position - transform.position).normalized;
+                    Vector2 knockbackDir = new Vector2(knockbackDirection.x * contactKnockback.x, contactKnockback.y);
+                    
+                    Debug.Log($"[Damageable] CONTACT: Dealing {contactDamage} damage to {otherDamageable.gameObject.name}. Knockback dir: {knockbackDir}");
+                    
+                    otherDamageable.TakeDamage(contactDamage, knockbackDir, gameObject);
+                    currentlyCollidingWith.Add(otherDamageable);
+                }
+            }
+        }
+
+        // Clear objects we're no longer touching
+        var noLongerColliding = new List<Damageable>(currentlyCollidingWith);
+        foreach (var obj in noLongerColliding)
+        {
+            if (!stillColliding.Contains(obj))
+            {
+                currentlyCollidingWith.Remove(obj);
+                Debug.Log($"[Damageable] No longer in contact with {obj.gameObject.name}");
+            }
+        }
     }
 
     // ==================== CORE DAMAGE SYSTEM ====================
@@ -97,6 +185,30 @@ public class Damageable : MonoBehaviour
     public void TakeDamage(float damage, Vector2 knockback, GameObject attacker)
     {
         if (isDead) return; // Story mode only
+        
+        // Check if in i-frames (invulnerable)
+        if (iFrameTimer > 0)
+        {
+            Debug.Log($"[Damageable] {gameObject.name} is invulnerable for {iFrameTimer:F1}s more");
+            return;
+        }
+        
+        // Check if this character is attacking - if so, block contact knockback
+        PlayerController playerCtrl = GetComponentInParent<PlayerController>();
+        EnemyAIController enemyCtrl = GetComponentInParent<EnemyAIController>();
+        if ((playerCtrl != null && playerCtrl.IsAttackLocked) || (enemyCtrl != null && enemyCtrl.IsAttackLocked))
+        {
+            Debug.Log($"[Damageable] {gameObject.name} is attacking - blocking contact knockback");
+            knockback = Vector2.zero; // Remove knockback but damage still applies
+        }
+        
+        // Set i-frame timer and start blinking
+        iFrameTimer = iFrameDuration;
+        StopCoroutine(nameof(BlinkBlackCoroutine)); // Stop any existing blink
+        StartCoroutine(BlinkBlackCoroutine(iFrameDuration));
+        
+        // Clear collision tracking so knockback can reapply after i-frames end
+        currentlyCollidingWith.Clear();
         
         // Prevent double application in the same frame
         if (Time.time - lastHitTime < hitCooldown)
@@ -324,5 +436,105 @@ public class Damageable : MonoBehaviour
             // 75 to 150: yellow to red
             return Color.Lerp(Color.yellow, Color.red, (t - 0.5f) * 2f);
         }
+    }
+
+    // ==================== CONTACT DAMAGE SYSTEM ====================
+    // Handle collision with other Damageable objects
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        Debug.Log($"[Damageable] OnTriggerENTER detected: {collision.gameObject.name}, Tag: {collision.gameObject.tag}");
+    }
+
+    private void OnTriggerStay2D(Collider2D collision)
+    {
+        Debug.Log($"[Damageable] OnTriggerSTAY detected: {collision.gameObject.name}, Tag: {collision.gameObject.tag}");
+        
+        // Search for Damageable in multiple ways: on self, children, or parents
+        Damageable otherDamageable = collision.GetComponent<Damageable>();
+        Debug.Log($"[Damageable] GetComponent result: {(otherDamageable != null ? otherDamageable.gameObject.name : "NULL")}");
+        
+        if (otherDamageable == null)
+        {
+            otherDamageable = collision.GetComponentInChildren<Damageable>();
+            Debug.Log($"[Damageable] GetComponentInChildren result: {(otherDamageable != null ? otherDamageable.gameObject.name : "NULL")}");
+        }
+        
+        if (otherDamageable == null)
+        {
+            otherDamageable = collision.GetComponentInParent<Damageable>();
+            Debug.Log($"[Damageable] GetComponentInParent result: {(otherDamageable != null ? otherDamageable.gameObject.name : "NULL")}");
+        }
+
+        if (otherDamageable == null)
+        {
+            Debug.Log($"[Damageable] No Damageable found anywhere on {collision.gameObject.name}");
+            return;
+        }
+
+        if (otherDamageable == this)
+        {
+            Debug.Log($"[Damageable] Self-collision ignored");
+            return;
+        }
+
+        Debug.Log($"[Damageable] Found other Damageable: {otherDamageable.gameObject.name}");
+
+        // Check cooldown for this specific target
+        if (!damageCooldown.ContainsKey(otherDamageable) || Time.time >= damageCooldown[otherDamageable])
+        {
+            // Calculate knockback direction away from the other character
+            Vector2 knockbackDirection = (transform.position - collision.transform.position).normalized;
+            Vector2 finalKnockback = new Vector2(knockbackDirection.x * contactKnockback.x, contactKnockback.y);
+            
+            Debug.Log($"[Damageable] APPLYING DAMAGE - Calling TakeDamage on {otherDamageable.gameObject.name}");
+            Debug.Log($"[Damageable] Damage: {contactDamage}, Knockback: {finalKnockback}");
+            
+            // Apply damage to the other character
+            otherDamageable.TakeDamage(contactDamage, finalKnockback, gameObject);
+            
+            // Set cooldown
+            damageCooldown[otherDamageable] = Time.time + damageInterval;
+        }
+        else
+        {
+            float timeUntilNextHit = damageCooldown[otherDamageable] - Time.time;
+            Debug.Log($"[Damageable] Still in cooldown with {otherDamageable.gameObject.name} - {timeUntilNextHit:F2}s remaining");
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        Debug.Log($"[Damageable] OnTriggerEXIT detected: {collision.gameObject.name}");
+    }
+
+    // Blink the player black during i-frames
+    private IEnumerator BlinkBlackCoroutine(float duration)
+    {
+        SpriteRenderer parentRenderer = spriteRenderer;
+        if (parentRenderer == null)
+        {
+            parentRenderer = GetComponentInParent<SpriteRenderer>();
+        }
+
+        if (parentRenderer == null) yield break;
+
+        // Reset to pure white first
+        parentRenderer.color = Color.white;
+        
+        Color blackColor = Color.black;
+        float blinkSpeed = 0.1f; // Speed of blink
+        float elapsedTime = 0f;
+
+        while (elapsedTime < duration)
+        {
+            elapsedTime += Time.deltaTime;
+            // Alternate between white and black
+            float blink = Mathf.Sin(elapsedTime * (Mathf.PI / blinkSpeed)) * 0.5f + 0.5f;
+            parentRenderer.color = Color.Lerp(Color.white, blackColor, blink);
+            yield return null;
+        }
+
+        // Restore to pure white
+        parentRenderer.color = Color.white;
     }
 }

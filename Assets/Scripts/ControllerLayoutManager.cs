@@ -27,15 +27,11 @@ public class ControllerLayoutManager : MonoBehaviour
 
     void Awake()
     {
-        Debug.Log("[ControllerLayout] Awake called");
-        
         if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
             LoadLayout();
-            
-            Debug.Log($"[ControllerLayout] Initialized. Auto-detect: {autoDetect}, Current layout: {currentLayout}");
             
             if (autoDetect)
             {
@@ -50,8 +46,6 @@ public class ControllerLayoutManager : MonoBehaviour
 
     void Start()
     {
-        Debug.Log($"[ControllerLayout] Start called. Auto-detect: {autoDetect}");
-        
         UpdateLayoutDisplay();
         
         if (autoDetect)
@@ -61,7 +55,6 @@ public class ControllerLayoutManager : MonoBehaviour
             
             // Check for controller changes periodically
             InvokeRepeating(nameof(DetectControllerLayout), 0.5f, 0.5f);
-            Debug.Log("[ControllerLayout] Detection started - will check every 0.5 seconds");
         }
     }
     
@@ -77,7 +70,6 @@ public class ControllerLayoutManager : MonoBehaviour
     {
         if (change == InputActionChange.ActionPerformed)
         {
-            Debug.Log("[ControllerLayout] Input detected, checking controller...");
             DetectControllerLayout();
         }
     }
@@ -87,26 +79,12 @@ public class ControllerLayoutManager : MonoBehaviour
     /// </summary>
     private void DetectControllerLayout()
     {
-        // List all connected gamepads
-        var allGamepads = Gamepad.all;
-        Debug.Log($"[ControllerLayout] Total gamepads connected: {allGamepads.Count}");
-        
-        for (int i = 0; i < allGamepads.Count; i++)
-        {
-            var gp = allGamepads[i];
-            Debug.Log($"[ControllerLayout] Gamepad {i}: {gp.device.description.product} (Manufacturer: {gp.device.description.manufacturer})");
-        }
-        
         var gamepad = Gamepad.current;
-        
-        Debug.Log($"[ControllerLayout] Gamepad.current = {(gamepad != null ? gamepad.device.description.product : "NULL")}");
         
         if (gamepad != null)
         {
             string interfaceName = gamepad.device.description.interfaceName.ToLower();
             string deviceName = gamepad.device.description.product.ToLower();
-            
-            Debug.Log($"[ControllerLayout] Interface: '{interfaceName}', Device: '{deviceName}'");
             
             ControllerLayout detectedLayout;
             
@@ -115,44 +93,31 @@ public class ControllerLayoutManager : MonoBehaviour
             {
                 // XInput = Xbox-style controller
                 detectedLayout = ControllerLayout.Xbox;
-                Debug.Log($"[ControllerLayout] XInput detected - Using Xbox layout");
             }
             else if (deviceName.Contains("xbox") || deviceName.Contains("360") || deviceName.Contains("one"))
             {
                 // Device name mentions Xbox
                 detectedLayout = ControllerLayout.Xbox;
-                Debug.Log($"[ControllerLayout] Xbox device name detected - Using Xbox layout");
             }
             else if (deviceName.Contains("playstation") || deviceName.Contains("dualshock") || deviceName.Contains("dualsense") || 
                      deviceName.Contains("ps4") || deviceName.Contains("ps5"))
             {
                 // Device name mentions PlayStation
                 detectedLayout = ControllerLayout.PlayStation;
-                Debug.Log($"[ControllerLayout] PlayStation device name detected - Using PlayStation layout");
             }
             else
             {
                 // Unknown third-party controller - default to Xbox (more common)
                 // User can manually toggle if needed
                 detectedLayout = ControllerLayout.Xbox;
-                Debug.Log($"[ControllerLayout] Unknown third-party controller - Defaulting to Xbox layout (use Toggle if incorrect)");
             }
             
             if (detectedLayout != currentLayout)
             {
-                Debug.Log($"[ControllerLayout] Layout changed from {currentLayout} to {detectedLayout}");
                 currentLayout = detectedLayout;
                 UpdateLayoutDisplay();
                 RefreshAllControllerUIs();
             }
-            else
-            {
-                Debug.Log($"[ControllerLayout] Layout unchanged: {currentLayout}");
-            }
-        }
-        else
-        {
-            Debug.Log("[ControllerLayout] No gamepad connected");
         }
     }
 
@@ -263,11 +228,8 @@ public class ControllerLayoutManager : MonoBehaviour
             {
                 bindingUI.UpdateKeyDisplay();
                 refreshedCount++;
-                Debug.Log($"[ControllerLayout] Refreshed gamepad binding: {bindingUI.actionName}");
             }
         }
-        
-        Debug.Log($"[ControllerLayout] Refreshed {refreshedCount} gamepad bindings (Total UIs: {allBindingUIs.Length})");
     }
 
     /// <summary>

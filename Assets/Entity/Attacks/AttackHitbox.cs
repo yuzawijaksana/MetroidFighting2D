@@ -75,9 +75,15 @@ public class AttackHitbox : MonoBehaviour
     private void Start()
     {
         playerController = GetComponentInParent<PlayerController>();
+        
+        // If no PlayerController found, check for EnemyAIController (for enemy attacks)
         if (playerController == null)
         {
-            Debug.LogError("PlayerController not found. Ensure the AttackHitbox is a child of a GameObject with a PlayerController.");
+            EnemyAIController enemyController = GetComponentInParent<EnemyAIController>();
+            if (enemyController == null)
+            {
+                Debug.LogWarning("Neither PlayerController nor EnemyAIController found. AttackHitbox may not function properly.");
+            }
         }
     }
 

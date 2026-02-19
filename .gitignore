@@ -51,6 +51,7 @@ LightmapSnapshot.asset
 *.dylib
 
 # Exclude temporary files created by IDEs
+.vs/
 .idea/
 .vscode/
 *.iml
@@ -62,3 +63,4 @@ LightmapSnapshot.asset
 !*.mat
 !*.physicMaterial
 !*.controller
+
