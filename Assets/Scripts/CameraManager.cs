@@ -10,13 +10,6 @@ public class CameraBoundData
     public string boundName = "Camera Bound";
     public Collider2D boundingCollider;
     
-    [Header("Directional Settings")]
-    public bool useDirectionalSwitching = false;
-    public CameraBoundData leftBound;
-    public CameraBoundData rightBound;
-    
-    [Header("Transition Settings")]
-    public bool enableBlackoutTransition = true;
     
     [Header("Zone Definition")]
     public Vector2 zoneMin;
@@ -25,6 +18,11 @@ public class CameraBoundData
     // Helper method to check if position is in this zone
     public bool IsPositionInZone(Vector3 position)
     {
+        // Use collider for accurate shape detection (supports rotation and polygon shapes)
+        if (boundingCollider != null)
+        {
+            return boundingCollider.OverlapPoint(position);
+        }
         return position.x >= zoneMin.x && position.x <= zoneMax.x &&
                position.y >= zoneMin.y && position.y <= zoneMax.y;
     }
@@ -46,21 +44,16 @@ public class CameraManager : MonoBehaviour
     [Header("Camera References")]
     [SerializeField] private CinemachineConfiner2D confiner2D;
     [SerializeField] private Transform playerTransform;
+    [Tooltip("The parent object to scan for a child tagged 'Player'")]
+    [SerializeField] private Transform parentToScan;
     
     [Header("Camera Bounds")]
     [SerializeField] private List<CameraBoundData> cameraBounds = new List<CameraBoundData>();
     
-    [Header("Directional Switching Settings")]
-    [SerializeField] private float directionCheckInterval = 0.1f;
-    [SerializeField] private float directionSwitchDelay = 0.3f;
     [SerializeField] private float positionCheckInterval = 0.2f;
     
     // State tracking
     private CameraBoundData currentBound;
-    private CameraBoundData activeDirectionalBound;
-    private PlayerController playerController;
-    private bool isTransitioning = false;
-    private float lastDirectionCheck = 0f;
     private float lastPositionCheck = 0f;
     
     private void Start()
@@ -68,11 +61,18 @@ public class CameraManager : MonoBehaviour
         // Find player if not assigned
         if (playerTransform == null)
         {
-            var player = GameObject.FindGameObjectWithTag("Player");
-            if (player != null)
+            if (parentToScan != null)
             {
-                playerTransform = player.transform;
-                playerController = player.GetComponent<PlayerController>();
+                ScanForPlayerInParent();
+            }
+
+            if (playerTransform == null)
+            {
+                var player = GameObject.FindGameObjectWithTag("Player");
+                if (player != null)
+                {
+                    SetPlayer(player.transform);
+                }
             }
         }
         
@@ -96,7 +96,15 @@ public class CameraManager : MonoBehaviour
     
     private void Update()
     {
-        if (playerTransform == null) return;
+        if (playerTransform == null)
+        {
+            if (parentToScan != null)
+            {
+                ScanForPlayerInParent();
+            }
+            
+            if (playerTransform == null) return;
+        }
         
         // Check position changes less frequently for performance
         if (Time.time - lastPositionCheck >= positionCheckInterval)
@@ -104,15 +112,24 @@ public class CameraManager : MonoBehaviour
             UpdateCameraBound();
             lastPositionCheck = Time.time;
         }
-        
-        // Handle directional switching
-        if (activeDirectionalBound != null && 
-            activeDirectionalBound.useDirectionalSwitching &&
-            Time.time - lastDirectionCheck >= directionCheckInterval)
+    }
+
+    private void ScanForPlayerInParent()
+    {
+        foreach (Transform child in parentToScan.GetComponentsInChildren<Transform>())
         {
-            CheckDirectionalSwitching();
-            lastDirectionCheck = Time.time;
+            if (child.CompareTag("Player"))
+            {
+                SetPlayer(child);
+                break;
+            }
         }
+    }
+
+    private void SetPlayer(Transform player)
+    {
+        playerTransform = player;
+        UpdateCameraBound();
     }
     
     private void UpdateCameraBound()
@@ -123,97 +140,38 @@ public class CameraManager : MonoBehaviour
         if (newBound != null && newBound != currentBound)
         {
             Debug.Log($"🎯 Player moved to new bound: '{newBound.boundName}'");
-            
-            if (newBound.useDirectionalSwitching)
-            {
-                StartDirectionalSwitching(newBound);
-            }
-            else
-            {
-                StopDirectionalSwitching();
-                SetCameraBound(newBound);
-            }
-        }
-        else if (newBound == null && activeDirectionalBound != null)
-        {
-            // Player left directional zone
-            StopDirectionalSwitching();
+            SetCameraBound(newBound);
         }
     }
     
     private CameraBoundData FindBoundForPosition(Vector3 position)
     {
         // Find the most appropriate bound for this position
-        // Prioritize directional bounds, then regular bounds
-        CameraBoundData bestBound = null;
+        CameraBoundData firstMatch = null;
+        bool isCurrentBoundValid = false;
         
         foreach (var bound in cameraBounds)
         {
             if (bound.IsPositionInZone(position))
             {
-                if (bound.useDirectionalSwitching)
+                if (bound == currentBound)
                 {
-                    return bound; // Prioritize directional bounds
+                    isCurrentBoundValid = true;
                 }
-                else if (bestBound == null)
+                else if (firstMatch == null)
                 {
-                    bestBound = bound;
+                    firstMatch = bound;
                 }
             }
         }
         
-        return bestBound;
-    }
-    
-    private void StartDirectionalSwitching(CameraBoundData directionalBound)
-    {
-        if (activeDirectionalBound == directionalBound) return;
-        
-        Debug.Log($"🧭 Starting directional switching for '{directionalBound.boundName}'");
-        
-        activeDirectionalBound = directionalBound;
-        
-        // Apply the directional bound immediately
-        SetCameraBound(directionalBound);
-        
-        // Reset direction check timer
-        lastDirectionCheck = Time.time;
-    }
-    
-    private void StopDirectionalSwitching()
-    {
-        if (activeDirectionalBound == null) return;
-        
-        Debug.Log($"🛑 Stopping directional switching for '{activeDirectionalBound.boundName}'");
-        activeDirectionalBound = null;
-    }
-    
-    private void CheckDirectionalSwitching()
-    {
-        if (playerController == null || activeDirectionalBound == null) return;
-        
-        // Prevent rapid direction changes
-        if (Time.time - lastDirectionCheck < directionSwitchDelay) return;
-        
-        bool isFacingRight = playerController.isFacingRight;
-        CameraBoundData targetBound = null;
-        
-        if (isFacingRight && activeDirectionalBound.rightBound != null)
+        // If we are still inside the current bound, stay there to prevent flickering in overlap zones
+        if (isCurrentBoundValid)
         {
-            targetBound = activeDirectionalBound.rightBound;
-            Debug.Log($"➡️ Player facing RIGHT - switching to '{targetBound.boundName}'");
-        }
-        else if (!isFacingRight && activeDirectionalBound.leftBound != null)
-        {
-            targetBound = activeDirectionalBound.leftBound;
-            Debug.Log($"⬅️ Player facing LEFT - switching to '{targetBound.boundName}'");
+            return currentBound;
         }
         
-        // Switch to target bound if different from current
-        if (targetBound != null && targetBound != currentBound && !isTransitioning)
-        {
-            SetCameraBound(targetBound);
-        }
+        return firstMatch;
     }
     
     private void SetCameraBound(CameraBoundData newBound)
@@ -223,14 +181,7 @@ public class CameraManager : MonoBehaviour
         var previousBound = currentBound;
         currentBound = newBound;
         
-        if (newBound.enableBlackoutTransition && previousBound != null)
-        {
-            StartTransition(newBound);
-        }
-        else
-        {
-            ApplyCameraBound(newBound);
-        }
+        ApplyCameraBound(newBound);
     }
     
     private void ApplyCameraBound(CameraBoundData bound)
@@ -240,28 +191,10 @@ public class CameraManager : MonoBehaviour
             confiner2D.BoundingShape2D = bound.boundingCollider;
             
             // Force camera to recalculate immediately
-            confiner2D.InvalidateCache();
+            confiner2D.InvalidateBoundingShapeCache();
             
             Debug.Log($"✅ Applied camera bound: '{bound.boundName}'");
         }
-    }
-    
-    private void StartTransition(CameraBoundData targetBound)
-    {
-        if (isTransitioning) return;
-        
-        isTransitioning = true;
-        Debug.Log($"🎬 Starting transition to '{targetBound.boundName}'");
-        
-        FadeTransition.QuickFadeTransition(
-            onMidFade: () => {
-                ApplyCameraBound(targetBound);
-            },
-            onComplete: () => {
-                isTransitioning = false;
-                Debug.Log($"🎬 Transition complete: '{targetBound.boundName}'");
-            }
-        );
     }
     
     #region Public Methods
@@ -271,7 +204,6 @@ public class CameraManager : MonoBehaviour
         var bound = cameraBounds.Find(b => b.boundName == boundName);
         if (bound != null)
         {
-            StopDirectionalSwitching();
             SetCameraBound(bound);
         }
     }
@@ -279,11 +211,6 @@ public class CameraManager : MonoBehaviour
     public CameraBoundData GetCurrentBound()
     {
         return currentBound;
-    }
-    
-    public bool IsInDirectionalMode()
-    {
-        return activeDirectionalBound != null;
     }
     
     public void AddCameraBound(CameraBoundData newBound)
@@ -315,13 +242,9 @@ public class CameraManager : MonoBehaviour
             {
                 Gizmos.color = Color.red; // Current bound
             }
-            else if (bound == activeDirectionalBound)
-            {
-                Gizmos.color = Color.blue; // Active directional bound
-            }
             else
             {
-                Gizmos.color = bound.useDirectionalSwitching ? Color.yellow : Color.green;
+                Gizmos.color = Color.green;
             }
             
             Vector3 center = new Vector3(

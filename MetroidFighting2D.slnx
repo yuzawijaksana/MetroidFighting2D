@@ -1,0 +1,9 @@
+﻿<Solution>
+  <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="AstarPathfindingProject.csproj" />
+  <Project Path="PackageToolsEditor.csproj" />
+  <Project Path="Unified.Universal.Blur.csproj" />
+  <Project Path="AstarPathfindingProjectEditor.csproj" />
+  <Project Path="Assembly-CSharp-Editor.csproj" />
+  <Project Path="Unified.Universal.Blur.Editor.csproj" />
+</Solution>

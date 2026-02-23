@@ -177,10 +177,14 @@ GameObject:
   - component: {fileID: 2245973905117764663}
   - component: {fileID: 5309735793893219394}
   - component: {fileID: 4839795646595801801}
-  - component: {fileID: 3028552448025422367}
+  - component: {fileID: 3678648740044520389}
   - component: {fileID: 457477135009519405}
   - component: {fileID: 6446927804737950959}
   - component: {fileID: 28008274392202074}
+  - component: {fileID: 3028552448025422367}
+  - component: {fileID: 1277857578978359790}
+  - component: {fileID: 5650640705688608546}
+  - component: {fileID: 1628693931706040865}
   m_Layer: 13
   m_Name: Enemy (Bird)
   m_TagString: Enemy
@@ -357,56 +361,42 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 0.075, y: 0.35}
   m_EdgeRadius: 0.1
---- !u!114 &3028552448025422367
-MonoBehaviour:
+--- !u!58 &3678648740044520389
+CircleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4883880204484489955}
   m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 53c39f4dfe9ef544dba83bac990a763c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  detectionRange: 10
-  attackRange: 2
-  stoppingDistance: 0.5
-  playerTarget: {fileID: 0}
-  walkSpeed: 5
-  deceleration: 0.99
-  maxFallSpeed: -15
-  fallingSpeed: 10
-  fastFallSpeed: -20
-  wallCheck: {fileID: 810622594460516444}
-  wallSlidingSpeed: 2
-  wallInteractionLayers:
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
-  wallCheckRadius: 0.2
-  jumpForce: 10
-  jumpSmokePrefab: {fileID: 0}
-  jumpSmokeLifetime: 0.5
-  maxJumps: 2
-  wallJumpingDirection: 0
-  wallJumpingTime: 0.2
-  wallJumpingCounter: 0
-  wallJumpingDuration: 0.4
-  wallJumpingPower: {x: 1, y: 1}
-  attackCooldown: 2
-  jumpChance: 0.3
-  wallSlideChance: 0.2
-  aerialAttackChance: 0.7
-  upwardAttackChance: 0.6
-  verticalThreshold: 2
-  aggression: 1.5
-  groundCheckPoint: {fileID: 3296633051192932678}
-  whatIsGround:
+  m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 264
-  attackUsesRootMotion: 0
-  attackDuration: 0.5
-  attackSpeed: 5
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: -0.2}
+  m_Radius: 0.4
 --- !u!114 &457477135009519405
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -452,6 +442,131 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ae6b6c1a314a5a4f9c4bf31adeccc15, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &3028552448025422367
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4883880204484489955}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53c39f4dfe9ef544dba83bac990a763c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  aiPath: {fileID: 5650640705688608546}
+  destinationSetter: {fileID: 1628693931706040865}
+  difficulty: 0
+  decisionInterval: 1
+  isAIEnabled: 1
+  detectionRange: 10
+  attackRange: 2
+  stoppingDistance: 0.5
+  walkSpeed: 5
+  wallCheck: {fileID: 810622594460516444}
+  wallSlidingSpeed: 2
+  wallInteractionLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  wallCheckRadius: 0.2
+  jumpForce: 10
+  maxJumps: 2
+  maxJumpHoldTime: 0.25
+  jumpChance: 0.3
+  attackCooldown: 2
+  attackLockDuration: 0.8
+  aggression: 1.5
+  groundCheckPoint: {fileID: 3296633051192932678}
+  whatIsGround:
+    serializedVersion: 2
+    m_Bits: 264
+  myHomeArea: {fileID: 0}
+  homeGraphIndex: -1
+--- !u!114 &1277857578978359790
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4883880204484489955}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 373b52eb9bf8c40f785bb6947a1aee66, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 1
+  drawGizmos: 1
+  detailedGizmos: 0
+  startEndModifier:
+    addPoints: 0
+    exactStartPoint: 3
+    exactEndPoint: 3
+    useRaycasting: 0
+    mask:
+      serializedVersion: 2
+      m_Bits: 4294967295
+    useGraphRaycasting: 0
+  traversableTags: -1
+  tagPenalties: 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  graphMask:
+    value: -1
+--- !u!114 &5650640705688608546
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4883880204484489955}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6eb1402c17e84a9282a7f0f62eb584f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 5
+  radius: 0.5
+  height: 2
+  canMove: 1
+  maxSpeed: 1
+  gravity: {x: NaN, y: NaN, z: NaN}
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  centerOffsetCompatibility: NaN
+  repathRateCompatibility: NaN
+  canSearchCompability: 0
+  orientation: 1
+  enableRotation: 1
+  autoRepath:
+    mode: 2
+    interval: 0.5
+    sensitivity: 10
+    maximumInterval: 2
+    visualizeSensitivity: 0
+  targetCompatibility: {fileID: 0}
+  maxAcceleration: -2.5
+  rotationSpeed: 360
+  slowdownDistance: 0.6
+  pickNextWaypointDist: 2
+  endReachedDistance: 0.2
+  alwaysDrawGizmos: 0
+  slowWhenNotFacingTarget: 1
+  whenCloseToDestination: 0
+  constrainInsideGraph: 0
+--- !u!114 &1628693931706040865
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4883880204484489955}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9679e68a0f1144e79c664d9a11ca121, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 1
+  parentToScan: {fileID: 0}
+  target: {fileID: 0}
 --- !u!1 &5076697300259918442
 GameObject:
   m_ObjectHideFlags: 0

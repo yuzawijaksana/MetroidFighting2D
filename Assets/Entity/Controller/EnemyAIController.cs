@@ -1,667 +1,349 @@
-using System.Collections;
-using System.Linq;
-using System.Threading.Tasks;
 using UnityEngine;
-using Unity.Cinemachine;
-using UnityEngine.Tilemaps;
+using System.Collections;
+using System.Collections.Generic;
+using Pathfinding; // Required for A* components
+
+public enum AIDifficulty { Easy, Normal, Hard }
 
 public class EnemyAIController : MonoBehaviour
 {
+    [Header("A* Integration")]
+    [SerializeField] private AIPath aiPath;
+    [SerializeField] private AIDestinationSetter destinationSetter;
+
     [Header("AI Settings")]
+    [SerializeField] private AIDifficulty difficulty = AIDifficulty.Normal;
+    [SerializeField] private float decisionInterval = 0.1f; // How often the AI can "think" in seconds
+    [SerializeField] public bool isAIEnabled = true;
     [SerializeField] private float detectionRange = 10f;
     [SerializeField] private float attackRange = 2f;
     [SerializeField] private float stoppingDistance = 0.5f;
-    [SerializeField] private Transform playerTarget;
     
     [Header("Movement Settings")]
     [SerializeField] private float walkSpeed = 5.0f;
-    [SerializeField] private float deceleration = 0.99f;
-    [SerializeField] private float maxFallSpeed = -15f;
 
-    [Header("Falling Settings")]
-    [SerializeField] private float fallingSpeed = 10f;
-    [SerializeField] private float fastFallSpeed = -20f;
-
-    [Header("Sliding Settings")]
+    [Header("Sliding & Jump Settings")]
     [SerializeField] private Transform wallCheck;
     [SerializeField] private float wallSlidingSpeed = 2f;
     [SerializeField] private LayerMask wallInteractionLayers;
     [SerializeField] private float wallCheckRadius = 0.2f;
-    private bool isWallSliding;
-    private Vector2 originalColliderSize;
-
-    [Header("Jump Settings")]
-    [SerializeField] private float jumpForce = 10;
-    [SerializeField] private GameObject jumpSmokePrefab;
-    [SerializeField] private float jumpSmokeLifetime = 0.5f;
+    [SerializeField] private float jumpForce = 12f; 
     [SerializeField] private int maxJumps = 2;
-    private int jumpCount;
-    private bool isDoubleJumping;
+    [SerializeField] private float maxJumpHoldTime = 0.25f; // Used for Variable Jump Height
 
-    [Header("Wall Jump Settings")]
-    [SerializeField] private float wallJumpingDirection;
-    [SerializeField] private float wallJumpingTime = 0.2f;
-    [SerializeField] private float wallJumpingCounter;
-    [SerializeField] private float wallJumpingDuration = 0.4f;
-    [SerializeField] private Vector2 wallJumpingPower = new Vector2(1f, 1f);
-    private bool isWallJumping;
+    [Header("AI Probabilities")]
+    [SerializeField] private float jumpChance = 0.5f; 
+    [SerializeField] private float attackCooldown = 0.5f;
+    [SerializeField] private float attackLockDuration = 0.8f;
+    [SerializeField] private float aggression = 1.5f;
 
-    [Header("AI Attack Settings")]
-    [SerializeField] private float attackCooldown = 0.5f; // Faster attacks
-    [SerializeField] private float jumpChance = 0.5f; // More aggressive jumping
-    [SerializeField] private float wallSlideChance = 0.3f;
-    [SerializeField] private float aerialAttackChance = 0.7f; // More aerial attacks
-    [SerializeField] private float upwardAttackChance = 0.6f;
-    [SerializeField] private float verticalThreshold = 2f;
-    [SerializeField] private float aggression = 1.5f; // Aggression multiplier
-
-    [Header("Ground Check Settings")]
+    [Header("Ground Check")]
     [SerializeField] private Transform groundCheckPoint;
     [SerializeField] private LayerMask whatIsGround;
+    
+    [Header("Area Limit")]
+    public AreaEnemySpawner myHomeArea;
 
-    [Header("Attack Settings")]
-    [SerializeField] private bool attackUsesRootMotion = false;
-    [SerializeField] private float attackDuration = 0.5f;
-    [SerializeField] private float attackSpeed = 5f;
+    // Link playerTarget to the A* Destination Setter's target
+    private Transform playerTarget => destinationSetter.target;
 
     // References
     private Rigidbody2D rb;
-    private BoxCollider2D boxCollider;
     private Animator anim;
     private PlayerAttack playerAttack;
-    private ICharacterBehavior characterBehavior;
 
-    // State Variables
+    // State
     private bool isGrounded;
-    private float currentXAxis;
     private bool isFacingRight = true;
+    
+    [Header("Debug Info")]
+    public int homeGraphIndex = -1; // Set by AreaEnemySpawner
     private bool isAttackLocked = false;
-    public bool IsAttackLocked => isAttackLocked; // Public property for attack lock status
-    private bool wasFalling = false;
-    private bool isRecoveringFromHit = false;
+    public bool IsAttackLocked => isAttackLocked; // Fixed: Restored for Damageable.cs
+    
+    private float attackLockTimer = 0f;
     private float lastAttackTime = 0f;
-    private float attackLockTimer = 0f; // Timer to auto-unlock attacks
-    private bool wantToJump = false; // AI jump request flag
+    private bool wantToJump = false;
+    private int jumpCount;
+    private bool isWallSliding;
+    private float jumpHoldTimer = 0f; // Tracks how long the AI "holds" the jump button
+    private float decisionTimer = 0f;
 
-    // AI State
-    private enum AIState { Idle, Chasing, Attacking, Recovering }
+    private enum AIState { Idle, Chasing, Attacking }
     private AIState currentState = AIState.Idle;
 
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        boxCollider = GetComponent<BoxCollider2D>();
         anim = GetComponent<Animator>();
         playerAttack = GetComponent<PlayerAttack>();
-        characterBehavior = GetComponent<ICharacterBehavior>();
-        originalColliderSize = boxCollider.size;
 
-        // Initial player scan
-        ScanForPlayer();
-    }
+        if (aiPath == null) aiPath = GetComponent<AIPath>();
+        if (destinationSetter == null) destinationSetter = GetComponent<AIDestinationSetter>();
+        
+        // Let A* calculate path, but we handle physics
+        if (aiPath != null) aiPath.canMove = false; 
 
-    private void ScanForPlayer()
-    {
-        // Continuously look for the player with the "Player" tag
-        GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
-        if (playerObject != null)
+        // Register with the global EnemyManager for camera systems
+        if (EnemyManager.Instance != null)
         {
-            playerTarget = playerObject.transform;
+            EnemyManager.Instance.RegisterEnemy(transform);
         }
     }
 
     private void Update()
     {
-        // Update attack lock timer
-        if (isAttackLocked)
-        {
-            attackLockTimer -= Time.deltaTime;
-            if (attackLockTimer <= 0)
-            {
-                isAttackLocked = false;
-                Debug.Log("[EnemyAI] Attack lock released by timer");
-            }
-        }
-
-        // Always scan for player
-        if (playerTarget == null)
-        {
-            ScanForPlayer();
-        }
-
-        if (playerTarget == null) return;
-
+        HandleTimers();
         isGrounded = Grounded();
+
+        if (!isAIEnabled)
+        {
+            // Decelerate to a stop if AI is disabled
+            rb.linearVelocity = new Vector2(Mathf.MoveTowards(rb.linearVelocity.x, 0, 20f * Time.deltaTime), rb.linearVelocity.y);
+            UpdateAnimations();
+            return;
+        }
+        
+        decisionTimer -= Time.deltaTime;
+
         UpdateAIState();
         HandleAIBehavior();
-
-        // Handle animations
         UpdateAnimations();
     }
 
-    private void FixedUpdate()
+    private void HandleTimers()
     {
-        // Apply gravity and falling mechanics
-        if (rb.linearVelocity.y < maxFallSpeed)
+        if (isAttackLocked)
         {
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, maxFallSpeed);
+            attackLockTimer -= Time.deltaTime;
+            if (attackLockTimer <= 0) isAttackLocked = false;
         }
+    }
 
-        // Deceleration while moving
-        if (Mathf.Abs(currentXAxis) < 0.1f && Grounded())
+    private float GetReactionTimeMultiplier()
+    {
+        switch (difficulty)
         {
-            rb.linearVelocity = new Vector2(
-                Mathf.MoveTowards(rb.linearVelocity.x, 0, 20f * Time.fixedDeltaTime),
-                rb.linearVelocity.y
-            );
+            case AIDifficulty.Easy:   return 1.5f;  // Thinks 50% slower
+            case AIDifficulty.Normal: return 1.0f;
+            case AIDifficulty.Hard:   return 0.75f; // Thinks 25% faster
+            default: return 1.0f;
+        }
+    }
+
+    private float GetCooldownMultiplier()
+    {
+        switch (difficulty)
+        {
+            case AIDifficulty.Easy:   return 1.5f;  // 50% longer cooldowns
+            case AIDifficulty.Normal: return 1.0f;
+            case AIDifficulty.Hard:   return 0.75f; // 25% shorter cooldowns
+            default: return 1.0f;
         }
     }
 
     private void UpdateAIState()
     {
+        if (playerTarget == null) return;
+
         float distanceToPlayer = Vector2.Distance(transform.position, playerTarget.position);
-
-        switch (currentState)
+        
+        bool playerInBounds = false;
+        if (homeGraphIndex != -1 && AstarPath.active != null)
         {
-            case AIState.Idle:
-                if (distanceToPlayer < detectionRange)
-                {
-                    currentState = AIState.Chasing;
-                }
-                break;
+            // Check if the player is on the same navigation graph as the enemy
+            var playerNode = AstarPath.active.GetNearest(playerTarget.position).node;
+            playerInBounds = playerNode != null && (int)playerNode.GraphIndex == homeGraphIndex;
+        }
+        else
+        {
+            playerInBounds = myHomeArea == null || myHomeArea.IsInArea(playerTarget.position);
+        }
 
-            case AIState.Chasing:
-                // Transition to attacking at longer range for more aggressive behavior
-                if (distanceToPlayer < attackRange * 2.5f)
-                {
-                    currentState = AIState.Attacking;
-                }
-                else if (distanceToPlayer > detectionRange * 1.5f)
-                {
-                    currentState = AIState.Idle;
-                }
-                break;
-
-            case AIState.Attacking:
-                // Stay aggressive even if player backs away a bit
-                if (distanceToPlayer > attackRange * 4f)
-                {
-                    currentState = AIState.Chasing;
-                }
-                break;
-
-            case AIState.Recovering:
-                if (!isRecoveringFromHit)
-                {
-                    currentState = AIState.Chasing;
-                }
-                break;
+        if (currentState == AIState.Chasing && !playerInBounds)
+        {
+            currentState = AIState.Idle;
+        }
+        else if (currentState == AIState.Idle && playerInBounds && distanceToPlayer < detectionRange)
+        {
+            currentState = AIState.Chasing;
         }
     }
 
     private void HandleAIBehavior()
     {
-        switch (currentState)
+        if (currentState == AIState.Idle)
         {
-            case AIState.Idle:
-                HandleIdle();
-                break;
-
-            case AIState.Chasing:
-                HandleChasing();
-                break;
-
-            case AIState.Attacking:
-                HandleAttacking();
-                break;
-
-            case AIState.Recovering:
-                // Just stop moving during recovery
-                currentXAxis = 0;
-                break;
+            rb.linearVelocity = new Vector2(Mathf.MoveTowards(rb.linearVelocity.x, 0, 20f * Time.deltaTime), rb.linearVelocity.y);
+            return;
         }
 
-        if (!isWallJumping)
+        Vector3 directionToPath = (aiPath.steeringTarget - transform.position).normalized;
+        float distanceX = aiPath.steeringTarget.x - transform.position.x;
+
+        // VARIABLE JUMP: Apply continuous force if the AI is "holding" the jump button
+        if (!isGrounded && jumpHoldTimer > 0)
         {
-            Flip();
-        }
-
-        WallSlide();
-        Jump();
-        WallJump();
-    }
-
-    private void HandleIdle()
-    {
-        currentXAxis = 0;
-        // Stop movement
-        rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
-    }
-
-    private void HandleChasing()
-    {
-        float distanceToPlayer = transform.position.x - playerTarget.position.x;
-        float verticalDistance = playerTarget.position.y - transform.position.y;
-        
-        // Determine direction toward player
-        if (Mathf.Abs(distanceToPlayer) > stoppingDistance)
-        {
-            currentXAxis = distanceToPlayer > 0 ? -1 : 1;
-            Move();
-        }
-        else
-        {
-            currentXAxis = 0;
-        }
-
-        wantToJump = false; // Reset jump request each frame
-        
-        // FIX: Allow jumping if grounded OR if we have jumps left (Double Jump)
-        if (Grounded() || jumpCount > 0)
-        {
-            // Prevent instantly burning the double jump while shooting upwards
-            bool canIntelligentlyJump = Grounded() || rb.linearVelocity.y < 1f;
-
-            if (canIntelligentlyJump)
+            jumpHoldTimer -= Time.deltaTime;
+            
+            // If the green line STILL points UP, keep pushing up
+            if (directionToPath.y > 0.2f)
             {
-                // Jump if player is higher (above the enemy)
-                if (verticalDistance > 1f && Mathf.Abs(distanceToPlayer) < attackRange * 2f)
-                {
-                    wantToJump = true;
-                }
-                // Jump if there's random gap/obstacle chance
-                else if (Random.value < jumpChance * Time.deltaTime)
-                {
-                    wantToJump = true;
-                }
-                // Jump attack if player is nearby
-                else if (Mathf.Abs(distanceToPlayer) < attackRange * 1.5f && Mathf.Abs(verticalDistance) < 2f && Random.value < 0.3f * Time.deltaTime)
-                {
-                    wantToJump = true;
-                }
-            }
-        }
-
-        // Attack while in air if player is within range
-        if (!Grounded() && !isAttackLocked && Mathf.Abs(distanceToPlayer) < attackRange * 1.2f)
-        {
-            if (Random.value < aerialAttackChance * Time.deltaTime)
-            {
-                PerformAIAttack(verticalDistance);
-            }
-        }
-
-        // Attempt wall jump if on wall
-        if (isWallSliding && Random.value < wallSlideChance * Time.deltaTime)
-        {
-            jumpCount = maxJumps;
-        }
-    }
-
-    private void HandleAttacking()
-    {
-        float distanceToPlayer = transform.position.x - playerTarget.position.x;
-        float verticalDistance = playerTarget.position.y - transform.position.y;
-        
-        // Keep moving toward player even during attack cooldown
-        if (Mathf.Abs(distanceToPlayer) > stoppingDistance)
-        {
-            currentXAxis = distanceToPlayer > 0 ? -1 : 1;
-        }
-        else
-        {
-            currentXAxis = 0;
-        }
-        
-        Move();
-        
-        if (!isWallJumping && currentXAxis != 0)
-        {
-            Flip();
-        }
-
-        // Aggressive attack pattern
-        if (Time.time - lastAttackTime > attackCooldown)
-        {
-            if (Mathf.Abs(verticalDistance) > verticalThreshold && verticalDistance > 0)
-            {
-                if (PerformAIAttack(verticalDistance)) lastAttackTime = Time.time;
+                rb.AddForce(Vector2.up * (jumpForce * 2.5f) * Time.deltaTime, ForceMode2D.Impulse);
             }
             else
             {
-                if (PerformAIAttack(verticalDistance)) lastAttackTime = Time.time;
+                jumpHoldTimer = 0f; // Let go of the button early if the path flattens out
             }
         }
 
-        // FIX: Decoupled jumping from attack cooldown lock.
-        // Uses wantToJump instead of calling PerformJump() directly to respect the flow.
-        if (Grounded() || jumpCount > 0)
+        if (Mathf.Abs(distanceX) > stoppingDistance)
         {
-            bool canIntelligentlyJump = Grounded() || rb.linearVelocity.y < 1f;
+            Move(directionToPath.x);
+        }
 
-            if (canIntelligentlyJump && Random.value < jumpChance * aggression * Time.deltaTime)
+        FaceTarget();
+
+        // AI can only make a new "complex" decision after the decision timer is up.
+        if (decisionTimer <= 0)
+        {
+            HandleActionLogic(directionToPath);
+            decisionTimer = decisionInterval * GetReactionTimeMultiplier(); // Reset decision timer
+        }
+        
+        WallSlide();
+        Jump(); 
+    }
+
+    private void Move(float moveDir)
+    {
+        float targetSpeed = walkSpeed * (moveDir > 0 ? 1 : -1);
+        float accel = isGrounded ? 25f : 15f;
+
+        rb.linearVelocity = new Vector2(
+            Mathf.MoveTowards(rb.linearVelocity.x, targetSpeed, accel * Time.deltaTime),
+            rb.linearVelocity.y
+        );
+    }
+
+    private void HandleActionLogic(Vector3 pathDir)
+    {
+        if (playerTarget == null) return;
+        
+        float verticalDist = playerTarget.position.y - transform.position.y;
+
+        // First Jump: ONLY jump if the A* green line is pointing UP
+        if ((isGrounded || isWallSliding) && pathDir.y > 0.5f)
+        {
+            wantToJump = true;
+        }
+        // Double Jump: ONLY double jump if the green line is STILL pointing UP
+        else if (!isGrounded && jumpCount > 0 && rb.linearVelocity.y < 1f && pathDir.y > 0.5f)
+        {
+            wantToJump = true;
+        }
+
+        // Attacking
+        if (distanceToPlayer() < attackRange && Time.time - lastAttackTime > (attackCooldown * GetCooldownMultiplier()))
+        {
+            if (PerformAIAttack(verticalDist)) lastAttackTime = Time.time;
+        }
+    }
+
+    private float distanceToPlayer() => playerTarget != null ? Vector2.Distance(transform.position, playerTarget.position) : 999f;
+
+    private void Jump()
+    {
+        if (isGrounded) jumpCount = maxJumps;
+
+        if (wantToJump && !isAttackLocked)
+        {
+            if (isWallSliding)
             {
-                wantToJump = true; 
+                float wallPushDir = isFacingRight ? -1f : 1f;
+                rb.linearVelocity = Vector2.zero; 
+                rb.AddForce(new Vector2(wallPushDir * walkSpeed * 1.5f, jumpForce), ForceMode2D.Impulse);
+                
+                jumpCount--; 
+                wantToJump = false;
+                anim.SetBool("Jumping", true);
+                Flip(); 
+                
+                jumpHoldTimer = maxJumpHoldTime; // Start holding jump!
             }
-        }
-    }
-
-    private bool PerformAIAttack(float verticalDistance = 0)
-    {
-        // Prevent attacking while already locked
-        if (isAttackLocked)
-        {
-            return false;
-        }
-
-        // Perform attack based on situation
-        if (playerAttack != null)
-        {
-            float directionToPlayer = playerTarget.position.x - transform.position.x;
-            float directionX = directionToPlayer > 0 ? 1 : -1;
-            float directionY = 0;
-
-            // Determine vertical attack direction
-            if (Mathf.Abs(verticalDistance) > verticalThreshold)
+            else if (jumpCount > 0)
             {
-                if (verticalDistance > 0)
-                {
-                    directionY = 1; // Attack upward
-                }
-                else
-                {
-                    directionY = -1; // Attack downward
-                }
-            }
-
-            // Perform the attack
-            if (playerAttack.HandleAttack(isGrounded, directionY, directionX, true))
-            {
-                isAttackLocked = true;
-                attackLockTimer = attackDuration + 0.3f; // Lock for attack duration + buffer
-                Debug.Log($"[EnemyAI] Attack performed! Lock timer set to {attackLockTimer}s");
-                return true;
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
+                rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+                
+                jumpCount--;
+                wantToJump = false;
+                anim.SetBool("Jumping", true);
+                
+                jumpHoldTimer = maxJumpHoldTime; // Start holding jump!
             }
         }
-        return false;
-    }
-
-    private void Move()
-    {
-        float targetSpeed = walkSpeed * currentXAxis;
-        float acceleration = Grounded() ? 25f : 15f;
-
-        if (currentXAxis != 0)
-        {
-            rb.linearVelocity = new Vector2(
-                Mathf.MoveTowards(rb.linearVelocity.x, targetSpeed, acceleration * Time.deltaTime),
-                rb.linearVelocity.y
-            );
-        }
-        else
-        {
-            rb.linearVelocity = new Vector2(
-                Mathf.MoveTowards(rb.linearVelocity.x, 0, 20f * Time.deltaTime),
-                rb.linearVelocity.y
-            );
-        }
-
-        anim.SetBool("Walking", Grounded() && Mathf.Abs(rb.linearVelocity.x) > 0.1f);
-    }
-
-    private void Flip()
-    {
-        if ((currentXAxis < 0 && isFacingRight) || (currentXAxis > 0 && !isFacingRight))
-        {
-            transform.localScale = new Vector2(-transform.localScale.x, transform.localScale.y);
-            isFacingRight = !isFacingRight;
-        }
-    }
-
-    public bool Grounded()
-    {
-        float groundCheckRadius = 0.2f;
-        return Physics2D.OverlapCircle(groundCheckPoint.position, groundCheckRadius, whatIsGround);
-    }
-
-    private bool IsTouchingWall()
-    {
-        return Physics2D.OverlapCircle(wallCheck.position, wallCheckRadius, wallInteractionLayers);
     }
 
     private void WallSlide()
     {
-        if (IsTouchingWall() && !Grounded())
+        bool touchingWall = Physics2D.OverlapCircle(wallCheck.position, wallCheckRadius, wallInteractionLayers);
+        if (touchingWall && !isGrounded && rb.linearVelocity.y < 0)
         {
             isWallSliding = true;
-            isWallJumping = false;
-            jumpCount = 3;
-            characterBehavior?.ShrinkColliderForWallSlide();
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Clamp(rb.linearVelocity.y, -wallSlidingSpeed, float.MaxValue));
-            anim.SetBool("Sliding", isWallSliding);
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Max(rb.linearVelocity.y, -wallSlidingSpeed));
         }
-        else
-        {
-            isWallSliding = false;
-            characterBehavior?.RestoreCollider();
-            anim.SetBool("Sliding", isWallSliding);
-        }
+        else isWallSliding = false;
+        
+        anim.SetBool("Sliding", isWallSliding);
     }
 
-    private void Jump()
+    private bool PerformAIAttack(float verticalDistance)
     {
-        if (isAttackLocked) return;
+        if (isAttackLocked || playerAttack == null) return false;
+        
+        float dirX = isFacingRight ? 1 : -1;
+        float dirY = Mathf.Abs(verticalDistance) > 2f ? (verticalDistance > 0 ? 1 : -1) : 0;
 
-        if (Grounded())
+        if (playerAttack.HandleAttack(isGrounded, dirY, dirX, true))
         {
-            jumpCount = maxJumps;
-            isDoubleJumping = false;
+            isAttackLocked = true;
+            attackLockTimer = attackLockDuration * GetCooldownMultiplier(); 
+            return true;
         }
-
-        // FIX: Only jump when requested, provided we have jumps left
-        if (wantToJump && jumpCount > 0)
-        {
-            PerformJump();
-            wantToJump = false; // Consume jump request
-        }
+        return false;
     }
 
-    private void PerformJump()
+    private void FaceTarget()
     {
-        characterBehavior?.ShrinkColliderForJump();
-        rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
-        rb.AddForce(new Vector2(0, jumpForce), ForceMode2D.Impulse);
-        jumpCount--;
-
-        anim.SetBool("Jumping", true);
-
-        if (!Grounded() && jumpCount == 0)
-        {
-            isDoubleJumping = true;
-            anim.SetBool("DoubleJumping", true);
-        }
+        if (playerTarget == null) return;
+        
+        if (playerTarget.position.x > transform.position.x && !isFacingRight) Flip();
+        else if (playerTarget.position.x < transform.position.x && isFacingRight) Flip();
     }
 
-    private void WallJump()
+    private void Flip()
     {
-        if (isWallSliding)
-        {
-            isWallJumping = false;
-            wallJumpingDirection = -transform.localScale.x;
-            wallJumpingCounter = wallJumpingTime;
-            CancelInvoke(nameof(StopWallJumping));
-        }
-        else
-        {
-            wallJumpingCounter -= Time.deltaTime;
-        }
-
-        // AI randomly attempts wall jump
-        if (isWallSliding && wallJumpingCounter > 0f && Random.value < wallSlideChance * Time.deltaTime)
-        {
-            isWallJumping = true;
-            SmoothWallJump();
-            wallJumpingCounter = 0f;
-
-            if (transform.localScale.x != wallJumpingDirection)
-            {
-                isFacingRight = !isFacingRight;
-                transform.localScale = new Vector2(wallJumpingDirection, transform.localScale.y);
-            }
-
-            jumpCount = 1;
-            isDoubleJumping = false;
-
-            Invoke(nameof(StopWallJumping), wallJumpingDuration);
-        }
+        isFacingRight = !isFacingRight;
+        transform.localScale = new Vector3(-transform.localScale.x, transform.localScale.y, transform.localScale.z);
     }
 
-    private async void SmoothWallJump()
-    {
-        float jumpDuration = 0.15f;
-        float elapsedTime = 0f;
-
-        Vector2 initialPosition = rb.position;
-        Vector2 targetPosition = initialPosition + new Vector2(wallJumpingDirection * wallJumpingPower.x, wallJumpingPower.y);
-
-        float currentYVelocity = rb.linearVelocity.y;
-        float targetYVelocity = wallJumpingPower.y / jumpDuration;
-        float finalYVelocity = Mathf.Max(currentYVelocity, targetYVelocity);
-
-        while (elapsedTime < jumpDuration)
-        {
-            float t = elapsedTime / jumpDuration;
-            Vector2 lerped = Vector2.Lerp(initialPosition, targetPosition, t);
-            rb.position = new Vector2(lerped.x, lerped.y);
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, finalYVelocity);
-            elapsedTime += Time.deltaTime;
-            await Task.Yield();
-        }
-
-        rb.position = targetPosition;
-        rb.linearVelocity = new Vector2(rb.linearVelocity.x, finalYVelocity);
-    }
-
-    private void StopWallJumping()
-    {
-        isWallJumping = false;
-    }
+    public bool Grounded() => Physics2D.OverlapCircle(groundCheckPoint.position, 0.2f, whatIsGround);
 
     private void UpdateAnimations()
     {
-        // Update falling animation
-        if (!Grounded() && rb.linearVelocity.y < 0)
+        if (isGrounded) anim.SetBool("Jumping", false);
+        anim.SetBool("Walking", isGrounded && Mathf.Abs(rb.linearVelocity.x) > 0.1f);
+        anim.SetBool("Idle", isGrounded && Mathf.Abs(rb.linearVelocity.x) < 0.1f);
+        anim.SetBool("Falling", !isGrounded && rb.linearVelocity.y < -0.1f);
+    }
+
+    private void OnDestroy()
+    {
+        // When this enemy is destroyed (either by being killed or despawned), unregister it from the manager.
+        if (EnemyManager.Instance != null)
         {
-            anim.SetBool("Falling", true);
-            anim.SetBool("Jumping", false);
-            wasFalling = true;
+            EnemyManager.Instance.UnregisterEnemy(transform);
         }
-        else if (Grounded() && wasFalling)
-        {
-            anim.SetTrigger("Landing");
-            anim.SetBool("Falling", false);
-            wasFalling = false;
-        }
-        else
-        {
-            anim.SetBool("Falling", false);
-            wasFalling = false;
-        }
-
-        // Update jumping animation
-        anim.SetBool("Jumping", !Grounded());
-        anim.SetBool("DoubleJumping", isDoubleJumping && !Grounded());
-
-        // Update idle animation
-        bool isIdle = 
-            Grounded() &&
-            Mathf.Abs(rb.linearVelocity.x) < 0.1f &&
-            !anim.GetBool("Jumping") &&
-            !anim.GetBool("Falling") &&
-            !anim.GetBool("Sliding") &&
-            !isAttackLocked;
-
-        anim.SetBool("Idle", isIdle);
-    }
-
-    public void LockAttack(float duration)
-    {
-        isAttackLocked = true;
-        UnlockAttackAfterDuration(duration);
-    }
-
-    private async void UnlockAttackAfterDuration(float duration)
-    {
-        await Task.Delay((int)(duration * 1000));
-        isAttackLocked = false;
-
-        if (rb != null)
-        {
-            rb.linearVelocity = Vector2.zero;
-        }
-    }
-
-    public void ApplyHitRecovery()
-    {
-        isRecoveringFromHit = true;
-        currentState = AIState.Recovering;
-        WaitForGroundAndSlide();
-    }
-
-    private async void WaitForGroundAndSlide()
-    {
-        while (!Grounded())
-        {
-            await Task.Yield();
-        }
-
-        await SlideToStop();
-    }
-
-    private async Task SlideToStop()
-    {
-        float slideDuration = 0.2f;
-        float elapsedTime = 0f;
-
-        Vector2 initialVelocity = rb.linearVelocity;
-
-        while (elapsedTime < slideDuration)
-        {
-            elapsedTime += Time.deltaTime;
-            rb.linearVelocity = Vector2.Lerp(initialVelocity, Vector2.zero, elapsedTime / slideDuration);
-            await Task.Yield();
-        }
-
-        rb.linearVelocity = Vector2.zero;
-        isRecoveringFromHit = false;
-    }
-
-    public void HandleRespawning(bool isRespawning)
-    {
-        if (isRespawning && rb != null)
-        {
-            rb.linearVelocity = Vector2.zero;
-        }
-    }
-
-    public void SetDetectionRange(float range)
-    {
-        detectionRange = range;
-    }
-
-    public void SetAttackRange(float range)
-    {
-        attackRange = range;
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        // Draw detection range
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, detectionRange);
-
-        // Draw attack range
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, attackRange);
     }
 }
