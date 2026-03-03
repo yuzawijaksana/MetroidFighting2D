@@ -103,6 +103,7 @@ public class PlayerController : MonoBehaviour
     private PlayerAttack playerAttack;
     private ICharacterBehavior characterBehavior;
     private CinemachineCamera virtualCamera;
+    private Damageable damageable;
 
     // State Variables
     private bool isGrounded;
@@ -114,9 +115,6 @@ public class PlayerController : MonoBehaviour
 
     public bool IsAttackLocked => isAttackLocked;
 
-    // Add a new state variable to track if the character is recovering from a hit
-    private bool isRecoveringFromHit = false;
-    
     // Input buffering for controller support
     private float jumpBufferTime = 0.15f;
     private float jumpBufferCounter = 0f;
@@ -159,6 +157,9 @@ public class PlayerController : MonoBehaviour
         playerAttack = GetComponent<PlayerAttack>();
         characterBehavior = GetComponent<ICharacterBehavior>();
         originalColliderSize = boxCollider.size;
+        
+        damageable = GetComponent<Damageable>();
+        if (damageable == null) damageable = GetComponentInChildren<Damageable>();
     }
 
     private void Update()
@@ -193,6 +194,9 @@ public class PlayerController : MonoBehaviour
         
         // Prevent input during cooldown after dialog
         if (StoryDialogTrigger.InputCooldownTimer > 0) return;
+
+        // Interrupt: If locked by knockback, stop all control logic to allow physics to work
+        if (damageable != null && damageable.IsLockedByKnockback) return;
 
         // Buffer jump input
         if (controls.Player.Jump.WasPressedThisFrame())
@@ -337,6 +341,9 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+    // Interrupt: If locked by knockback, stop physics control logic
+    if (damageable != null && damageable.IsLockedByKnockback) return;
+
     if (!isAttackLocked && yAxis < -0.5f) // Only allow fast fall when not attacking
     {
         // Apply controlled falling force when moving down
@@ -358,7 +365,7 @@ public class PlayerController : MonoBehaviour
     }
 
     // Only apply deceleration if dashing and not recovering from a hit
-    if (isDashing && !isRecoveringFromHit)
+    if (isDashing)
     {
         rb.linearVelocity = new Vector2(rb.linearVelocity.x * deceleration, rb.linearVelocity.y);
         if (Mathf.Abs(rb.linearVelocity.x) < 0.1f)
@@ -757,48 +764,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void ApplyHitRecovery()
-    {
-        isRecoveringFromHit = true;
-
-        // Wait until the character touches the ground, then slide
-        WaitForGroundAndSlide();
-    }
-
-    private async void WaitForGroundAndSlide()
-    {
-        // Wait until the character is grounded
-        while (!Grounded())
-        {
-            await Task.Yield(); // Wait for the next frame
-        }
-
-        // Once grounded, apply the sliding effect
-        await SlideToStop();
-    }
-
-    private async Task SlideToStop()
-    {
-        float slideDuration = 0.2f; // Duration of the sliding effect
-        float elapsedTime = 0f;
-
-        Vector2 initialVelocity = rb.linearVelocity;
-
-        while (elapsedTime < slideDuration)
-        {
-            elapsedTime += Time.deltaTime;
-
-            // Gradually reduce velocity over time
-            rb.linearVelocity = Vector2.Lerp(initialVelocity, Vector2.zero, elapsedTime / slideDuration);
-
-            await Task.Yield();
-        }
-
-        // Ensure velocity is fully stopped at the end
-        rb.linearVelocity = Vector2.zero;
-        isRecoveringFromHit = false;
-    }
-    
     public void HandleRespawning(bool isRespawning)
     {
         if (hurtbox != null) hurtbox.SetActive(!isRespawning);

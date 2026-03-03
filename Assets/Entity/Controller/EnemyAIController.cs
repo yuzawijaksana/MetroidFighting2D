@@ -51,6 +51,7 @@ public class EnemyAIController : MonoBehaviour
     private Rigidbody2D rb;
     private Animator anim;
     private PlayerAttack playerAttack;
+    private Damageable damageable;
 
     // State
     private bool isGrounded;
@@ -77,12 +78,22 @@ public class EnemyAIController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         playerAttack = GetComponent<PlayerAttack>();
+        
+        damageable = GetComponent<Damageable>();
+        if (damageable == null) damageable = GetComponentInChildren<Damageable>();
 
         if (aiPath == null) aiPath = GetComponent<AIPath>();
         if (destinationSetter == null) destinationSetter = GetComponent<AIDestinationSetter>();
         
         // Let A* calculate path, but we handle physics
-        if (aiPath != null) aiPath.canMove = false; 
+        if (aiPath != null) 
+        {
+            aiPath.canMove = false;
+            aiPath.updateRotation = false; // Prevent A* from rotating the enemy
+        }
+        
+        // Initialize facing direction based on current scale
+        isFacingRight = transform.localScale.x > 0;
 
         // Register with the global EnemyManager for camera systems
         if (EnemyManager.Instance != null)
@@ -105,6 +116,9 @@ public class EnemyAIController : MonoBehaviour
         }
         
         decisionTimer -= Time.deltaTime;
+
+        // Interrupt: If locked by knockback, stop AI movement to allow physics to work
+        if (damageable != null && damageable.IsLockedByKnockback) return;
 
         UpdateAIState();
         HandleAIBehavior();
@@ -316,10 +330,18 @@ public class EnemyAIController : MonoBehaviour
 
     private void FaceTarget()
     {
-        if (playerTarget == null) return;
-        
-        if (playerTarget.position.x > transform.position.x && !isFacingRight) Flip();
-        else if (playerTarget.position.x < transform.position.x && isFacingRight) Flip();
+        // Priority 1: Face movement direction to prevent moonwalking
+        if (Mathf.Abs(rb.linearVelocity.x) > 0.1f)
+        {
+            if (rb.linearVelocity.x > 0 && !isFacingRight) Flip();
+            else if (rb.linearVelocity.x < 0 && isFacingRight) Flip();
+        }
+        // Priority 2: Face player if stationary
+        else if (playerTarget != null)
+        {
+            if (playerTarget.position.x > transform.position.x && !isFacingRight) Flip();
+            else if (playerTarget.position.x < transform.position.x && isFacingRight) Flip();
+        }
     }
 
     private void Flip()

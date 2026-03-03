@@ -12,60 +12,50 @@ public class Damageable : MonoBehaviour
     private PlayerController playerController;
     public CharacterIngameCellUI cellUI;
 
-    // ==================== GAME MODE ====================
+    // ==================== INSPECTOR SETTINGS ====================
     [Header("═══════════════ GAME MODE ═══════════════")]
-    [Space(10)]
     [Tooltip("TRUE = Story Mode (dies at max health) | FALSE = PvP Mode (infinite damage)")]
     [SerializeField] private bool isStoryMode = true;
-    [Space(20)]
-    
-    // ==================== SHARED SETTINGS ====================
-    [Header("═══════════════ SHARED SETTINGS ═══════════════")]
-    [Space(10)]
+    [Tooltip("Player dies when health reaches this value")]
+    [SerializeField] private float maxHealthThreshold = 300f;
+    [TextArea(2, 3)] [SerializeField] private string storyInfo = "Story Mode:\n• Dies at 300% damage\n• Respawn/Game Over on death";
+    [TextArea(2, 3)] [SerializeField] private string pvpInfo = "PvP Mode:\n• Damage accumulates infinitely\n• No death - eliminated by ring-outs";
+
+    [Header("═══════════════ HEALTH & STATUS ═══════════════")]
     [SerializeField] public float currentHealth;
     [SerializeField] public int maxHearts = 3;
+    [SerializeField] private bool useIFrames = true;
+    [SerializeField] private float iFrameDuration = 2f; // 2 second invulnerability
 
-    [Header("Ground Check Settings")]
+    [Header("═══════════════ CONTACT DAMAGE ═══════════════")]
+    [Tooltip("If true, this entity deals damage to others on contact.")]
+    [SerializeField] private bool dealsContactDamage = true;
+    [Tooltip("If true, this entity takes damage from others' contact damage.")]
+    [SerializeField] public bool receivesContactDamage = true;
+    [SerializeField] private float contactDamage = 5f;
+    [SerializeField] private Vector2 contactKnockback = new Vector2(10f, 10f);
+    [SerializeField] private float damageInterval = 0.5f;
+
+    [Header("═══════════════ GROUND DETECTION ═══════════════")]
     [SerializeField] private Transform groundCheckPoint;
     [SerializeField] private LayerMask whatIsGround;
     [SerializeField] private float groundCheckRadius = 0.2f;
 
-    [Header("Stun Settings")]
-    private float stunDuration = 0.75f;
-    private bool isStunned = false;
-    
+    [Header("═══════════════ KNOCKBACK INTERRUPT ═══════════════")]
+    [Tooltip("How long movement is disabled after getting hit (allows knockback to travel)")]
+    [SerializeField] private float knockbackInterruptDuration = 0.4f;
+    public bool IsLockedByKnockback => knockbackInterruptTimer > 0;
+
+    // ==================== INTERNAL STATE ====================
     private float lastHitTime = -1f;
     private float hitCooldown = 0.05f;
-    [Space(20)]
-
-    [Header("Contact Damage Settings")]
-    [SerializeField] private float contactDamage = 5f;
-    [SerializeField] private Vector2 contactKnockback = new Vector2(5f, 3f);
-    [SerializeField] private float damageInterval = 0.5f;
-    private Dictionary<Damageable, float> damageCooldown = new Dictionary<Damageable, float>();
-    private HashSet<Damageable> currentlyCollidingWith = new HashSet<Damageable>(); // Track current collisions
-
-    [Header("I-Frame Settings")]
-    [SerializeField] private float iFrameDuration = 2f; // 2 second invulnerability
     private float iFrameTimer = 0f;
-    [Space(20)]
-    
-    // ==================== PVP MODE SETTINGS ====================
-    [Header("█████████ PVP MODE █████████")]
-    [Space(5)]
-    [TextArea(2, 3)]
-    [SerializeField] private string pvpInfo = "PvP Mode:\n• Damage accumulates infinitely\n• No death - eliminated by ring-outs";
-    [Space(20)]
-    
-    // ==================== STORY MODE SETTINGS ====================
-    [Header("█████████ STORY MODE █████████")]
-    [Space(5)]
-    [Tooltip("Player dies when health reaches this value")]
-    [SerializeField] private float maxHealthThreshold = 300f;
-    [TextArea(2, 3)]
-    [SerializeField] private string storyInfo = "Story Mode:\n• Dies at 300% damage\n• Respawn/Game Over on death";
     private bool isDead = false;
     
+    private Dictionary<Damageable, float> damageCooldown = new Dictionary<Damageable, float>();
+    private float knockbackInterruptTimer = 0f;
+    private HashSet<Damageable> currentlyCollidingWith = new HashSet<Damageable>(); // Track current collisions
+
     // ==================== INITIALIZATION ====================
     private void Start()
     {
@@ -79,10 +69,6 @@ public class Damageable : MonoBehaviour
         {
             groundCheckPoint = playerController.groundCheckPoint;
             whatIsGround = playerController.whatIsGround;
-        }
-        else if (groundCheckPoint == null)
-        {
-            Debug.LogError($"GroundCheckPoint is not assigned for {gameObject.name}. Ensure it is set in the inspector or via PlayerController.");
         }
 
         // Update mask color and initialize hearts on start
@@ -112,6 +98,12 @@ public class Damageable : MonoBehaviour
             Debug.Log($"[Damageable] I-frames ended, resetting collision tracking for {currentlyCollidingWith.Count} targets");
             currentlyCollidingWith.Clear();
         }
+        
+        // Update knockback interrupt timer
+        if (knockbackInterruptTimer > 0)
+        {
+            knockbackInterruptTimer -= Time.deltaTime;
+        }
 
         // Backup detection method using physics overlap if triggers don't work
         DetectNearbyDamageable();
@@ -120,50 +112,61 @@ public class Damageable : MonoBehaviour
     // Fallback collision detection using Physics2D
     private void DetectNearbyDamageable()
     {
-        // Get capsule collider
-        CapsuleCollider2D capsuleCol = GetComponent<CapsuleCollider2D>();
-        if (capsuleCol == null) return;
+        if (!dealsContactDamage) return;
 
-        // Use OverlapBox to detect nearby Damageable objects
-        Collider2D[] hits = Physics2D.OverlapBoxAll(transform.position, capsuleCol.size * 1.2f, 0f);
+        // Get ALL colliders to ensure we cover the whole entity (body, head, etc.)
+        Collider2D[] myColliders = GetComponents<Collider2D>();
+        if (myColliders.Length == 0) return;
+
         HashSet<Damageable> stillColliding = new HashSet<Damageable>();
 
-        foreach (Collider2D hit in hits)
+        foreach (var col in myColliders)
         {
-            if (hit == capsuleCol) continue; // Skip self
+            if (!col.enabled) continue;
 
-            Damageable otherDamageable = hit.GetComponent<Damageable>();
-            if (otherDamageable == null)
-            {
-                otherDamageable = hit.GetComponentInChildren<Damageable>();
-            }
-            if (otherDamageable == null)
-            {
-                otherDamageable = hit.GetComponentInParent<Damageable>();
-            }
+            // Use OverlapBox for each collider with a slight expansion
+            Collider2D[] hits = Physics2D.OverlapBoxAll(col.bounds.center, col.bounds.size * 1.1f, 0f);
 
-            if (otherDamageable != null && otherDamageable != this)
+            foreach (Collider2D hit in hits)
             {
-                // Only apply contact damage if the OTHER character is the player, not if it's an enemy
-                EnemyAIController enemyController = otherDamageable.GetComponentInParent<EnemyAIController>();
-                if (enemyController != null)
+                if (hit.transform.IsChildOf(transform)) continue; // Skip self and children
+
+                Damageable otherDamageable = hit.GetComponent<Damageable>();
+                if (otherDamageable == null) otherDamageable = hit.GetComponentInChildren<Damageable>();
+                if (otherDamageable == null) otherDamageable = hit.GetComponentInParent<Damageable>();
+
+                if (otherDamageable != null && otherDamageable != this)
                 {
-                    continue; // Skip contact damage for enemies
-                }
+                    // Only apply contact damage if the OTHER character is the player
+                    EnemyAIController enemyController = otherDamageable.GetComponentInParent<EnemyAIController>();
+                    if (enemyController != null) continue;
 
-                stillColliding.Add(otherDamageable);
+                    if (!otherDamageable.receivesContactDamage) continue;
 
-                // Only apply knockback on FIRST contact (not already in collision list)
-                if (!currentlyCollidingWith.Contains(otherDamageable))
-                {
-                    // Knockback away from the enemy (relative to collision point)
-                    Vector2 knockbackDirection = (hit.transform.position - transform.position).normalized;
-                    Vector2 knockbackDir = new Vector2(knockbackDirection.x * contactKnockback.x, contactKnockback.y);
-                    
-                    Debug.Log($"[Damageable] CONTACT: Dealing {contactDamage} damage to {otherDamageable.gameObject.name}. Knockback dir: {knockbackDir}");
-                    
-                    otherDamageable.TakeDamage(contactDamage, knockbackDir, gameObject);
-                    currentlyCollidingWith.Add(otherDamageable);
+                    stillColliding.Add(otherDamageable);
+
+                    // Check cooldown for this specific target (Continuous damage support)
+                    if (!damageCooldown.ContainsKey(otherDamageable) || Time.time >= damageCooldown[otherDamageable])
+                    {
+                        // Knockback away from the enemy (relative to collision point)
+                        Vector2 knockbackDirection = (hit.transform.position - transform.position).normalized;
+                        
+                        // Ensure slight upward force for side collisions to overcome friction
+                        if (Mathf.Abs(knockbackDirection.y) < 0.2f) knockbackDirection.y = 0.2f;
+                        knockbackDirection.Normalize();
+
+                        Vector2 knockbackDir = new Vector2(knockbackDirection.x * contactKnockback.x, contactKnockback.y);
+                        
+                        Debug.Log($"[Damageable] CONTACT: Dealing {contactDamage} damage to {otherDamageable.gameObject.name}. Knockback dir: {knockbackDir}");
+                        
+                        otherDamageable.TakeDamage(contactDamage, knockbackDir, gameObject);
+                        damageCooldown[otherDamageable] = Time.time + damageInterval;
+                    }
+
+                    if (!currentlyCollidingWith.Contains(otherDamageable))
+                    {
+                        currentlyCollidingWith.Add(otherDamageable);
+                    }
                 }
             }
         }
@@ -193,22 +196,16 @@ public class Damageable : MonoBehaviour
             return;
         }
         
-        // Check if this character is attacking - if so, block contact knockback
-        PlayerController playerCtrl = GetComponentInParent<PlayerController>();
-        EnemyAIController enemyCtrl = GetComponentInParent<EnemyAIController>();
-        if ((playerCtrl != null && playerCtrl.IsAttackLocked) || (enemyCtrl != null && enemyCtrl.IsAttackLocked))
-        {
-            Debug.Log($"[Damageable] {gameObject.name} is attacking - blocking contact knockback");
-            knockback = Vector2.zero; // Remove knockback but damage still applies
-        }
-        
         // Set i-frame timer and start blinking
-        iFrameTimer = iFrameDuration;
-        StopCoroutine(nameof(BlinkBlackCoroutine)); // Stop any existing blink
-        StartCoroutine(BlinkBlackCoroutine(iFrameDuration));
-        
-        // Clear collision tracking so knockback can reapply after i-frames end
-        currentlyCollidingWith.Clear();
+        if (useIFrames)
+        {
+            iFrameTimer = iFrameDuration;
+            StopCoroutine(nameof(BlinkBlackCoroutine)); // Stop any existing blink
+            StartCoroutine(BlinkBlackCoroutine(iFrameDuration));
+            
+            // Clear collision tracking so knockback can reapply after i-frames end
+            currentlyCollidingWith.Clear();
+        }
         
         // Prevent double application in the same frame
         if (Time.time - lastHitTime < hitCooldown)
@@ -224,6 +221,21 @@ public class Damageable : MonoBehaviour
             currentHealth += damage;
             Debug.Log($"Health updated to {currentHealth} for {gameObject.name}");
         }
+        
+        // Apply Hit Pause
+        if (GlobalSettings.Instance != null)
+        {
+            GlobalSettings.Instance.TriggerHitPause();
+        }
+
+        // Trigger Camera Shake
+        if (CameraShake.Instance != null)
+        {
+            CameraShake.Instance.Shake(5f, 0.1f); // Example: intensity 5 for 0.1 seconds
+        }
+        
+        // Apply Knockback Interrupt (Disable movement control briefly)
+        knockbackInterruptTimer = knockbackInterruptDuration;
 
         // Apply knockback based on game mode
         Rigidbody2D rb = GetComponent<Rigidbody2D>();
@@ -351,12 +363,6 @@ public class Damageable : MonoBehaviour
         return Physics2D.OverlapCircle(groundCheckPoint.position, groundCheckRadius, whatIsGround);
     }
 
-    // Returns whether the object is currently stunned
-    public bool IsStunned()
-    {
-        return isStunned;
-    }
-
     // Resets the object's health
     public void ResetHealth()
     {
@@ -447,6 +453,8 @@ public class Damageable : MonoBehaviour
 
     private void OnTriggerStay2D(Collider2D collision)
     {
+        if (!dealsContactDamage) return;
+
         Debug.Log($"[Damageable] OnTriggerSTAY detected: {collision.gameObject.name}, Tag: {collision.gameObject.tag}");
         
         // Search for Damageable in multiple ways: on self, children, or parents
@@ -477,13 +485,15 @@ public class Damageable : MonoBehaviour
             return;
         }
 
+        if (!otherDamageable.receivesContactDamage) return;
+
         Debug.Log($"[Damageable] Found other Damageable: {otherDamageable.gameObject.name}");
 
         // Check cooldown for this specific target
         if (!damageCooldown.ContainsKey(otherDamageable) || Time.time >= damageCooldown[otherDamageable])
         {
             // Calculate knockback direction away from the other character
-            Vector2 knockbackDirection = (transform.position - collision.transform.position).normalized;
+            Vector2 knockbackDirection = (collision.transform.position - transform.position).normalized; // FIXED: Was pulling player in
             Vector2 finalKnockback = new Vector2(knockbackDirection.x * contactKnockback.x, contactKnockback.y);
             
             Debug.Log($"[Damageable] APPLYING DAMAGE - Calling TakeDamage on {otherDamageable.gameObject.name}");
@@ -536,5 +546,52 @@ public class Damageable : MonoBehaviour
 
         // Restore to pure white
         parentRenderer.color = Color.white;
+    }
+
+    // Handle physics collisions (non-trigger) for contact damage
+    private void OnCollisionStay2D(Collision2D collision)
+    {
+        if (!dealsContactDamage) return;
+
+        Damageable otherDamageable = collision.gameObject.GetComponent<Damageable>();
+        if (otherDamageable == null) otherDamageable = collision.gameObject.GetComponentInChildren<Damageable>();
+        if (otherDamageable == null) otherDamageable = collision.gameObject.GetComponentInParent<Damageable>();
+
+        if (otherDamageable != null && otherDamageable != this)
+        {
+            // Only apply contact damage if the OTHER character is the player, not if it's an enemy
+            EnemyAIController enemyController = otherDamageable.GetComponentInParent<EnemyAIController>();
+            if (enemyController != null)
+            {
+                return; // Skip contact damage for enemies
+            }
+
+            if (!otherDamageable.receivesContactDamage) return;
+
+            // Check cooldown for this specific target
+            if (!damageCooldown.ContainsKey(otherDamageable) || Time.time >= damageCooldown[otherDamageable])
+            {
+                // Calculate knockback direction away from the other character
+                Vector2 knockbackDirection = (collision.transform.position - transform.position).normalized;
+                
+                // Ensure slight upward force for side collisions to overcome friction
+                if (Mathf.Abs(knockbackDirection.y) < 0.2f) knockbackDirection.y = 0.2f;
+                knockbackDirection.Normalize();
+
+                Vector2 finalKnockback = new Vector2(knockbackDirection.x * contactKnockback.x, contactKnockback.y);
+                
+                Debug.Log($"[Damageable] COLLISION CONTACT: Dealing {contactDamage} damage to {otherDamageable.gameObject.name}");
+                
+                otherDamageable.TakeDamage(contactDamage, finalKnockback, gameObject);
+                
+                // Set cooldown
+                damageCooldown[otherDamageable] = Time.time + damageInterval;
+            }
+        }
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        OnCollisionStay2D(collision);
     }
 }

@@ -28,7 +28,6 @@ public class DeadzoneHandler : MonoBehaviour
             }
 
             PlayerController playerController = collision.GetComponentInParent<PlayerController>();
-            if (playerController != null && damageable.IsStunned()) playerController.isControllable = false;
             Debug.Log($"Player hit the Deadzone. Teleporting to {teleportPosition} and resetting health.");
         }
 

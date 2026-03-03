@@ -1,266 +1,328 @@
 using UnityEngine;
 using Unity.Cinemachine;
 using System.Collections.Generic;
-using System;
+using System.Collections;
+using TMPro;
+
+// --- DATA CLASSES ---
 
 [System.Serializable]
 public class CameraBoundData
 {
-    [Header("Bound Info")]
-    public string boundName = "Camera Bound";
+    public string boundName = "New Room";
     public Collider2D boundingCollider;
+    [Tooltip("The Grid or Parent Object containing this room's tiles/props.")]
+    public GameObject mapObject; 
     
-    
-    [Header("Zone Definition")]
-    public Vector2 zoneMin;
-    public Vector2 zoneMax;
-    
-    // Helper method to check if position is in this zone
+    [HideInInspector] public Vector2 zoneMin;
+    [HideInInspector] public Vector2 zoneMax;
+
     public bool IsPositionInZone(Vector3 position)
     {
-        // Use collider for accurate shape detection (supports rotation and polygon shapes)
-        if (boundingCollider != null)
-        {
-            return boundingCollider.OverlapPoint(position);
-        }
-        return position.x >= zoneMin.x && position.x <= zoneMax.x &&
-               position.y >= zoneMin.y && position.y <= zoneMax.y;
+        if (boundingCollider == null) return false;
+        // OverlapPoint works for any collider type (Polygon, Box, etc.)
+        return boundingCollider.OverlapPoint(position);
     }
-    
-    // Auto-calculate zone from collider bounds
+
     public void CalculateZoneFromCollider()
     {
         if (boundingCollider != null)
         {
             var bounds = boundingCollider.bounds;
-            zoneMin = new Vector2(bounds.min.x, bounds.min.y);
-            zoneMax = new Vector2(bounds.max.x, bounds.max.y);
+            zoneMin = bounds.min;
+            zoneMax = bounds.max;
         }
     }
 }
 
+[System.Serializable]
+public class Portal
+{
+    public Collider2D trigger;
+    public CameraBoundData room; 
+    public Transform customSpawnPoint;
+}
+
+[System.Serializable]
+public class PortalConnection
+{
+    public string connectionName = "New Connection";
+    public Portal portalA;
+    public Portal portalB;
+    public bool useRelativeOffset = true;
+}
+
+// --- MAIN MANAGER ---
+
 public class CameraManager : MonoBehaviour
 {
-    [Header("Camera References")]
+    public static CameraManager Instance { get; private set; }
+
+    [Header("UI & Feedback")]
+    [SerializeField] private GameObject dialogCanvas; 
+    [SerializeField] private TMP_Text areaNameText;   
+    [SerializeField] private float dialogDisplayTime = 2f;
+    [SerializeField] private GameObject loadingIcon;
+
+    [Header("References")]
     [SerializeField] private CinemachineConfiner2D confiner2D;
-    [SerializeField] private Transform playerTransform;
-    [Tooltip("The parent object to scan for a child tagged 'Player'")]
+    [SerializeField] private Transform _playerTransform;
     [SerializeField] private Transform parentToScan;
+
+    // Property ensures we always find the player if they go missing
+    public Transform PlayerTransform 
+    {
+        get 
+        {
+            if (_playerTransform == null) ScanForPlayer();
+            return _playerTransform;
+        }
+    }
     
-    [Header("Camera Bounds")]
-    [SerializeField] private List<CameraBoundData> cameraBounds = new List<CameraBoundData>();
-    
-    [SerializeField] private float positionCheckInterval = 0.2f;
-    
-    // State tracking
+    [Header("Transition Settings")]
+    [SerializeField] private List<PortalConnection> portalConnections = new List<PortalConnection>();
+    [SerializeField] private float transitionDuration = 0.5f; 
+    [SerializeField] private float minLoadingTime = 0.4f; 
+    [SerializeField] private float pushForce = 10f; // Constant push strength
+
+    private List<CameraBoundData> discoveredRooms = new List<CameraBoundData>();
     private CameraBoundData currentBound;
-    private float lastPositionCheck = 0f;
-    
+    private bool isTransitioning = false;
+    private Rigidbody2D playerRB;
+    private Collider2D lastArrivalTrigger;
+    private Vector2 currentPushDir;
+
+    private void Awake()
+    {
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+
+        ScanForPlayer();
+    }
+
     private void Start()
     {
-        // Find player if not assigned
-        if (playerTransform == null)
-        {
-            if (parentToScan != null)
-            {
-                ScanForPlayerInParent();
-            }
+        if (confiner2D == null) confiner2D = FindFirstObjectByType<CinemachineConfiner2D>();
+        
+        GatherRoomsFromPortals();
+        UpdateCameraBound();
 
-            if (playerTransform == null)
+        // Enable initial room's map
+        if (currentBound != null && currentBound.mapObject != null)
+            currentBound.mapObject.SetActive(true); 
+            
+        if (loadingIcon != null) loadingIcon.SetActive(false);
+    }
+
+    private void GatherRoomsFromPortals()
+    {
+        discoveredRooms.Clear();
+        foreach (var conn in portalConnections)
+        {
+            if (conn == null) continue;
+            TryAddRoom(conn.portalA?.room);
+            TryAddRoom(conn.portalB?.room);
+        }
+    }
+
+    private void TryAddRoom(CameraBoundData room)
+    {
+        if (room != null && room.boundingCollider != null && !discoveredRooms.Contains(room))
+        {
+            room.CalculateZoneFromCollider();
+            discoveredRooms.Add(room);
+        }
+    }
+
+    private void FixedUpdate()
+    {
+        if (PlayerTransform == null) return;
+
+        // --- CONSTANT PUSH LOGIC ---
+        // If the player is still inside the exit trigger, keep pushing them out
+        if (lastArrivalTrigger != null)
+        {
+            if (lastArrivalTrigger.OverlapPoint(PlayerTransform.position))
             {
-                var player = GameObject.FindGameObjectWithTag("Player");
-                if (player != null)
+                if (playerRB != null)
                 {
-                    SetPlayer(player.transform);
+                    playerRB.linearVelocity = currentPushDir * pushForce;
                 }
             }
-        }
-        
-        // Find confiner if not assigned
-        if (confiner2D == null)
-        {
-            confiner2D = FindFirstObjectByType<CinemachineConfiner2D>();
-        }
-        
-        // Auto-calculate zones from colliders
-        foreach (var bound in cameraBounds)
-        {
-            bound.CalculateZoneFromCollider();
-        }
-        
-        // Set initial camera bound
-        UpdateCameraBound();
-        
-        Debug.Log($"CameraManager initialized with {cameraBounds.Count} bounds");
-    }
-    
-    private void Update()
-    {
-        if (playerTransform == null)
-        {
-            if (parentToScan != null)
+            else
             {
-                ScanForPlayerInParent();
+                // Stop pushing once they've cleared the collider
+                lastArrivalTrigger = null;
             }
-            
-            if (playerTransform == null) return;
         }
-        
-        // Check position changes less frequently for performance
-        if (Time.time - lastPositionCheck >= positionCheckInterval)
+
+        if (!isTransitioning && lastArrivalTrigger == null) 
         {
-            UpdateCameraBound();
-            lastPositionCheck = Time.time;
+            CheckPortals();
         }
     }
 
-    private void ScanForPlayerInParent()
+    private void Update()
     {
-        foreach (Transform child in parentToScan.GetComponentsInChildren<Transform>())
+        if (PlayerTransform == null || isTransitioning) return;
+        UpdateCameraBound();
+    }
+
+    private void UpdateCameraBound()
+    {
+        Vector3 pos = PlayerTransform.position;
+        if (currentBound != null && currentBound.IsPositionInZone(pos)) return;
+
+        foreach (var room in discoveredRooms)
         {
-            if (child.CompareTag("Player"))
+            if (room.IsPositionInZone(pos))
             {
-                SetPlayer(child);
+                ApplyNewBound(room);
                 break;
             }
         }
     }
 
-    private void SetPlayer(Transform player)
+    private void ApplyNewBound(CameraBoundData newBound)
     {
-        playerTransform = player;
-        UpdateCameraBound();
-    }
-    
-    private void UpdateCameraBound()
-    {
-        Vector3 playerPos = playerTransform.position;
-        CameraBoundData newBound = FindBoundForPosition(playerPos);
-        
-        if (newBound != null && newBound != currentBound)
-        {
-            Debug.Log($"🎯 Player moved to new bound: '{newBound.boundName}'");
-            SetCameraBound(newBound);
-        }
-    }
-    
-    private CameraBoundData FindBoundForPosition(Vector3 position)
-    {
-        // Find the most appropriate bound for this position
-        CameraBoundData firstMatch = null;
-        bool isCurrentBoundValid = false;
-        
-        foreach (var bound in cameraBounds)
-        {
-            if (bound.IsPositionInZone(position))
-            {
-                if (bound == currentBound)
-                {
-                    isCurrentBoundValid = true;
-                }
-                else if (firstMatch == null)
-                {
-                    firstMatch = bound;
-                }
-            }
-        }
-        
-        // If we are still inside the current bound, stay there to prevent flickering in overlap zones
-        if (isCurrentBoundValid)
-        {
-            return currentBound;
-        }
-        
-        return firstMatch;
-    }
-    
-    private void SetCameraBound(CameraBoundData newBound)
-    {
-        if (newBound == null || newBound.boundingCollider == null) return;
-        
-        var previousBound = currentBound;
+        if (newBound == null) return;
         currentBound = newBound;
-        
-        ApplyCameraBound(newBound);
-    }
-    
-    private void ApplyCameraBound(CameraBoundData bound)
-    {
-        if (confiner2D != null && bound.boundingCollider != null)
+        if (confiner2D != null && newBound.boundingCollider != null)
         {
-            confiner2D.BoundingShape2D = bound.boundingCollider;
-            
-            // Force camera to recalculate immediately
-            confiner2D.InvalidateBoundingShapeCache();
-            
-            Debug.Log($"✅ Applied camera bound: '{bound.boundName}'");
+            confiner2D.BoundingShape2D = newBound.boundingCollider;
+            // Force Confiner to update shape instantly
+            confiner2D.InvalidateBoundingShapeCache(); 
         }
     }
-    
-    #region Public Methods
-    
-    public void ForceSetBound(string boundName)
+
+    private void CheckPortals()
     {
-        var bound = cameraBounds.Find(b => b.boundName == boundName);
-        if (bound != null)
+        Vector3 pos = PlayerTransform.position;
+        foreach (var conn in portalConnections)
         {
-            SetCameraBound(bound);
-        }
-    }
-    
-    public CameraBoundData GetCurrentBound()
-    {
-        return currentBound;
-    }
-    
-    public void AddCameraBound(CameraBoundData newBound)
-    {
-        if (!cameraBounds.Contains(newBound))
-        {
-            cameraBounds.Add(newBound);
-            newBound.CalculateZoneFromCollider();
-        }
-    }
-    
-    public void RemoveCameraBound(CameraBoundData bound)
-    {
-        cameraBounds.Remove(bound);
-    }
-    
-    #endregion
-    
-    #region Debug Helpers
-    
-    private void OnDrawGizmos()
-    {
-        if (cameraBounds == null) return;
-        
-        Gizmos.color = Color.green;
-        foreach (var bound in cameraBounds)
-        {
-            if (bound == currentBound)
+            if (conn.portalA?.trigger != null && conn.portalA.trigger.OverlapPoint(pos))
             {
-                Gizmos.color = Color.red; // Current bound
+                StartCoroutine(ExecutePortalTransition(conn, conn.portalA, conn.portalB));
+                break;
             }
-            else
+            else if (conn.portalB?.trigger != null && conn.portalB.trigger.OverlapPoint(pos))
             {
-                Gizmos.color = Color.green;
+                StartCoroutine(ExecutePortalTransition(conn, conn.portalB, conn.portalA));
+                break;
             }
-            
-            Vector3 center = new Vector3(
-                (bound.zoneMin.x + bound.zoneMax.x) / 2f,
-                (bound.zoneMin.y + bound.zoneMax.y) / 2f,
-                0f
-            );
-            Vector3 size = new Vector3(
-                bound.zoneMax.x - bound.zoneMin.x,
-                bound.zoneMax.y - bound.zoneMin.y,
-                1f
-            );
-            
-            Gizmos.DrawWireCube(center, size);
         }
     }
-    
-    #endregion
+
+    private IEnumerator ExecutePortalTransition(PortalConnection connection, Portal entry, Portal exit)
+    {
+        isTransitioning = true;
+        if (loadingIcon != null) loadingIcon.SetActive(true);
+        
+        // Save the direction for the push
+        currentPushDir = (playerRB != null && playerRB.linearVelocity.sqrMagnitude > 0.01f) 
+            ? playerRB.linearVelocity.normalized : Vector2.right;
+
+        if (FadeTransition.Instance != null)
+        {
+            bool faded = false;
+            FadeTransition.Instance.FadeOut(() => faded = true); 
+            while (!faded) yield return null;
+        }
+
+        float loadStartTime = Time.time;
+
+        // Toggle map objects for performance
+        if (currentBound != null && currentBound.mapObject != null)
+            currentBound.mapObject.SetActive(false); 
+
+        if (exit.room.mapObject != null)
+            exit.room.mapObject.SetActive(true); 
+
+        // Teleport logic
+        Vector3 oldPos = PlayerTransform.position;
+        Vector3 targetPos = CalculateTeleportPosition(connection, entry, exit);
+        
+        if (playerRB != null) playerRB.simulated = false;
+        PlayerTransform.position = targetPos;
+        // Warp Cinemachine target instantly
+        CinemachineCore.OnTargetObjectWarped(PlayerTransform, targetPos - oldPos);
+
+        ApplyNewBound(exit.room);
+        ShowAreaDialog(exit.room.boundName);
+        
+        // Lock the exit trigger so FixedUpdate can push
+        lastArrivalTrigger = exit.trigger;
+
+        float timeElapsed = Time.time - loadStartTime;
+        if (timeElapsed < minLoadingTime)
+            yield return new WaitForSeconds(minLoadingTime - timeElapsed);
+
+        if (playerRB != null) playerRB.simulated = true;
+        if (loadingIcon != null) loadingIcon.SetActive(false);
+
+        if (FadeTransition.Instance != null) FadeTransition.Instance.FadeIn();
+        
+        yield return new WaitForSeconds(transitionDuration);
+        isTransitioning = false;
+    }
+
+    private Vector3 CalculateTeleportPosition(PortalConnection conn, Portal entry, Portal exit)
+    {
+        if (!conn.useRelativeOffset && exit.customSpawnPoint != null)
+            return exit.customSpawnPoint.position;
+
+        if (conn.useRelativeOffset && entry.trigger != null && exit.trigger != null)
+        {
+            Bounds s = entry.trigger.bounds;
+            Bounds d = exit.trigger.bounds;
+
+            // FIXED: Using PlayerTransform.position correctly here
+            float tx = Mathf.Clamp01((PlayerTransform.position.x - s.min.x) / s.size.x);
+            float ty = Mathf.Clamp01((PlayerTransform.position.y - s.min.y) / s.size.y);
+
+            return new Vector3(
+                d.min.x + (tx * d.size.x),
+                d.min.y + (ty * d.size.y),
+                PlayerTransform.position.z
+            );
+        }
+        return exit.trigger != null ? exit.trigger.bounds.center : PlayerTransform.position;
+    }
+
+    private void ShowAreaDialog(string name)
+    {
+        if (dialogCanvas != null)
+        {
+            if (areaNameText != null) areaNameText.text = name;
+            StopCoroutine(nameof(HideDialogRoutine));
+            StartCoroutine(HideDialogRoutine());
+        }
+    }
+
+    private IEnumerator HideDialogRoutine()
+    {
+        dialogCanvas.SetActive(true);
+        yield return new WaitForSeconds(dialogDisplayTime);
+        dialogCanvas.SetActive(false);
+    }
+
+    public void ScanForPlayer()
+    {
+        if (parentToScan != null)
+        {
+            foreach (Transform t in parentToScan.GetComponentsInChildren<Transform>(true))
+            {
+                if (t.CompareTag("Player")) { SetPlayer(t); return; }
+            }
+        }
+        
+        GameObject p = GameObject.FindGameObjectWithTag("Player");
+        if (p != null) SetPlayer(p.transform);
+    }
+
+    private void SetPlayer(Transform t)
+    {
+        _playerTransform = t;
+        playerRB = t.GetComponent<Rigidbody2D>();
+    }
 }
