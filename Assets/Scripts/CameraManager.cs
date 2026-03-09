@@ -20,7 +20,6 @@ public class CameraBoundData
     public bool IsPositionInZone(Vector3 position)
     {
         if (boundingCollider == null) return false;
-        // OverlapPoint works for any collider type (Polygon, Box, etc.)
         return boundingCollider.OverlapPoint(position);
     }
 
@@ -69,7 +68,6 @@ public class CameraManager : MonoBehaviour
     [SerializeField] private Transform _playerTransform;
     [SerializeField] private Transform parentToScan;
 
-    // Property ensures we always find the player if they go missing
     public Transform PlayerTransform 
     {
         get 
@@ -83,7 +81,7 @@ public class CameraManager : MonoBehaviour
     [SerializeField] private List<PortalConnection> portalConnections = new List<PortalConnection>();
     [SerializeField] private float transitionDuration = 0.5f; 
     [SerializeField] private float minLoadingTime = 0.4f; 
-    [SerializeField] private float pushForce = 10f; // Constant push strength
+    [SerializeField] private float pushForce = 10f; 
 
     private List<CameraBoundData> discoveredRooms = new List<CameraBoundData>();
     private CameraBoundData currentBound;
@@ -107,7 +105,6 @@ public class CameraManager : MonoBehaviour
         GatherRoomsFromPortals();
         UpdateCameraBound();
 
-        // Enable initial room's map
         if (currentBound != null && currentBound.mapObject != null)
             currentBound.mapObject.SetActive(true); 
             
@@ -138,8 +135,6 @@ public class CameraManager : MonoBehaviour
     {
         if (PlayerTransform == null) return;
 
-        // --- CONSTANT PUSH LOGIC ---
-        // If the player is still inside the exit trigger, keep pushing them out
         if (lastArrivalTrigger != null)
         {
             if (lastArrivalTrigger.OverlapPoint(PlayerTransform.position))
@@ -151,7 +146,6 @@ public class CameraManager : MonoBehaviour
             }
             else
             {
-                // Stop pushing once they've cleared the collider
                 lastArrivalTrigger = null;
             }
         }
@@ -190,7 +184,6 @@ public class CameraManager : MonoBehaviour
         if (confiner2D != null && newBound.boundingCollider != null)
         {
             confiner2D.BoundingShape2D = newBound.boundingCollider;
-            // Force Confiner to update shape instantly
             confiner2D.InvalidateBoundingShapeCache(); 
         }
     }
@@ -202,23 +195,23 @@ public class CameraManager : MonoBehaviour
         {
             if (conn.portalA?.trigger != null && conn.portalA.trigger.OverlapPoint(pos))
             {
-                StartCoroutine(ExecutePortalTransition(conn, conn.portalA, conn.portalB));
+                // Capture current position as the "First Touch"
+                StartCoroutine(ExecutePortalTransition(conn, conn.portalA, conn.portalB, pos));
                 break;
             }
             else if (conn.portalB?.trigger != null && conn.portalB.trigger.OverlapPoint(pos))
             {
-                StartCoroutine(ExecutePortalTransition(conn, conn.portalB, conn.portalA));
+                StartCoroutine(ExecutePortalTransition(conn, conn.portalB, conn.portalA, pos));
                 break;
             }
         }
     }
 
-    private IEnumerator ExecutePortalTransition(PortalConnection connection, Portal entry, Portal exit)
+    private IEnumerator ExecutePortalTransition(PortalConnection connection, Portal entry, Portal exit, Vector3 firstTouchPos)
     {
         isTransitioning = true;
         if (loadingIcon != null) loadingIcon.SetActive(true);
         
-        // Save the direction for the push
         currentPushDir = (playerRB != null && playerRB.linearVelocity.sqrMagnitude > 0.01f) 
             ? playerRB.linearVelocity.normalized : Vector2.right;
 
@@ -231,26 +224,23 @@ public class CameraManager : MonoBehaviour
 
         float loadStartTime = Time.time;
 
-        // Toggle map objects for performance
         if (currentBound != null && currentBound.mapObject != null)
             currentBound.mapObject.SetActive(false); 
 
         if (exit.room.mapObject != null)
             exit.room.mapObject.SetActive(true); 
 
-        // Teleport logic
+        // Teleport logic using the 'firstTouchPos' captured earlier
         Vector3 oldPos = PlayerTransform.position;
-        Vector3 targetPos = CalculateTeleportPosition(connection, entry, exit);
+        Vector3 targetPos = CalculateTeleportPosition(connection, entry, exit, firstTouchPos);
         
         if (playerRB != null) playerRB.simulated = false;
         PlayerTransform.position = targetPos;
-        // Warp Cinemachine target instantly
         CinemachineCore.OnTargetObjectWarped(PlayerTransform, targetPos - oldPos);
 
         ApplyNewBound(exit.room);
         ShowAreaDialog(exit.room.boundName);
         
-        // Lock the exit trigger so FixedUpdate can push
         lastArrivalTrigger = exit.trigger;
 
         float timeElapsed = Time.time - loadStartTime;
@@ -266,7 +256,7 @@ public class CameraManager : MonoBehaviour
         isTransitioning = false;
     }
 
-    private Vector3 CalculateTeleportPosition(PortalConnection conn, Portal entry, Portal exit)
+    private Vector3 CalculateTeleportPosition(PortalConnection conn, Portal entry, Portal exit, Vector3 entryPos)
     {
         if (!conn.useRelativeOffset && exit.customSpawnPoint != null)
             return exit.customSpawnPoint.position;
@@ -276,17 +266,17 @@ public class CameraManager : MonoBehaviour
             Bounds s = entry.trigger.bounds;
             Bounds d = exit.trigger.bounds;
 
-            // FIXED: Using PlayerTransform.position correctly here
-            float tx = Mathf.Clamp01((PlayerTransform.position.x - s.min.x) / s.size.x);
-            float ty = Mathf.Clamp01((PlayerTransform.position.y - s.min.y) / s.size.y);
+            // Use 'entryPos' (the first touch position) instead of current PlayerTransform.position
+            float tx = Mathf.Clamp01((entryPos.x - s.min.x) / s.size.x);
+            float ty = Mathf.Clamp01((entryPos.y - s.min.y) / s.size.y);
 
             return new Vector3(
                 d.min.x + (tx * d.size.x),
                 d.min.y + (ty * d.size.y),
-                PlayerTransform.position.z
+                entryPos.z
             );
         }
-        return exit.trigger != null ? exit.trigger.bounds.center : PlayerTransform.position;
+        return exit.trigger != null ? exit.trigger.bounds.center : entryPos;
     }
 
     private void ShowAreaDialog(string name)

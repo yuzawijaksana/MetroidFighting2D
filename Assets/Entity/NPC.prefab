@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1231965723121306435}
   - component: {fileID: 7558202593241900925}
   - component: {fileID: 8197548926301607544}
-  - component: {fileID: 3185160380356041161}
+  - component: {fileID: 7261776536763004224}
   m_Layer: 0
   m_Name: NPC
   m_TagString: Untagged
@@ -135,7 +135,7 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
---- !u!114 &3185160380356041161
+--- !u!114 &7261776536763004224
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -147,24 +147,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6998a1deb10433e49979edc06350590c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dialogLines:
-  - text: Hello, I wanted to explore the whole world just by myself
-    characterPortrait: {fileID: 1748917699408257991, guid: 00a914f3e23ccfa4385e9a17fc9d5911, type: 3}
-    characterName: You
-  - text: You cant go there, its not save
-    characterPortrait: {fileID: 21300000, guid: c865552cb2acae74ab0626b198a286ce, type: 3}
-    characterName: Adult Bird
-  - text: There will be a lot of snakes and other things that will come in your way
-    characterPortrait: {fileID: 21300000, guid: c865552cb2acae74ab0626b198a286ce, type: 3}
-    characterName: Adult Bird
-  - text: Unless you want to really go..
-    characterPortrait: {fileID: 21300000, guid: c865552cb2acae74ab0626b198a286ce, type: 3}
-    characterName: Adult Bird
-  - text: Go on ahead
-    characterPortrait: {fileID: 21300000, guid: c865552cb2acae74ab0626b198a286ce, type: 3}
-    characterName: Adult Bird
+  dialogLines: []
   triggerOnce: 1
-  pauseGameDuringDialog: 0
+  pauseGameDuringDialog: 1
   dialogPanel: {fileID: 0}
   dialogText: {fileID: 0}
   characterNameText: {fileID: 0}
@@ -179,7 +164,8 @@ MonoBehaviour:
   useTriggerZone: 1
   requireSpecificAttacker: 0
   requiredAttackerTag: Player
-  ignoreTheseTagsInTrigger: []
+  ignoreTheseTagsInTrigger:
+  - PlayerAttack
   minDamageToTrigger: 0
   requireButtonPress: 0
   promptUI: {fileID: 0}

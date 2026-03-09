@@ -229,9 +229,9 @@ public class Damageable : MonoBehaviour
         }
 
         // Trigger Camera Shake
-        if (CameraShake.Instance != null)
+        if (CameraController.Instance != null)
         {
-            CameraShake.Instance.Shake(5f, 0.1f); // Example: intensity 5 for 0.1 seconds
+            CameraController.Instance.Shake(5f, 0.1f); // Example: intensity 5 for 0.1 seconds
         }
         
         // Apply Knockback Interrupt (Disable movement control briefly)
