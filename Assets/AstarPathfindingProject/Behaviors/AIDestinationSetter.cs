@@ -2,48 +2,38 @@ using UnityEngine;
 using System.Collections;
 
 namespace Pathfinding {
-    [UniqueComponent(tag = "ai.destination")]
-    [HelpURL("http://arongranberg.com/astar/docs/class_pathfinding_1_1_a_i_destination_setter.php")]
-    public class AIDestinationSetter : VersionedMonoBehaviour {
-        
-        [Tooltip("The parent object to scan for a child tagged 'Player'")]
-        public Transform parentToScan; 
-        
-        public Transform target;
-        IAstarAI ai;
+	/// <summary>
+	/// Sets the destination of an AI to the position of a specified object.
+	/// This component should be attached to a GameObject together with a movement script such as AIPath, RichAI or AILerp.
+	/// This component will then make the AI move towards the <see cref="target"/> set on this component.
+	///
+	/// See: <see cref="Pathfinding.IAstarAI.destination"/>
+	///
+	/// [Open online documentation to see images]
+	/// </summary>
+	[UniqueComponent(tag = "ai.destination")]
+	[HelpURL("http://arongranberg.com/astar/docs/class_pathfinding_1_1_a_i_destination_setter.php")]
+	public class AIDestinationSetter : VersionedMonoBehaviour {
+		/// <summary>The object that the AI should move to</summary>
+		public Transform target;
+		IAstarAI ai;
 
-        void OnEnable () {
-            ai = GetComponent<IAstarAI>();
-            if (ai != null) ai.onSearchPath += Update;
-        }
+		void OnEnable () {
+			ai = GetComponent<IAstarAI>();
+			// Update the destination right before searching for a path as well.
+			// This is enough in theory, but this script will also update the destination every
+			// frame as the destination is used for debugging and may be used for other things by other
+			// scripts as well. So it makes sense that it is up to date every frame.
+			if (ai != null) ai.onSearchPath += Update;
+		}
 
-        void OnDisable () {
-            if (ai != null) ai.onSearchPath -= Update;
-        }
+		void OnDisable () {
+			if (ai != null) ai.onSearchPath -= Update;
+		}
 
-        void Update () {
-            // 1. If we don't have a target yet, keep scanning the parent for it
-            if (target == null && parentToScan != null) {
-                FindPlayerChild();
-            }
-
-            // 2. If we DO have a target, update the AI's destination
-            if (target != null && ai != null) {
-                ai.destination = target.position;
-            }
-        }
-
-        void FindPlayerChild() {
-            // Look through every child attached to the parent
-            foreach (Transform child in parentToScan.GetComponentsInChildren<Transform>()) {
-                if (child.CompareTag("Player")) {
-                    target = child; // Assigns it so you can see it in the Inspector
-                    
-                    // Prints a message in the Unity Console so you know exactly what it grabbed
-                    Debug.Log("AIDestinationSetter: Target acquired! Now chasing -> " + target.name);
-                    break; // Stop searching once we find it
-                }
-            }
-        }
-    }
+		/// <summary>Updates the AI's destination every frame</summary>
+		void Update () {
+			if (target != null && ai != null) ai.destination = target.position;
+		}
+	}
 }

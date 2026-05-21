@@ -2046,7 +2046,7 @@ Rigidbody2D:
   m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_GravityScale: 1
-  m_Material: {fileID: 6200000, guid: 41cd619ec96147546afbe4d21ba48aca, type: 2}
+  m_Material: {fileID: 6200000, guid: 338eb2d5e4bf5e048ac9c9d1e0157e89, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -5979,7 +5979,7 @@ Rigidbody2D:
   m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_GravityScale: 1
-  m_Material: {fileID: 6200000, guid: 41cd619ec96147546afbe4d21ba48aca, type: 2}
+  m_Material: {fileID: 6200000, guid: 338eb2d5e4bf5e048ac9c9d1e0157e89, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -6808,7 +6808,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   stories:
   - storyName: Bird
-    characterPrefab: {fileID: 4883880204484489955, guid: d23b6b964cc110440b1140bf7f0205dd, type: 3}
+    characterPrefab: {fileID: 544309407910711668, guid: fc0a92d95099b1245b84f6e288ca7a26, type: 3}
     startPoint: {fileID: 941901257}
     mapGameObject: {fileID: 506431477298966428}
     cameraBounds: {fileID: 1650016165}
