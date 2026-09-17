@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using TMPro;
 using Unity.Cinemachine;
 // using YourProject.UI; // Uncomment and replace with your actual namespace if CharacterIngameGridUI is in a different namespace
 
@@ -16,35 +17,109 @@ public class GameStarter : MonoBehaviour
     [SerializeField] private Vector3 player1SpawnPosition = new Vector3(-3, 2, 0);
     [SerializeField] private Vector3 player2SpawnPosition = new Vector3(3, 2, 0);
 
-    [Header("References (Assign in Inspector)")]
-    public CharacterIngameGridUI ingameGridUI; // Assign in inspector
-
-    public CharacterCard player1Card; // Store selected CharacterCard
-    public CharacterCard player2Card; // Store selected CharacterCard
-
-    [HideInInspector] public GameObject player1Prefab;
-    [HideInInspector] public GameObject player2Prefab;
-    public GameObject countdownTextObject;
-    public GameObject playersParent; // Assign your Players GameObject in the Inspector
-    public TargetGroupManager targetGroupManager; // Assign in Inspector
+    [Header("Inspector Setup - assign these")]
+    public CharacterIngameGridUI ingameGridUI; // In-game HUD grid
+    public GameObject playersParent; // Parent object for spawned players
+    public TargetGroupManager targetGroupManager; // Camera target group
+    public GameObject loadingScreen; // Loading overlay canvas
+    public Slider loadingSlider; // Loading progress bar
+    public TMP_Text loadingText; // Loading status text
+    [SerializeField] private float loadingScreenDuration = 5f; // How long the loading screen stays visible before match starts
+    [SerializeField] private CinemachineCamera gameplayVirtualCamera; // Active follow camera that controls the view size
+    [SerializeField] private CinemachineGroupFraming gameplayFraming; // Actual framing component used by the current virtual camera
+    [SerializeField] private Camera gameplayCamera; // Fallback camera reference
+    public Image player1Portrait; // P1 portrait image in HUD
+    public Image player2Portrait; // P2 portrait image in HUD
+    public TMP_Text player1NameText; // P1 name text in HUD
+    public TMP_Text player2NameText; // P2 name text in HUD
+    public TMP_Text player1LabelText; // P1 label text like "P1"
+    public TMP_Text player2LabelText; // P2 label text like "P2"
+    public TMP_Text tipsLabelText; // Tips text label in HUD
+    public VictoryScreenUI victoryScreenUI; // Winner screen
     [SerializeField] private CinemachineConfiner2D cinemachineConfiner;
 
-    [Header("Victory UI")]
-    public VictoryScreenUI victoryScreenUI; // Assign in inspector
+    [Header("Selection payload - sent from CharacterSelection")]
+    public CharacterCard selectedPlayer1Card;
+    public CharacterCard selectedPlayer2Card;
 
-    // Store selection history for rematch
+    [HideInInspector] public GameObject selectedPlayer1Prefab;
+    [HideInInspector] public GameObject selectedPlayer2Prefab;
+
+    [Header("Runtime / internal state - do not assign manually")]
+    public GameObject countdownTextObject;
     private List<GameObject> selectedPrefabs = new List<GameObject>();
     private List<string> selectedLabels = new List<string>();
     private List<CharacterCard> selectedCards = new List<CharacterCard>();
-
     private List<GameObject> spawnedPlayers = new List<GameObject>();
-
-    // Add this field to store spawn positions for each player
     private List<Vector3> spawnPositions = new List<Vector3>();
+
+    [Header("Camera Modes")]
+    [SerializeField] private float fixedCameraSize = 4f;
+    [SerializeField] private float defaultCameraSize = 6f;
+    [SerializeField] private float actionCameraSize = 5f;
+
+    private enum CameraMode
+    {
+        Fixed,
+        Default,
+        Action
+    }
+
+    private CameraMode currentCameraMode = CameraMode.Default;
+    private bool forceMatchCameraView = false;
 
     private void Awake()
     {
         Instance = this;
+        ResolveGameplayCameraReferences();
+        SetGameplayCameraMode(false);
+    }
+
+    private void Start()
+    {
+        ResolveGameplayCameraReferences();
+        SetGameplayCameraMode(false);
+    }
+
+    private void ResolveGameplayCameraReferences()
+    {
+        if (gameplayCamera == null)
+            gameplayCamera = Camera.main;
+
+        if (gameplayVirtualCamera == null)
+        {
+            var foundCamera = GameObject.Find("CinemachineCamera");
+            if (foundCamera != null)
+                gameplayVirtualCamera = foundCamera.GetComponent<CinemachineCamera>();
+        }
+
+        if (gameplayVirtualCamera == null && gameplayCamera != null)
+            gameplayVirtualCamera = gameplayCamera.GetComponent<CinemachineCamera>();
+
+        if (gameplayVirtualCamera == null)
+            gameplayVirtualCamera = FindFirstObjectByType<CinemachineCamera>();
+
+        if (gameplayVirtualCamera != null && gameplayFraming == null)
+            gameplayFraming = gameplayVirtualCamera.GetComponent<CinemachineGroupFraming>();
+
+        if (gameplayVirtualCamera == null)
+            Debug.LogWarning("GameStarter: Could not find the active Cinemachine camera. Assign CinemachineCamera manually in GameStarter.");
+    }
+
+    private void Update()
+    {
+        if (forceMatchCameraView)
+        {
+            ForceCameraToActionView();
+        }
+
+        if (Keyboard.current == null)
+            return;
+
+        if (Keyboard.current.cKey.wasPressedThisFrame)
+        {
+            CycleCameraMode();
+        }
     }
 
     public void StartGame()
@@ -54,7 +129,20 @@ public class GameStarter : MonoBehaviour
         {
             return;
         }
-        
+
+        StartCoroutine(StartMatchRoutine("Preparing arena...", loadingScreenDuration));
+    }
+
+    public void Rematch()
+    {
+        StartCoroutine(StartMatchRoutine("Rematch...", loadingScreenDuration));
+    }
+
+    private IEnumerator StartMatchRoutine(string loadingMessage, float delayBeforeSetup)
+    {
+        ShowLoading(true, 0.15f, loadingMessage);
+        yield return new WaitForSeconds(delayBeforeSetup);
+
         ResetGameState();
         InitializeMap();
         InitializeSpawnPositions();
@@ -62,18 +150,13 @@ public class GameStarter : MonoBehaviour
         InitializeUI();
         LinkPlayersToUI(); // Link players to their UI cells
         UpdateTargetGroup(); // Call the reusable method
+        UpdateSelectedPlayerVisuals();
+        SetGameplayCameraMode(true);
+        forceMatchCameraView = true;
+        ForceCameraToActionView();
         StartCountdownAndEnableControls();
-    }
 
-    public void Rematch()
-    {
-        ResetGameState();
-        InitializeMap(); // Re-enable map for rematch
-        InitializePlayers();
-        InitializeUI(); // Ensure UI is recreated before updating hearts
-        LinkPlayersToUI(); // Link players to their UI cells
-        UpdateTargetGroup(); // Call the reusable method
-        StartCountdownAndEnableControls();
+        ShowLoading(false, 1f, "Fight!");
     }
 
     private void ResetGameState()
@@ -144,6 +227,90 @@ public class GameStarter : MonoBehaviour
         {
             Debug.LogWarning("GameStarter: Cinemachine Confiner not assigned.");
         }
+
+        ApplyCameraMode();
+    }
+
+    private void CycleCameraMode()
+    {
+        currentCameraMode = (CameraMode)(((int)currentCameraMode + 1) % 3);
+        ApplyCameraMode();
+    }
+
+    private void ApplyCameraMode()
+    {
+        ResolveGameplayCameraReferences();
+
+        float cameraSize = currentCameraMode switch
+        {
+            CameraMode.Fixed => fixedCameraSize,
+            CameraMode.Action => actionCameraSize,
+            _ => defaultCameraSize
+        };
+
+        if (gameplayVirtualCamera != null)
+        {
+            var lens = gameplayVirtualCamera.Lens;
+            lens.OrthographicSize = cameraSize;
+            gameplayVirtualCamera.Lens = lens;
+        }
+
+        if (gameplayCamera != null)
+        {
+            gameplayCamera.orthographicSize = cameraSize;
+        }
+
+        if (gameplayFraming != null)
+        {
+            gameplayFraming.FramingSize = cameraSize;
+        }
+
+        Debug.Log($"GameStarter: Camera mode set to {currentCameraMode} ({cameraSize}) | virtual={gameplayVirtualCamera?.name} | framing={gameplayFraming?.FramingSize}");
+    }
+
+    private void ForceCameraToActionView()
+    {
+        ResolveGameplayCameraReferences();
+        currentCameraMode = CameraMode.Action;
+        SetGameplayCameraMode(true);
+
+        if (gameplayVirtualCamera != null)
+        {
+            var lens = gameplayVirtualCamera.Lens;
+            lens.OrthographicSize = 4f;
+            gameplayVirtualCamera.Lens = lens;
+        }
+
+        if (gameplayCamera != null)
+        {
+            gameplayCamera.orthographicSize = 4f;
+        }
+
+        if (gameplayFraming != null)
+        {
+            gameplayFraming.FramingSize = 4f;
+        }
+
+        Debug.Log("GameStarter: Forced gameplay camera zoom to 4 for match start.");
+    }
+
+    private void SetGameplayCameraMode(bool isGameplayCamera)
+    {
+        ResolveGameplayCameraReferences();
+
+        if (gameplayFraming != null)
+        {
+            gameplayFraming.enabled = !isGameplayCamera;
+        }
+
+        if (gameplayVirtualCamera != null)
+        {
+            var lens = gameplayVirtualCamera.Lens;
+            lens.OrthographicSize = isGameplayCamera ? 4f : 10f;
+            gameplayVirtualCamera.Lens = lens;
+        }
+
+        Debug.Log($"GameStarter: Gameplay camera mode = {isGameplayCamera}");
     }
 
     private void InitializeSpawnPositions()
@@ -157,7 +324,7 @@ public class GameStarter : MonoBehaviour
 
     private void InitializePlayers()
     {
-        var playerPrefabs = new List<GameObject> { player1Prefab, player2Prefab };
+        var playerPrefabs = new List<GameObject> { selectedPlayer1Prefab, selectedPlayer2Prefab };
         var playerHearts = new Dictionary<int, int>();
 
         for (int i = 0; i < playerPrefabs.Count; i++)
@@ -211,7 +378,7 @@ public class GameStarter : MonoBehaviour
         }
 
         // Ensure player cards are valid
-        if (player1Card == null || player2Card == null)
+        if (selectedPlayer1Card == null || selectedPlayer2Card == null)
         {
             Debug.LogError("Player cards are not assigned.");
             return;
@@ -223,9 +390,59 @@ public class GameStarter : MonoBehaviour
         // Recreate the UI elements
         ingameGridUI.SetCards(new List<(CharacterCard, string)>
         {
-            (player1Card, "P1"),
-            (player2Card, "P2")
+            (selectedPlayer1Card, "P1"),
+            (selectedPlayer2Card, "P2")
         });
+    }
+
+    private void UpdateSelectedPlayerVisuals()
+    {
+        // Source data comes from CharacterSelection via selectedPlayerXCard.
+        // Destination UI slots are these portrait/name/label fields above.
+        ApplyPlayerVisual(0, selectedPlayer1Card, "P1", player1Portrait, player1NameText, player1LabelText);
+        ApplyPlayerVisual(1, selectedPlayer2Card, "P2", player2Portrait, player2NameText, player2LabelText);
+    }
+
+    private void ApplyPlayerVisual(int index, CharacterCard card, string label, Image portraitImage, TMP_Text nameText, TMP_Text labelText)
+    {
+        if (card == null)
+            return;
+
+        // CharacterSelection sends the selected CharacterCard, and that card contains:
+        // - card.characterSprite -> portrait source
+        // - card.characterName -> name source
+        if (portraitImage != null && card.characterSprite != null)
+            portraitImage.sprite = card.characterSprite;
+
+        if (nameText != null)
+            nameText.text = card.characterName;
+
+        if (labelText != null)
+            labelText.text = label;
+    }
+
+    public void SetTip(string tipText)
+    {
+        if (tipsLabelText != null)
+            tipsLabelText.text = tipText;
+    }
+
+    public void ApplySelectedCardVisuals()
+    {
+        ApplyPlayerVisual(0, selectedPlayer1Card, "P1", player1Portrait, player1NameText, player1LabelText);
+        ApplyPlayerVisual(1, selectedPlayer2Card, "P2", player2Portrait, player2NameText, player2LabelText);
+    }
+
+    private void ShowLoading(bool isVisible, float progressValue = 0f, string message = "Loading...")
+    {
+        if (loadingScreen != null)
+            loadingScreen.SetActive(isVisible);
+
+        if (loadingSlider != null)
+            loadingSlider.value = Mathf.Clamp01(progressValue);
+
+        if (loadingText != null)
+            loadingText.text = message;
     }
 
     private void LinkPlayersToUI()

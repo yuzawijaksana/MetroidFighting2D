@@ -82,10 +82,10 @@ public class VictoryScreenUI : MonoBehaviour
         // Clear references in GameStarter
         if (GameStarter.Instance != null)
         {
-            GameStarter.Instance.player1Card = null;
-            GameStarter.Instance.player2Card = null;
-            GameStarter.Instance.player1Prefab = null;
-            GameStarter.Instance.player2Prefab = null;
+            GameStarter.Instance.selectedPlayer1Card = null;
+            GameStarter.Instance.selectedPlayer2Card = null;
+            GameStarter.Instance.selectedPlayer1Prefab = null;
+            GameStarter.Instance.selectedPlayer2Prefab = null;
         }
 
         gameObject.SetActive(false);

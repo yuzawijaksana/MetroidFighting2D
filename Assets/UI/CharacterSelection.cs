@@ -20,8 +20,10 @@ public class CharacterSelection : MonoBehaviour
     private int player2Index = 0;
     private bool player1Confirmed = false;
     private bool player2Confirmed = false;
-    private GameObject player1Prefab;
-    private GameObject player2Prefab;
+
+    // Selected character data for the match start.
+    private GameObject selectedPlayer1Prefab;
+    private GameObject selectedPlayer2Prefab;
     private List<GameObject> spawnedCards = new List<GameObject>();
     private Vector2 player1TargetAnchoredPos;
     private Vector2 player2TargetAnchoredPos;
@@ -94,13 +96,21 @@ public class CharacterSelection : MonoBehaviour
             if (!player1Confirmed)
             {
                 player1Confirmed = true;
-                player1Prefab = characterCards[player1Index].characterPrefab;
+                selectedPlayer1Prefab = characterCards[player1Index].characterPrefab;
                 if (gameStarter != null)
-                    gameStarter.player1Card = characterCards[player1Index]; // push card
+                {
+                    // This is the actual portrait/name payload sent to GameStarter.
+                    // The CharacterCard already contains both the sprite and the name.
+                    gameStarter.selectedPlayer1Card = characterCards[player1Index];
+                    gameStarter.selectedPlayer1Prefab = selectedPlayer1Prefab;
+                    gameStarter.ApplySelectedCardVisuals();
+                }
             }
             else
             {
                 player1Confirmed = false;
+                gameStarter.selectedPlayer1Card = null;
+                gameStarter.selectedPlayer1Prefab = null;
             }
             HighlightSelections();
         }
@@ -124,13 +134,21 @@ public class CharacterSelection : MonoBehaviour
             if (!player2Confirmed)
             {
                 player2Confirmed = true;
-                player2Prefab = characterCards[player2Index].characterPrefab;
+                selectedPlayer2Prefab = characterCards[player2Index].characterPrefab;
                 if (gameStarter != null)
-                    gameStarter.player2Card = characterCards[player2Index]; // push card
+                {
+                    // This is the actual portrait/name payload sent to GameStarter.
+                    // The CharacterCard already contains both the sprite and the name.
+                    gameStarter.selectedPlayer2Card = characterCards[player2Index];
+                    gameStarter.selectedPlayer2Prefab = selectedPlayer2Prefab;
+                    gameStarter.ApplySelectedCardVisuals();
+                }
             }
             else
             {
                 player2Confirmed = false;
+                gameStarter.selectedPlayer2Card = null;
+                gameStarter.selectedPlayer2Prefab = null;
             }
             HighlightSelections();
         }
@@ -149,13 +167,12 @@ public class CharacterSelection : MonoBehaviour
         {
             if (gameStarter != null)
             {
-                // Ensure selected prefabs are assigned to GameStarter
-                gameStarter.player1Prefab = player1Prefab;
-                gameStarter.player2Prefab = player2Prefab;
+                // Final payload sent to GameStarter when starting the match.
+                gameStarter.selectedPlayer1Prefab = selectedPlayer1Prefab;
+                gameStarter.selectedPlayer2Prefab = selectedPlayer2Prefab;
 
-                // Push selected data to GameStarter
                 gameStarter.SetSelectedData(
-                    new List<GameObject> { player1Prefab, player2Prefab },
+                    new List<GameObject> { selectedPlayer1Prefab, selectedPlayer2Prefab },
                     new List<string> { "Player 1", "Player 2" },
                     new List<CharacterCard> { characterCards[player1Index], characterCards[player2Index] }
                 );
@@ -267,8 +284,8 @@ public class CharacterSelection : MonoBehaviour
         player2Index = 0;
         player1Confirmed = false;
         player2Confirmed = false;
-        player1Prefab = null;
-        player2Prefab = null;
+        selectedPlayer1Prefab = null;
+        selectedPlayer2Prefab = null;
 
         // Reset indicators to initial positions
         HighlightSelections();
@@ -310,8 +327,8 @@ public class CharacterSelection : MonoBehaviour
         player2Index = 0;
         player1Confirmed = false;
         player2Confirmed = false;
-        player1Prefab = null;
-        player2Prefab = null;
+        selectedPlayer1Prefab = null;
+        selectedPlayer2Prefab = null;
 
         // Reset indicators to initial positions
         HighlightSelections();

@@ -47,18 +47,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cellUI: {fileID: 0}
   isStoryMode: 1
+  maxHealthThreshold: 300
+  storyInfo: "Story Mode:\n\u2022 Dies at 300% damage\n\u2022 Respawn/Game Over on
+    death"
+  pvpInfo: "PvP Mode:\n\u2022 Damage accumulates infinitely\n\u2022 No death - eliminated
+    by ring-outs"
   currentHealth: 0
   maxHearts: 3
+  useIFrames: 1
+  iFrameDuration: 2
+  dealsContactDamage: 1
+  receivesContactDamage: 1
+  contactDamage: 5
+  contactKnockback: {x: 10, y: 10}
+  damageInterval: 0.5
   groundCheckPoint: {fileID: 3296633051192932678}
   whatIsGround:
     serializedVersion: 2
     m_Bits: 8
   groundCheckRadius: 0.2
-  pvpInfo: "PvP Mode:\n\u2022 Damage accumulates infinitely\n\u2022 No death - eliminated
-    by ring-outs"
-  maxHealthThreshold: 300
-  storyInfo: "Story Mode:\n\u2022 Dies at 300% damage\n\u2022 Respawn/Game Over on
-    death"
+  knockbackInterruptDuration: 0.4
 --- !u!70 &1635020256744072268
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
