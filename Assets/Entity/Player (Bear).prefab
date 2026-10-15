@@ -116,6 +116,7 @@ GameObject:
   - component: {fileID: 4812521893219718634}
   - component: {fileID: 5587330451785354843}
   - component: {fileID: 7763529650864494605}
+  - component: {fileID: 5600000000000000001}
   m_Layer: 6
   m_Name: Player (Bear)
   m_TagString: Player
@@ -133,7 +134,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 4, y: 4, z: 4}
+  m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 4650765410708820844}
@@ -380,6 +381,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ae6b6c1a314a5a4f9c4bf31adeccc15, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &5600000000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 544309407910711668}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6186b2decd74ed9b87e412c2b9852d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  wallSlideShrinkX: 1
+  wallSlideShrinkY: 1
+  jumpShrinkX: 1
+  jumpShrinkY: 1
+  flopLungeSpeed: 9
+  sideLightHopForce: 7
+  enemySearchRadius: 6
+  enemyLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
 --- !u!1 &1496767316623165209
 GameObject:
   m_ObjectHideFlags: 0

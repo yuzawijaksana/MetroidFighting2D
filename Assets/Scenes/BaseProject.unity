@@ -9241,6 +9241,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   characterCards:
   - {fileID: 11400000, guid: cd69b4ca19b433946ba44e97c8266d86, type: 2}
+  - {fileID: 11400000, guid: f1318094d04421e4a8b073dcd1fac3a7, type: 2}
+  - {fileID: 11400000, guid: 41ec0c18c059beb4c80abdabdda8260b, type: 2}
   - {fileID: 11400000, guid: 5e3eec3825f7d42458aef659dfcbc663, type: 2}
   characterCardPrefab: {fileID: 4365624380680205481, guid: 989a2883856f02541a53f3a1628a753b, type: 3}
   player1Indicator: {fileID: 1660389471}
